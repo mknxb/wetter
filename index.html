@@ -4,117 +4,200 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Wetter Bayerwald Live</title>
-<meta name="theme-color" content="#0b1118">
+<meta name="theme-color" content="#0c1426">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;700;800&family=Barlow:wght@400;500;600&display=swap">
 <style>
-/* Layout: Kopfband, dann drei Spalten (Jetzt | Vorhersage | Stationen), am Handy untereinander */
+/* Layout: Himmels-Hero mit Bergkamm über volle Breite, darunter Vorhersage (links) und Stationen (rechts) */
 :root{
-  --bg:#0b1118; --panel:#111a24; --row:#16212d; --line:#223142;
-  --fg:#e6edf4; --mu:#8a9aac; --head:#7fb4ec; --band:#16304f;
-  --kalt:#6fb2ff; --warm:#f2a98c; --trend:#f0a03c; --ok:#7cc48a;
-  --w-minor:#e8c547; --w-moderate:#f08a2e; --w-severe:#e5484d; --w-extreme:#b35ad6;
-  --f-disp:"Barlow Semi Condensed","Arial Narrow",system-ui,sans-serif;
+  --ink:#0c1426; --panel:rgba(22,34,58,.72); --panel-solid:#16223a; --line:rgba(150,180,230,.14);
+  --fg:#eef3fb; --mu:#93a4c0; --accent:#8cc4ff; --amber:#ffb454; --ok:#86d7a0;
+  --cold:#6fb7ff; --warm:#ffa36b;
+  --w-minor:#f2cd4b; --w-moderate:#f58a2c; --w-severe:#ef4b55; --w-extreme:#b46ae0;
+  --sky1:#0d1a3a; --sky2:#1d2f5e; --sky3:#2e3f6e;
+  --f-disp:"Big Shoulders Display","Arial Narrow",system-ui,sans-serif;
   --f-body:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;
   color-scheme:dark;
 }
 *{box-sizing:border-box}
-html{-webkit-text-size-adjust:100%}
-body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.4 var(--f-body);font-variant-numeric:tabular-nums}
-.band{background:var(--band)}
-.band .in{display:flex;flex-wrap:wrap;gap:4px 16px;align-items:baseline;justify-content:space-between;
-  padding-block:calc(10px + env(safe-area-inset-top,0px)) 10px;
-  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-h1{font:700 1.45rem/1.15 var(--f-disp);margin:0;letter-spacing:.01em;text-wrap:balance}
-.stand{color:#b7c6d6;font-size:.85rem}
-.stand button{font:inherit;color:var(--head);background:none;border:1px solid var(--line);border-radius:4px;padding:2px 8px;margin-left:6px;cursor:pointer}
-.stand button:focus-visible,select:focus-visible{outline:2px solid var(--head);outline-offset:2px}
-main{display:grid;gap:18px 22px;grid-template-columns:1fr;
-  padding-block:16px 24px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));max-width:1500px;margin:0 auto}
-@media (min-width:760px){main{grid-template-columns:minmax(0,1fr) minmax(0,1.3fr)}.c3{grid-column:1 / -1}}
-@media (min-width:1180px){main{grid-template-columns:minmax(0,.85fr) minmax(0,1.2fr) minmax(0,1.2fr)}.c3{grid-column:auto}}
-.col{display:flex;flex-direction:column;gap:18px;min-width:0}
-h2{font:600 1.05rem/1.2 var(--f-disp);color:var(--head);margin:0 0 6px;letter-spacing:.02em}
-h2 small{font:400 .75rem var(--f-body);color:var(--mu);letter-spacing:0;margin-left:6px}
-.big{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
-.temp{font:700 clamp(3.2rem,11vw,4.6rem)/1 var(--f-disp);letter-spacing:-.01em}
-.trend{display:flex;flex-direction:column;align-items:center;color:var(--trend);font-size:.78rem;font-weight:600}
-.trend svg{width:46px;height:30px}
-.cond{display:flex;align-items:center;gap:8px;font:600 1.35rem var(--f-disp);margin:6px 0 4px}
-.cond svg{width:34px;height:34px}
-.kv{color:var(--mu);line-height:1.6}
-.kv b{color:var(--fg);font-weight:500}
-.ort{display:flex;gap:8px;align-items:center;color:var(--mu);font-size:.85rem;margin-top:10px}
-select{font:inherit;color:var(--fg);background:var(--row);border:1px solid var(--line);border-radius:4px;padding:3px 6px}
-.tw{overflow-x:auto;-webkit-overflow-scrolling:touch}
-table{border-collapse:collapse;width:100%;font-size:.88rem}
-th{color:var(--mu);font-weight:500;font-size:.74rem;text-align:right;padding:4px 6px;background:var(--row);white-space:nowrap}
-td{padding:4px 6px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--line)}
-tbody tr:nth-child(even) td{background:rgba(255,255,255,.025)}
-th.l,td.l{text-align:left}
-td.ic{padding:1px 4px;text-align:center}td.ic svg{width:22px;height:22px;vertical-align:middle}
-td.nm{max-width:12.5em;overflow:hidden;text-overflow:ellipsis}
-.k{color:var(--kalt)}.wa{color:var(--warm)}.tk{color:var(--kalt);font-weight:600}
-.rk{display:inline-grid;place-items:center;width:1.35em;height:1.35em;border-radius:50%;font-size:.75rem;font-weight:700;color:#111}
-.r1{background:#e9c46a}.r2{background:#cfd6de}.r3{background:#c8875a}.rn{color:var(--mu);background:none}
-.hint{color:var(--mu);font-size:.72rem;margin-top:4px}
-.warn{border-left:5px solid var(--w-minor);background:var(--panel);padding:7px 10px;margin-bottom:8px;border-radius:3px}
-.warn b{display:block;font-weight:600}.warn small{color:var(--mu)}
-.warn.moderate{border-color:var(--w-moderate)}.warn.severe{border-color:var(--w-severe)}.warn.extreme{border-color:var(--w-extreme)}
-.okmsg{color:var(--ok)}
-.err{color:#e8b04a;font-size:.82rem}
+html{-webkit-text-size-adjust:100%;background:var(--ink)}
+body{margin:0;background:var(--ink);color:var(--fg);font:15px/1.45 var(--f-body);font-variant-numeric:tabular-nums;min-height:100vh}
+button,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* ---------- Hero ---------- */
+.hero{position:relative;overflow:hidden;isolation:isolate;
+  background:linear-gradient(180deg,var(--sky1) 0%,var(--sky2) 55%,var(--sky3) 100%);transition:background 1s}
+.hero[data-sky="day"]{--sky1:#2b6cc4;--sky2:#4f8fd8;--sky3:#9cc6ee}
+.hero[data-sky="cloudy-day"]{--sky1:#415a7a;--sky2:#6a819e;--sky3:#9aacc0}
+.hero[data-sky="rain"]{--sky1:#26344a;--sky2:#3c4c64;--sky3:#5b6b80}
+.hero[data-sky="fog"]{--sky1:#59677a;--sky2:#7f8b99;--sky3:#a9b2bc}
+.hero[data-sky="dusk"]{--sky1:#1d2450;--sky2:#7a4a6e;--sky3:#e08a5c}
+.hero[data-sky="night"]{--sky1:#060b1c;--sky2:#101d40;--sky3:#22325e}
+.hero[data-sky="cloudy-night"]{--sky1:#10172a;--sky2:#1d2840;--sky3:#2f3b55}
+.stars{position:absolute;inset:0;z-index:-2;opacity:0;transition:opacity 1s}
+.hero[data-sky="night"] .stars{opacity:1}
+.stars i{position:absolute;width:2px;height:2px;border-radius:50%;background:#fff}
+@media (prefers-reduced-motion:no-preference){.stars i{animation:tw 3.5s ease-in-out infinite alternate}@keyframes tw{from{opacity:.25}to{opacity:1}}}
+.ridge{position:absolute;left:0;right:0;bottom:0;width:100%;height:120px;z-index:-1;display:block}
+.hero-in{max-width:1200px;margin:0 auto;padding-block:calc(14px + env(safe-area-inset-top,0px)) 150px;
+  padding-left:max(18px,env(safe-area-inset-left,0px));padding-right:max(18px,env(safe-area-inset-right,0px))}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.brand{font:700 .8rem/1 var(--f-body);letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.75)}
+.stand{display:flex;align-items:center;gap:8px;font-size:.8rem;color:rgba(255,255,255,.75)}
+.icon-btn{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,255,255,.25);
+  background:rgba(255,255,255,.08);cursor:pointer;backdrop-filter:blur(6px)}
+.icon-btn svg{width:17px;height:17px}
+.icon-btn.spin svg{animation:sp 1s linear infinite}@keyframes sp{to{transform:rotate(360deg)}}
+.place{margin-top:26px;position:relative;display:inline-flex;align-items:center;gap:6px}
+.place select{appearance:none;-webkit-appearance:none;background:transparent;border:0;padding:0 26px 0 0;cursor:pointer;
+  font:800 clamp(2rem,7vw,2.8rem)/1 var(--f-disp);letter-spacing:.01em;text-transform:uppercase;field-sizing:content;max-width:100%}
+.place select option{background:var(--panel-solid);color:var(--fg);font:500 1rem var(--f-body);text-transform:none}
+.place svg{position:absolute;right:0;pointer-events:none;width:18px;height:18px;opacity:.8}
+.station{font-size:.82rem;color:rgba(255,255,255,.72);margin-top:4px}
+.now{display:flex;align-items:flex-end;gap:10px 22px;flex-wrap:wrap;margin-top:12px}
+.temp{font:800 clamp(5.6rem,24vw,9rem)/.82 var(--f-disp);letter-spacing:-.02em;text-shadow:0 6px 30px rgba(0,0,0,.25)}
+.temp sup{font-size:.36em;font-weight:700;vertical-align:top;margin-left:2px;position:relative;top:.25em}
+.cond{display:flex;flex-direction:column;gap:6px;padding-bottom:8px}
+.cond .ico svg{width:64px;height:64px;filter:drop-shadow(0 4px 12px rgba(0,0,0,.25))}
+.cond b{font:700 1.6rem/1 var(--f-disp);letter-spacing:.02em}
+.chip{display:inline-flex;align-items:center;gap:6px;width:max-content;padding:4px 10px;border-radius:999px;font-size:.78rem;font-weight:600;
+  background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.18)}
+.chip svg{width:14px;height:14px}
+.chip.up{color:#ffd29a}.chip.down{color:#bfe0ff}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(138px,1fr));gap:8px;margin-top:22px;max-width:760px}
+.stat{background:rgba(6,12,28,.28);border:1px solid rgba(255,255,255,.14);border-radius:14px;padding:9px 12px;backdrop-filter:blur(8px)}
+.stat small{display:block;font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.66)}
+.stat b{font:700 1.35rem/1.15 var(--f-disp);letter-spacing:.02em;display:flex;align-items:center;gap:6px}
+.stat b span{font:500 .8rem var(--f-body);color:rgba(255,255,255,.75)}
+.stat .arrow{width:18px;height:18px;transition:transform .8s}
+
+/* ---------- Inhalt ---------- */
+main{max-width:1200px;margin:-92px auto 0;position:relative;display:grid;gap:16px;grid-template-columns:minmax(0,1fr);
+  padding-block:0 20px;padding-left:max(14px,env(safe-area-inset-left,0px));padding-right:max(14px,env(safe-area-inset-right,0px))}
+@media (min-width:900px){main{grid-template-columns:minmax(0,1.45fr) minmax(0,1fr)}.wide{grid-column:1}.side{grid-column:2;grid-row:1 / span 3}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:16px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  box-shadow:0 18px 40px -24px rgba(0,0,0,.6);min-width:0}
+.side{display:flex;flex-direction:column;gap:16px;min-width:0}
+h2{margin:0 0 12px;font:700 1.05rem/1.1 var(--f-disp);letter-spacing:.14em;text-transform:uppercase;color:var(--accent);display:flex;align-items:baseline;gap:8px}
+h2 small{font:500 .72rem var(--f-body);letter-spacing:.04em;text-transform:none;color:var(--mu)}
 .load{color:var(--mu);font-size:.85rem}
-footer{color:var(--mu);font-size:.72rem;padding-block:0 calc(18px + env(safe-area-inset-bottom,0px));
-  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));max-width:1500px;margin:0 auto}
-footer a{color:var(--head)}
-@media (prefers-reduced-motion:no-preference){.fresh{animation:fl 1.2s ease-out}@keyframes fl{from{background:rgba(127,180,236,.18)}to{background:transparent}}}
+.err{color:#f2c46b;font-size:.85rem}
+
+/* Diagramm */
+.chart{position:relative;width:100%;height:210px}
+.chart svg{display:block;width:100%;height:100%;overflow:visible}
+.chart text{font:500 11px var(--f-body);fill:var(--mu)}
+.chart .tv{font:700 13px var(--f-disp);fill:var(--fg);letter-spacing:.02em}
+.legend{display:flex;gap:14px;font-size:.72rem;color:var(--mu);margin-top:6px;flex-wrap:wrap}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+
+/* 3h-Kacheln */
+.tiles{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 8px;margin-top:12px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}
+.tile{flex:0 0 84px;scroll-snap-align:start;text-align:center;padding:9px 6px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid var(--line)}
+.tile .h{font-size:.74rem;color:var(--mu);font-weight:600}
+.tile svg{width:34px;height:34px;margin:4px auto 2px;display:block}
+.tile .t{font:700 1.2rem/1 var(--f-disp)}
+.tile .r{font-size:.7rem;color:var(--cold);margin-top:3px;min-height:1em}
+.tile .w{font-size:.7rem;color:var(--mu)}
+
+/* Tage */
+.days{display:flex;flex-direction:column}
+.day{display:grid;grid-template-columns:5.6em 34px 2.2em minmax(50px,1fr) 2.2em 6.4em;align-items:center;gap:10px;padding:9px 2px;border-top:1px solid var(--line)}
+.day:first-child{border-top:0}
+.day .n{font-weight:600}.day .n small{display:block;color:var(--mu);font-weight:400;font-size:.72rem}
+.day svg{width:32px;height:32px}
+.day .lo{color:var(--cold);text-align:right;font:700 1.05rem var(--f-disp)}
+.day .hi{color:var(--warm);font:700 1.05rem var(--f-disp)}
+.bar{position:relative;height:7px;border-radius:99px;background:rgba(255,255,255,.08)}
+.bar i{position:absolute;top:0;bottom:0;border-radius:99px}
+.bar b{position:absolute;top:50%;width:11px;height:11px;margin:-5.5px 0 0 -5.5px;border-radius:50%;background:#fff;border:2px solid var(--ink)}
+.day .rn{font-size:.74rem;color:var(--mu);text-align:right;line-height:1.25}
+.day .rn b{color:var(--cold);font-weight:600}
+@media (max-width:420px){.day{grid-template-columns:4.6em 28px 1.9em minmax(30px,1fr) 1.9em 5.6em;gap:6px}.day .n{font-size:.88rem}.day .rn{font-size:.68rem}.day svg{width:28px;height:28px}}
+
+/* Warnungen */
+.ok{display:flex;align-items:center;gap:10px;color:var(--ok);font-weight:500}
+.ok svg{width:26px;height:26px;flex:none}
+.warn{border-radius:12px;padding:10px 12px;margin-bottom:8px;background:color-mix(in srgb,var(--c) 16%,transparent);border:1px solid color-mix(in srgb,var(--c) 45%,transparent)}
+.warn{--c:var(--w-minor)}.warn.moderate{--c:var(--w-moderate)}.warn.severe{--c:var(--w-severe)}.warn.extreme{--c:var(--w-extreme)}
+.warn b{display:block;color:var(--fg)}.warn small{color:var(--mu)}
+
+/* Stationen */
+.tabs{display:flex;gap:4px;padding:3px;border-radius:999px;background:rgba(255,255,255,.06);margin-bottom:12px;width:max-content;max-width:100%}
+.tabs button{border:0;background:none;padding:6px 12px;border-radius:999px;font-size:.8rem;font-weight:600;color:var(--mu);cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--accent);color:var(--ink)}
+.st{display:grid;grid-template-columns:1.6em minmax(0,1fr) auto auto;align-items:center;gap:10px;padding:8px 2px;border-top:1px solid var(--line)}
+.st:first-child{border-top:0}
+.rk{display:inline-grid;place-items:center;width:1.55em;height:1.55em;border-radius:50%;font-size:.74rem;font-weight:700;color:var(--mu)}
+.r1{background:linear-gradient(135deg,#ffe08a,#d9a63a);color:#2a1d00}.r2{background:linear-gradient(135deg,#f1f4f8,#a9b4c2);color:#1a2230}.r3{background:linear-gradient(135deg,#f0b88a,#a8683a);color:#2a1300}
+.st .nm{min-width:0}.st .nm b{display:block;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.st .nm small{color:var(--mu);font-size:.72rem}
+.flag{display:inline-block;font-size:.62rem;font-weight:700;letter-spacing:.06em;padding:1px 5px;border-radius:4px;margin-right:5px;background:rgba(255,255,255,.1);color:var(--fg)}
+.st .tm{font-size:.74rem;color:var(--mu)}
+.pill{font:700 1rem/1 var(--f-disp);letter-spacing:.02em;padding:6px 9px;border-radius:10px;min-width:4.6em;text-align:right;color:#0b1220}
+
+footer{max-width:1200px;margin:0 auto;color:var(--mu);font-size:.72rem;line-height:1.5;
+  padding-block:4px calc(22px + env(safe-area-inset-bottom,0px));padding-left:max(18px,env(safe-area-inset-left,0px));padding-right:max(18px,env(safe-area-inset-right,0px))}
+footer a{color:var(--accent)}
+@media (prefers-reduced-motion:no-preference){.fade{animation:fd .6s ease-out both}@keyframes fd{from{opacity:.35;transform:translateY(4px)}to{opacity:1;transform:none}}}
 </style>
 </head>
 <body>
-<header class="band"><div class="in">
-  <h1>Wetter Bayerischer Wald / Böhmerwald</h1>
-  <div class="stand">Stand <span id="stand">–</span><button id="reload" type="button">Aktualisieren</button></div>
-</div></header>
+<header class="hero" id="hero" data-sky="night">
+  <div class="stars" id="stars"></div>
+  <svg class="ridge" viewBox="0 0 1200 120" preserveAspectRatio="none" aria-hidden="true">
+    <path d="M0 70 L90 52 L170 60 L260 34 L330 46 L420 22 L470 30 L540 14 L610 28 L700 40 L780 26 L860 44 L950 30 L1040 48 L1120 38 L1200 50 V120 H0Z" fill="#0c1426" opacity=".35"/>
+    <path d="M0 88 L70 76 L150 84 L230 62 L310 72 L400 58 L480 70 L560 50 L650 66 L720 60 L800 74 L880 58 L980 72 L1060 64 L1140 78 L1200 70 V120 H0Z" fill="#0c1426" opacity=".6"/>
+    <path d="M0 104 L60 98 L120 102 L200 90 L280 98 L360 92 L440 100 L520 88 L600 96 L690 90 L770 100 L850 94 L940 102 L1020 94 L1100 100 L1200 96 V120 H0Z" fill="#0c1426"/>
+  </svg>
+  <div class="hero-in">
+    <div class="topbar">
+      <span class="brand">Bayerischer Wald · Böhmerwald</span>
+      <span class="stand"><span id="stand">lädt …</span>
+        <button class="icon-btn" id="reload" type="button" aria-label="Aktualisieren"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg></button></span>
+    </div>
+    <div class="place"><label for="ortwahl" hidden>Ort</label><select id="ortwahl"></select>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg></div>
+    <div class="station" id="cur-src">&nbsp;</div>
+    <div id="cur"><div class="now"><div class="temp">–<sup>°</sup></div></div></div>
+  </div>
+</header>
 
 <main>
-  <section class="col">
-    <div>
-      <h2>Aktuell <small id="cur-src"></small></h2>
-      <div id="cur"><div class="load">Lade Messwerte …</div></div>
-      <div class="ort"><label for="ortwahl">Ort</label><select id="ortwahl"></select></div>
-    </div>
-    <div>
-      <h2>Warnungen</h2>
-      <div id="warn"><div class="load">Lade DWD-Warnungen …</div></div>
-    </div>
+  <section class="card wide">
+    <h2>Nächste 36 Stunden</h2>
+    <div class="chart" id="chart"><div class="load">Lade Vorhersage …</div></div>
+    <div class="legend"><span><i style="background:linear-gradient(90deg,var(--cold),var(--warm))"></i>Temperatur °C</span><span><i style="background:var(--cold);opacity:.55"></i>Regen mm/h</span></div>
+    <div class="tiles" id="hours"></div>
   </section>
 
-  <section class="col">
-    <div>
-      <h2>Die nächsten Tage</h2>
-      <div class="tw" id="days"><div class="load">Lade Vorhersage …</div></div>
-      <div class="hint">mm = Regen, % = Regenwahrscheinlichkeit; Wind/Böen in km/h</div>
-    </div>
-    <div>
-      <h2>Verlauf (3-Stunden-Schritte)</h2>
-      <div class="tw" id="hours"><div class="load">Lade Verlauf …</div></div>
-    </div>
+  <section class="card wide">
+    <h2>Die nächsten Tage</h2>
+    <div class="days" id="days"><div class="load">Lade Vorhersage …</div></div>
   </section>
 
-  <section class="col c3">
-    <div>
-      <h2>Kälteste Orte jetzt <small>(100 km)</small></h2>
-      <div class="tw" id="cold"><div class="load">Frage Stationen ab …</div></div>
-    </div>
-    <div>
-      <h2>Tiefstwerte letzte 12 h <small>(100 km)</small></h2>
-      <div class="tw" id="min12"><div class="load">Frage Stationen ab …</div></div>
-    </div>
-  </section>
+  <aside class="side">
+    <section class="card">
+      <h2>Warnungen <small>DWD</small></h2>
+      <div id="warn"><div class="load">Lade Warnungen …</div></div>
+    </section>
+    <section class="card">
+      <h2>Kälteste Orte <small>100 km</small></h2>
+      <div class="tabs" role="tablist">
+        <button type="button" role="tab" id="tab-now" aria-selected="true">Jetzt</button>
+        <button type="button" role="tab" id="tab-min" aria-selected="false">Tiefst 12 h</button>
+      </div>
+      <div id="cold"><div class="load">Frage Stationen ab …</div></div>
+      <div id="min12" hidden></div>
+    </section>
+  </aside>
 </main>
 
-<footer>Quelle: Deutscher Wetterdienst (DWD Open Data) über <a href="https://brightsky.dev" target="_blank" rel="noopener">Bright Sky</a>; tschechische Stationen über den internationalen SYNOP-Austausch. Live im Browser abgefragt, Aktualisierung alle 10 Minuten. Keine amtliche Warnung, maßgeblich ist <a href="https://www.dwd.de/warnungen" target="_blank" rel="noopener">dwd.de</a>. Uhrzeit bei Stationen = Messzeit.</footer>
+<footer>Daten: Deutscher Wetterdienst (DWD Open Data) über <a href="https://brightsky.dev" target="_blank" rel="noopener">Bright Sky</a>, tschechische Stationen über den internationalen SYNOP-Austausch. Live abgefragt, alle 10 Minuten aktualisiert. Keine amtliche Warnung, maßgeblich ist <a href="https://www.dwd.de/warnungen" target="_blank" rel="noopener">dwd.de</a>.</footer>
 
 <script>
 "use strict";
@@ -122,19 +205,20 @@ const API = "https://api.brightsky.dev";
 const TZ = "Europe/Berlin";
 const RADIUS = 100000;          // m, Umkreis für Stationen
 const REFRESH = 10 * 60 * 1000; // 10 Minuten
+const START_ORT = "blaibach";   // beim Aufruf immer zuerst
 
 const ORTE = {
-  zwiesel:   {name:"Zwiesel",        lat:49.0236, lon:13.2312},
-  koetzting: {name:"Bad Kötzting",   lat:49.1767, lon:12.8547},
   blaibach:  {name:"Blaibach",       lat:49.1636, lon:12.8086},
+  koetzting: {name:"Bad Kötzting",   lat:49.1767, lon:12.8547},
   cham:      {name:"Cham",           lat:49.2183, lon:12.6650},
-  regen:     {name:"Regen",          lat:48.9700, lon:13.1270},
+  furth:     {name:"Furth im Wald",  lat:49.3097, lon:12.8400},
   arber:     {name:"Großer Arber",   lat:49.1125, lon:13.1350},
-  deggendorf:{name:"Deggendorf",     lat:48.8353, lon:12.9644},
-  furth:     {name:"Furth im Wald",  lat:49.3097, lon:12.8400}
+  zwiesel:   {name:"Zwiesel",        lat:49.0236, lon:13.2312},
+  regen:     {name:"Regen",          lat:48.9700, lon:13.1270},
+  deggendorf:{name:"Deggendorf",     lat:48.8353, lon:12.9644}
 };
 // Gebiete, für die DWD-Warnungen abgefragt werden
-const WARNPUNKTE = ["zwiesel","koetzting","cham","regen","arber","deggendorf"];
+const WARNPUNKTE = ["blaibach","cham","zwiesel","regen","arber","deggendorf"];
 
 /* ---------- Hilfen ---------- */
 const $ = id => document.getElementById(id);
@@ -244,17 +328,29 @@ function rainIcon(recs, sum, min = 0.5) {
 }
 const isMeasured = (w, f) => !(w.fallback_source_ids && w.fallback_source_ids[f]);
 
+
+/* ---------- Farben nach Temperatur ---------- */
+const TSTOPS = [[-12,[186,166,255]],[-3,[143,198,255]],[3,[150,222,240]],[9,[176,232,170]],[15,[244,226,138]],[21,[255,190,122]],[29,[255,140,105]]];
+function tcol(t, a = 1) {
+  if (t == null || isNaN(t)) return `rgba(150,160,180,${a})`;
+  let i = 0; while (i < TSTOPS.length - 2 && t > TSTOPS[i + 1][0]) i++;
+  const [t0, c0] = TSTOPS[i], [t1, c1] = TSTOPS[i + 1];
+  const k = Math.max(0, Math.min(1, (t - t0) / (t1 - t0)));
+  const c = c0.map((v, j) => Math.round(v + (c1[j] - v) * k));
+  return `rgba(${c[0]},${c[1]},${c[2]},${a})`;
+}
+
 /* ---------- Ort ---------- */
 function currentOrt() {
   const p = new URLSearchParams(location.search);
   if (p.get("lat") && p.get("lon")) return {key:"custom", name:p.get("name") || "Standort", lat:+p.get("lat"), lon:+p.get("lon")};
-  let k = p.get("ort");
-  if (!k) { try { k = localStorage.getItem("wetter-ort"); } catch {} }
-  return ORTE[k] ? {key:k, ...ORTE[k]} : {key:"zwiesel", ...ORTE.zwiesel};
+  const k = p.get("ort");
+  return ORTE[k] ? {key:k, ...ORTE[k]} : {key:START_ORT, ...ORTE[START_ORT]};
 }
 let ORT = currentOrt();
+let LAST = null; // letzte Vorhersage, für Neuzeichnen bei Größenänderung
 
-/* ---------- Abschnitte ---------- */
+/* ---------- Vorhersage + aktuell ---------- */
 async function loadForecast() {
   const now = new Date();
   const start = new Date(now.getTime() - 4 * 36e5);
@@ -263,37 +359,147 @@ async function loadForecast() {
     getJSON("/current_weather", {lat:ORT.lat, lon:ORT.lon}),
     getJSON("/weather", {lat:ORT.lat, lon:ORT.lon, date:dayKey(start) === dayKey(now) ? dayKey(now) : start.toISOString(), last_date:dayKey(end)})
   ]);
+  LAST = {recs: wx.weather, now};
   renderCurrent(cur, wx.weather, now);
-  renderDays(wx.weather, now);
-  renderHours(wx.weather, now);
+  renderChart(wx.weather, now);
+  renderTiles(wx.weather, now);
+  renderDays(wx.weather, now, cur.weather?.temperature);
+}
+
+function skyFor(icon, now, sun) {
+  const night = now < sun.rise || now > sun.set;
+  const nearEdge = Math.min(Math.abs(now - sun.rise), Math.abs(now - sun.set)) < 45 * 6e4;
+  if (/rain|sleet|snow|hail|thunder/.test(icon || "")) return night ? "cloudy-night" : "rain";
+  if (icon === "fog") return night ? "cloudy-night" : "fog";
+  if (icon === "cloudy") return night ? "cloudy-night" : "cloudy-day";
+  if (nearEdge) return "dusk";
+  return night ? "night" : "day";
 }
 
 function renderCurrent(cur, recs, now) {
   const w = cur.weather, src = cur.sources?.find(s => s.id === w.source_id) || cur.sources?.[0];
-  const t = new Date(w.timestamp);
-  $("cur-src").textContent = `${src?.station_name || ORT.name} · ${hhmm(t)} Uhr`;
-  // Tendenz: Messwert vor ~3 Stunden
+  const sun = sunTimes(now, ORT.lat, ORT.lon);
+  $("hero").dataset.sky = skyFor(w.icon, now, sun);
+  const dist = src?.distance != null ? ` · ${Math.round(src.distance / 1000)} km entfernt` : "";
+  $("cur-src").textContent = `Messstation ${kurz(src?.station_name) || ORT.name}${dist} · ${hhmm(new Date(w.timestamp))} Uhr`;
   const past = recs.filter(r => new Date(r.timestamp) <= new Date(now - 2.5 * 36e5) && r.temperature != null).pop();
-  let tr = "gleich", path = "M4 15h30M26 7l10 8-10 8";
+  let trend = `<span class="chip"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8h11M9 4l4 4-4 4"/></svg>gleichbleibend</span>`;
   if (past && w.temperature != null) {
     const d = w.temperature - past.temperature;
-    if (d > 0.7) { tr = "steigend"; path = "M5 25L33 7M22 6h11v11"; }
-    else if (d < -0.7) { tr = "fallend"; path = "M5 5l28 18M22 24h11V13"; }
+    if (d > 0.7) trend = `<span class="chip up"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12L13 4M7 4h6v6"/></svg>steigend, +${f1(d)}° in 3 h</span>`;
+    else if (d < -0.7) trend = `<span class="chip down"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4l10 8M7 12h6V6"/></svg>fallend, ${f1(d)}° in 3 h</span>`;
   }
-  const sun = sunTimes(now, ORT.lat, ORT.lon);
   const wind = w.wind_speed_10 ?? w.wind_speed_30 ?? w.wind_speed_60;
   const wdir = w.wind_direction_10 ?? w.wind_direction_30 ?? w.wind_direction_60;
   const gust = w.wind_gust_speed_10 ?? w.wind_gust_speed_30 ?? w.wind_gust_speed_60;
+  const arrow = wdir == null ? "" : `<svg class="arrow" viewBox="0 0 24 24" style="transform:rotate(${wdir + 180}deg)"><path d="M12 3l5 9h-3.5v9h-3v-9H7z" fill="currentColor"/></svg>`;
   $("cur").innerHTML = `
-    <div class="big"><div class="temp">${f1(w.temperature)} °C</div>
-      <div class="trend"><svg viewBox="0 0 40 30" aria-hidden="true"><path d="${path}" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>${tr}</div></div>
-    <div class="cond">${icon(w.icon)}<span>${esc(condText(w))}</span></div>
-    <div class="kv">Wind <b>${dir(wdir)} ${f0(wind)} km/h</b>, Böen <b>${f0(gust)}</b><br>
-      Feuchte <b>${f0(w.relative_humidity)} %</b> · Luftdruck <b>${f0(w.pressure_msl)} hPa</b><br>
-      Sonne ↑ <b>${hhmm(sun.rise)}</b> &nbsp;↓ <b>${hhmm(sun.set)}</b></div>`;
+    <div class="now">
+      <div class="temp">${f1(w.temperature)}<sup>°C</sup></div>
+      <div class="cond"><span class="ico">${icon(w.icon)}</span><b>${esc(condText(w))}</b>${trend}</div>
+    </div>
+    <div class="stats">
+      <div class="stat"><small>Wind</small><b>${arrow}${f0(wind)} <span>km/h ${dir(wdir)}</span></b></div>
+      <div class="stat"><small>Böen</small><b>${f0(gust)} <span>km/h</span></b></div>
+      <div class="stat"><small>Feuchte</small><b>${f0(w.relative_humidity)} <span>%</span></b></div>
+      <div class="stat"><small>Luftdruck</small><b>${f0(w.pressure_msl)} <span>hPa</span></b></div>
+      <div class="stat"><small>Sonne</small><b>${hhmm(sun.rise)} <span>bis</span> ${hhmm(sun.set)}</b></div>
+    </div>`;
 }
 
-function renderDays(recs, now) {
+/* ---------- Diagramm 36 h ---------- */
+function smooth(p) {
+  if (p.length < 3) return "M" + p.map(q => q.join(",")).join("L");
+  let d = `M${p[0][0]},${p[0][1]}`;
+  for (let i = 0; i < p.length - 1; i++) {
+    const a = p[i - 1] || p[i], b = p[i], c = p[i + 1], e = p[i + 2] || c;
+    d += `C${b[0] + (c[0] - a[0]) / 6},${b[1] + (c[1] - a[1]) / 6} ${c[0] - (e[0] - b[0]) / 6},${c[1] - (e[1] - b[1]) / 6} ${c[0]},${c[1]}`;
+  }
+  return d;
+}
+function renderChart(recs, now) {
+  const box = $("chart");
+  const W = Math.max(280, Math.round(box.clientWidth)), H = 210;
+  const t0 = new Date(now); t0.setMinutes(0, 0, 0);
+  const t1 = new Date(t0.getTime() + 36 * 36e5);
+  const pts = recs.map(r => ({...r, _t: new Date(r.timestamp)})).filter(r => r._t >= t0 && r._t <= t1 && r.temperature != null);
+  if (pts.length < 2) { box.innerHTML = '<div class="err">Keine Vorhersagedaten.</div>'; return; }
+  const L = 30, R = 12, T = 24, B = 30, RB = 38; // RB = Höhe des Regenbands
+  const T_ = pts.map(p => p.temperature);
+  let lo = Math.floor(Math.min(...T_) - 1), hi = Math.ceil(Math.max(...T_) + 1);
+  if (hi - lo < 6) { const m = (hi + lo) / 2; lo = Math.floor(m - 3); hi = Math.ceil(m + 3); }
+  const x = t => L + (t - t0) / (t1 - t0) * (W - L - R);
+  const y = v => T + (hi - v) / (hi - lo) * (H - T - B);
+  const step = hi - lo > 14 ? 5 : 2;
+  let g = "";
+  for (let v = Math.ceil(lo / step) * step; v <= hi; v += step) {
+    g += `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke="${v === 0 ? "rgba(140,196,255,.55)" : "rgba(150,180,230,.12)"}" ${v === 0 ? 'stroke-dasharray="4 4"' : ""}/>`;
+    g += `<text x="${L - 6}" y="${y(v) + 4}" text-anchor="end">${v}°</text>`;
+  }
+  // Regenbalken
+  const pmax = Math.max(1.5, ...pts.map(p => p.precipitation || 0));
+  const bw = Math.max(2, (W - L - R) / 36 - 2);
+  let rain = "";
+  for (const p of pts) if (p.precipitation > 0.04) {
+    const h = Math.max(2, p.precipitation / pmax * RB);
+    rain += `<rect x="${x(p._t) - bw / 2}" y="${H - B - h}" width="${bw}" height="${h}" rx="1.5" fill="rgba(111,183,255,.55)"/>`;
+  }
+  // Zeitachse
+  let ax = "";
+  for (const p of pts) {
+    const h = hourOf(p._t);
+    if (h % 6 !== 0) continue;
+    const X = x(p._t);
+    ax += `<line x1="${X}" x2="${X}" y1="${T}" y2="${H - B}" stroke="rgba(150,180,230,${h === 0 ? .28 : .08})"/>`;
+    ax += `<text x="${X}" y="${H - B + 16}" text-anchor="middle">${h === 0 ? wd(p._t) : String(h).padStart(2, "0") + " Uhr"}</text>`;
+  }
+  const P = pts.map(p => [+x(p._t).toFixed(1), +y(p.temperature).toFixed(1)]);
+  const line = smooth(P);
+  const area = `${line}L${P[P.length - 1][0]},${H - B}L${P[0][0]},${H - B}Z`;
+  const iMax = T_.indexOf(Math.max(...T_)), iMin = T_.indexOf(Math.min(...T_));
+  const mark = (i, above) => {
+    const [X, Y] = P[i], anchor = X < L + 30 ? "start" : X > W - R - 30 ? "end" : "middle";
+    return `<circle cx="${X}" cy="${Y}" r="4" fill="${tcol(T_[i])}" stroke="#0c1426" stroke-width="2"/>
+      <text class="tv" x="${X}" y="${above ? Y - 10 : Y + 20}" text-anchor="${anchor}">${f1(T_[i])}°</text>`;
+  };
+  box.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Temperatur- und Regenverlauf der nächsten 36 Stunden">
+    <defs>
+      <linearGradient id="tl" gradientUnits="userSpaceOnUse" x1="0" y1="${y(hi)}" x2="0" y2="${y(lo)}">
+        <stop offset="0" stop-color="${tcol(hi)}"/><stop offset=".5" stop-color="${tcol((hi + lo) / 2)}"/><stop offset="1" stop-color="${tcol(lo)}"/></linearGradient>
+      <linearGradient id="ta" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${tcol(hi, .32)}"/><stop offset="1" stop-color="${tcol(lo, 0)}"/></linearGradient>
+    </defs>
+    ${g}${ax}${rain}
+    <path d="${area}" fill="url(#ta)"/>
+    <path d="${line}" fill="none" stroke="url(#tl)" stroke-width="3" stroke-linecap="round"/>
+    ${mark(iMax, true)}${iMin !== iMax ? mark(iMin, false) : ""}
+    <circle cx="${P[0][0]}" cy="${P[0][1]}" r="5" fill="#fff" stroke="#0c1426" stroke-width="2"/>
+    <text x="${P[0][0] + 8}" y="${T - 8}" fill="#fff" style="fill:#eef3fb;font-weight:600">jetzt</text>
+  </svg>`;
+}
+
+/* ---------- 3-Stunden-Kacheln ---------- */
+function renderTiles(recs, now) {
+  const base = new Date(now); base.setMinutes(0, 0, 0);
+  const today = dayKey(now), out = [];
+  for (let i = 0; i < 12; i++) {
+    const a0 = new Date(base.getTime() + i * 3 * 36e5), a1 = new Date(a0.getTime() + 3 * 36e5);
+    const b = recs.filter(r => { const d = new Date(r.timestamp); return d >= a0 && d < a1; });
+    if (!b.length) continue;
+    const T_ = b.map(r => r.temperature).filter(v => v != null);
+    const rain = b.reduce((s, r) => s + (r.precipitation || 0), 0);
+    const ws = b.map(r => r.wind_speed).filter(v => v != null);
+    const mid = b[Math.floor(b.length / 2)];
+    const lab = i === 0 ? "jetzt" : (dayKey(a0) === today ? "" : wd(a0) + " ") + hhmm(a0).slice(0, 2) + " Uhr";
+    out.push(`<div class="tile"><div class="h">${lab}</div>${icon(rainIcon(b, rain, 0.1) || spanIcon(b, false))}
+      <div class="t" style="color:${tcol(Math.max(...T_))}">${f0(Math.max(...T_))}°</div>
+      <div class="r">${rain >= 0.1 ? f1(rain) + " mm" : ""}</div>
+      <div class="w">${dir(mid.wind_direction)} ${f0(ws.reduce((s, v) => s + v, 0) / (ws.length || 1))}</div></div>`);
+  }
+  $("hours").innerHTML = out.join("");
+}
+
+/* ---------- Tage ---------- */
+function renderDays(recs, now, curT) {
   const by = new Map();
   for (const r of recs) {
     const d = new Date(r.timestamp), k = dayKey(d);
@@ -301,39 +507,28 @@ function renderDays(recs, now) {
     by.get(k).push({...r, _d:d});
   }
   const keys = [...by.keys()].filter(k => k >= dayKey(now)).slice(0, 4);
-  const rows = keys.map((k, i) => {
-    const a = by.get(k), T = a.map(r => r.temperature).filter(v => v != null);
+  const days = keys.map(k => {
+    const a = by.get(k), T_ = a.map(r => r.temperature).filter(v => v != null);
     const day = a.filter(r => { const h = hourOf(r._d); return h >= 9 && h <= 18; });
     const rain = a.reduce((s, r) => s + (r.precipitation || 0), 0);
-    const pp = Math.max(0, ...a.map(r => r.precipitation_probability ?? 0));
-    const gu = Math.max(0, ...a.map(r => r.wind_gust_speed ?? 0));
-    const label = i === 0 ? "Heute" : `${wd(a[0]._d)} ${dm(a[0]._d)}.`;
-    return `<tr><td class="l">${label}</td><td class="ic">${icon(rainIcon(a, rain) || spanIcon(day.length ? day : a, true))}</td>
-      <td class="k">${f0(Math.min(...T))}°</td><td class="wa">${f0(Math.max(...T))}°</td>
-      <td>${f1(rain)}</td><td>${pp}</td><td>${f0(gu)}</td></tr>`;
+    return {a, lo: Math.min(...T_), hi: Math.max(...T_), rain, day,
+      pp: Math.max(0, ...a.map(r => r.precipitation_probability ?? 0)),
+      gu: Math.max(0, ...a.map(r => r.wind_gust_speed ?? 0))};
+  });
+  const gLo = Math.min(...days.map(d => d.lo)), gHi = Math.max(...days.map(d => d.hi)), span = Math.max(1, gHi - gLo);
+  const pos = v => ((v - gLo) / span * 100).toFixed(1);
+  $("days").innerHTML = days.map((d, i) => {
+    const label = i === 0 ? "Heute" : new Intl.DateTimeFormat("de-DE",{timeZone:TZ,weekday:"long"}).format(d.a[0]._d);
+    const dot = i === 0 && curT != null ? `<b style="left:${pos(Math.max(d.lo, Math.min(d.hi, curT)))}%"></b>` : "";
+    return `<div class="day">
+      <div class="n">${label}<small>${dm(d.a[0]._d)}.</small></div>
+      ${icon(rainIcon(d.a, d.rain) || spanIcon(d.day.length ? d.day : d.a, true))}
+      <div class="lo">${f0(d.lo)}°</div>
+      <div class="bar"><i style="left:${pos(d.lo)}%;right:${(100 - pos(d.hi)).toFixed(1)}%;background:linear-gradient(90deg,${tcol(d.lo)},${tcol(d.hi)})"></i>${dot}</div>
+      <div class="hi">${f0(d.hi)}°</div>
+      <div class="rn"><b>${d.rain >= 0.1 ? f1(d.rain) + " mm" : "trocken"}</b><br>${d.pp} % · Böen ${f0(d.gu)}</div>
+    </div>`;
   }).join("");
-  $("days").innerHTML = `<table><thead><tr><th class="l">Tag</th><th>Wetter</th><th>Tief</th><th>Hoch</th><th>mm</th><th>%</th><th>Böen</th></tr></thead><tbody>${rows}</tbody></table>`;
-}
-
-function renderHours(recs, now) {
-  const base = new Date(now); base.setMinutes(0, 0, 0);
-  const today = dayKey(now), rows = [];
-  for (let i = 0; i < 12; i++) {
-    const a0 = new Date(base.getTime() + i * 3 * 36e5), a1 = new Date(a0.getTime() + 3 * 36e5);
-    const b = recs.filter(r => { const d = new Date(r.timestamp); return d >= a0 && d < a1; });
-    if (!b.length) continue;
-    const T = b.map(r => r.temperature).filter(v => v != null);
-    const rain = b.reduce((s, r) => s + (r.precipitation || 0), 0);
-    const ws = b.map(r => r.wind_speed).filter(v => v != null);
-    const mid = b[Math.floor(b.length / 2)];
-    const pre = dayKey(a0) === today ? "" : wd(a0) + " ";
-    rows.push(`<tr><td class="l">${pre}${hhmm(a0).slice(0,2)}–${hhmm(a1).slice(0,2)}</td>
-      <td class="ic">${icon(rainIcon(b, rain, 0.1) || spanIcon(b, false))}</td>
-      <td class="k">${f1(Math.min(...T))}°</td><td class="wa">${f1(Math.max(...T))}°</td>
-      <td>${f1(rain)}</td><td class="l">${dir(mid.wind_direction)} ${f0(ws.reduce((s, v) => s + v, 0) / (ws.length || 1))}</td>
-      <td>${f0(Math.max(0, ...b.map(r => r.wind_gust_speed ?? 0)))}</td></tr>`);
-  }
-  $("hours").innerHTML = `<table><thead><tr><th class="l">Zeit</th><th>Wetter</th><th>Min</th><th>Max</th><th>mm</th><th class="l">Wind</th><th>Böen</th></tr></thead><tbody>${rows.join("")}</tbody></table>`;
 }
 
 function land(s) {
@@ -344,7 +539,7 @@ function land(s) {
   if (w >= 10000 && w < 11000) return "DE";
   return "";
 }
-const NAMEN = {"Grosser Arber":"Großer Arber","Waldmuenchen":"Waldmünchen","Churanov":"Churáňov","Kirchberg/Niederbaye":"Kirchberg im Wald",
+const NAMEN = {"Grosser Arber":"Großer Arber","Bad Koetzting":"Bad Kötzting","Koetzting":"Kötzting","Fuerth":"Fürth","Straubing":"Straubing","Passau-Fuerstenzell":"Fürstenzell","Waldmuenchen":"Waldmünchen","Churanov":"Churáňov","Kirchberg/Niederbaye":"Kirchberg im Wald",
   "Muenchen":"München","Fuerstenzell":"Fürstenzell","Schoensee-Dietersdor":"Schönsee-Dietersdorf","Lindberg-Buchenau":"Lindberg-Buchenau",
   "Kocelovice":"Kocelovice","Ceske Budejovice":"České Budějovice","Primda":"Přimda","Plzen-Mikulka":"Plzeň-Mikulka","Temelin":"Temelín",
   "Untergriesbach-Glotz":"Untergriesbach-Glotzing","Wiesenfelden-Utzenze":"Wiesenfelden-Utzenzell","Kasperske Hory":"Kašperské Hory","Strakonice":"Strakonice"};
@@ -399,13 +594,14 @@ async function loadStations() {
   $("cold").innerHTML = stTable(cold, "now", "Temp.");
   $("min12").innerHTML = stTable(mins, "min", "Tiefstwert");
 }
-function stTable(rows, f, label) {
+function stTable(rows, f) {
   if (!rows.length) return '<div class="err">Keine Stationsdaten verfügbar.</div>';
-  const rk = i => `<span class="rk ${i < 3 ? "r" + (i + 1) : "rn"}">${i + 1}</span>`;
-  return `<table><thead><tr><th></th><th class="l">Ort</th><th class="l">Land</th><th>Höhe</th><th>${label}</th><th>Uhr</th></tr></thead><tbody>${
-    rows.map((r, i) => `<tr><td>${rk(i)}</td><td class="l nm" title="${esc(r.name)}">${i < 3 ? "<b>" + esc(r.name) + "</b>" : esc(r.name)}</td>
-      <td class="l">${r.land}</td><td>${r.hoehe != null ? Math.round(r.hoehe) + " m" : "–"}</td>
-      <td class="tk">${f1(r[f].t)} °C</td><td>${hhmm(r[f].at)}</td></tr>`).join("")}</tbody></table>`;
+  return rows.map((r, i) => `<div class="st">
+      <span class="rk ${i < 3 ? "r" + (i + 1) : ""}">${i + 1}</span>
+      <div class="nm"><b title="${esc(r.name)}">${esc(r.name)}</b><small>${r.land ? `<span class="flag">${r.land}</span>` : ""}${r.hoehe != null ? Math.round(r.hoehe) + " m" : ""}</small></div>
+      <span class="tm">${hhmm(r[f].at)}</span>
+      <span class="pill" style="background:${tcol(r[f].t)}">${f1(r[f].t)}°</span>
+    </div>`).join("");
 }
 
 async function loadWarnings() {
@@ -423,7 +619,10 @@ async function loadWarnings() {
   });
   const order = {extreme:0, severe:1, moderate:2, minor:3};
   const al = [...seen.values()].sort((a, b) => (order[a.severity] ?? 9) - (order[b.severity] ?? 9));
-  if (!al.length) { $("warn").innerHTML = '<div class="okmsg">Keine Warnungen für die konfigurierten Gebiete.</div>'; return; }
+  if (!al.length) {
+    $("warn").innerHTML = `<div class="ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M7.5 12.5l3 3 6-6.5"/></svg>Keine Warnungen für ${WARNPUNKTE.map(k => ORTE[k].name).join(", ")}.</div>`;
+    return;
+  }
   const fmt = d => d ? `${wd(new Date(d))} ${hhmm(new Date(d))}` : "bis auf Weiteres";
   $("warn").innerHTML = al.map(a => `<div class="warn ${esc(a.severity)}"><b>${esc(a.headline_de || a.event_de)}</b>
     <small>${fmt(a.onset)} – ${fmt(a.expires)} · ${esc([...a.orte].join(", "))}</small></div>`).join("");
@@ -431,15 +630,17 @@ async function loadWarnings() {
 
 /* ---------- Steuerung ---------- */
 async function run(fn, els) {
-  try { await fn(); for (const el of els) { $(el).classList.remove("fresh"); void $(el).offsetWidth; $(el).classList.add("fresh"); } }
+  try { await fn(); for (const el of els) { $(el).classList.remove("fade"); void $(el).offsetWidth; $(el).classList.add("fade"); } }
   catch (e) { for (const el of els) $(el).innerHTML = `<div class="err">Daten gerade nicht abrufbar (${esc(e.message || "Netzwerkfehler")}). Nächster Versuch in 10 Minuten.</div>`; }
 }
-let busy = false;
+let busy = false, lastRun = Date.now();
 async function refresh() {
-  if (busy) return; busy = true;
-  await Promise.all([run(loadForecast, ["cur","days","hours"]), run(loadWarnings, ["warn"]), run(loadStations, ["cold","min12"])]);
+  if (busy) return; busy = true; lastRun = Date.now();
+  $("reload").classList.add("spin");
+  await Promise.all([run(loadForecast, ["cur","chart","hours","days"]), run(loadWarnings, ["warn"]), run(loadStations, ["cold","min12"])]);
   const n = new Date();
-  $("stand").textContent = `${dm(n)}.${n.getFullYear()}, ${hhmm(n)} Uhr`;
+  $("stand").textContent = `Stand ${hhmm(n)} Uhr`;
+  $("reload").classList.remove("spin");
   busy = false;
 }
 function initOrt() {
@@ -450,17 +651,35 @@ function initOrt() {
   sel.addEventListener("change", () => {
     if (!ORTE[sel.value]) return;
     ORT = {key: sel.value, ...ORTE[sel.value]};
-    try { localStorage.setItem("wetter-ort", sel.value); } catch {}
-    for (const id of ["cur","days","hours","cold","min12"]) $(id).innerHTML = '<div class="load">Lade …</div>';
+    for (const id of ["chart","days","cold"]) $(id).innerHTML = '<div class="load">Lade …</div>';
+    $("hours").innerHTML = ""; $("min12").innerHTML = "";
     refresh();
   });
 }
+function initTabs() {
+  const set = which => {
+    $("tab-now").setAttribute("aria-selected", which === "now");
+    $("tab-min").setAttribute("aria-selected", which === "min");
+    $("cold").hidden = which !== "now"; $("min12").hidden = which !== "min";
+  };
+  $("tab-now").addEventListener("click", () => set("now"));
+  $("tab-min").addEventListener("click", () => set("min"));
+}
+function initStars() {
+  let h = "";
+  for (let i = 0; i < 70; i++) {
+    const s = Math.random() < .15 ? 3 : 2;
+    h += `<i style="left:${(Math.random() * 100).toFixed(2)}%;top:${(Math.random() * 62).toFixed(2)}%;width:${s}px;height:${s}px;animation-delay:${(Math.random() * 3.5).toFixed(2)}s"></i>`;
+  }
+  $("stars").innerHTML = h;
+}
+let rz;
+window.addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(() => LAST && renderChart(LAST.recs, LAST.now), 150); });
 $("reload").addEventListener("click", refresh);
-document.addEventListener("visibilitychange", () => { if (!document.hidden && Date.now() - lastRun > REFRESH) { lastRun = Date.now(); refresh(); } });
-let lastRun = Date.now();
-initOrt();
+document.addEventListener("visibilitychange", () => { if (!document.hidden && Date.now() - lastRun > REFRESH) refresh(); });
+initStars(); initOrt(); initTabs();
 refresh();
-setInterval(() => { if (!document.hidden) { lastRun = Date.now(); refresh(); } }, REFRESH);
+setInterval(() => { if (!document.hidden) refresh(); }, REFRESH);
 </script>
 </body>
 </html>
