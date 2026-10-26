@@ -10,6 +10,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;700;800&family=Barlow:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <style>
 /* Layout: Himmels-Hero mit Bergkamm über volle Breite, darunter Vorhersage (links) und Stationen (rechts) */
 :root{
@@ -78,7 +80,7 @@ button,select{font:inherit;color:inherit}
 /* ---------- Inhalt ---------- */
 main{max-width:1200px;margin:-92px auto 0;position:relative;display:grid;gap:16px;grid-template-columns:minmax(0,1fr);
   padding-block:0 20px;padding-left:max(14px,env(safe-area-inset-left,0px));padding-right:max(14px,env(safe-area-inset-right,0px))}
-@media (min-width:900px){main{grid-template-columns:minmax(0,1.45fr) minmax(0,1fr)}.wide{grid-column:1}.side{grid-column:2;grid-row:1 / span 3}}
+@media (min-width:900px){main{grid-template-columns:minmax(0,1.45fr) minmax(0,1fr)}.wide{grid-column:1}.side{grid-column:2;grid-row:1 / span 4}}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:16px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
   box-shadow:0 18px 40px -24px rgba(0,0,0,.6);min-width:0}
 .side{display:flex;flex-direction:column;gap:16px;min-width:0}
@@ -140,6 +142,36 @@ h2 small{font:500 .72rem var(--f-body);letter-spacing:.04em;text-transform:none;
 .st .tm{font-size:.74rem;color:var(--mu)}
 .pill{font:700 1rem/1 var(--f-disp);letter-spacing:.02em;padding:6px 9px;border-radius:10px;min-width:4.6em;text-align:right;color:#0b1220}
 
+/* Radar */
+.radar{position:relative;height:340px;border-radius:14px;overflow:hidden;background:#0a1120;border:1px solid var(--line)}
+#radarmap{position:absolute;inset:0}
+.leaflet-container{background:#0a1120;font:12px var(--f-body)}
+.leaflet-control-attribution{background:rgba(12,20,38,.75)!important;color:var(--mu)!important;font-size:10px}
+.leaflet-control-attribution a{color:var(--accent)!important}
+.leaflet-bar a{background:var(--panel-solid)!important;color:var(--fg)!important;border-color:var(--line)!important}
+.maplabel{background:rgba(12,20,38,.85);color:var(--fg);border:0;box-shadow:none;font-weight:600;font-size:12px;padding:2px 6px;border-radius:6px}
+.maplabel::before{display:none}
+.rad-sum{margin:0 0 10px;font-size:.95rem}.rad-sum b{color:var(--accent)}
+.rad-ctl{display:flex;align-items:center;gap:10px;margin-top:10px}
+.rad-ctl .icon-btn{flex:none;border-color:var(--line);background:rgba(255,255,255,.06)}
+.rad-ctl input{flex:1;min-width:0;accent-color:var(--accent)}
+.rad-time{font-size:.85rem;font-weight:600;white-space:nowrap;min-width:9.5em;text-align:right}
+.tag{font-size:.66rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 6px;border-radius:5px;background:rgba(134,215,160,.18);color:var(--ok);margin-left:4px}
+.tag.fc{background:rgba(255,180,84,.18);color:var(--amber)}
+.rscale{display:flex;margin-top:8px;font-size:.66rem;color:var(--mu)}
+.rscale span{flex:1;padding-top:6px;border-top:6px solid var(--c);text-align:left}
+/* Strahlung */
+.od{display:grid;grid-template-columns:minmax(0,1fr) 30% 3.6em;align-items:center;gap:10px;padding:7px 0;border-top:1px solid var(--line)}
+.od:first-child{border-top:0}
+.od .nm b{display:block;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.od .nm small{color:var(--mu);font-size:.72rem}
+.ob{height:6px;border-radius:9px;background:rgba(255,255,255,.08);overflow:hidden}.ob i{display:block;height:100%;border-radius:9px;background:linear-gradient(90deg,#4fb37a,#a8e6b8)}
+.ov{font:700 1rem var(--f-disp);text-align:right;color:var(--ok)}
+.unit,.note{font-size:.72rem;color:var(--mu);margin-top:6px}
+.sp-h{display:flex;justify-content:space-between;gap:8px;font-size:.74rem;color:var(--mu);margin-top:14px}
+.sp-h span{white-space:nowrap}
+#odl-spark svg{display:block;width:100%;height:70px;margin-top:4px}
+#odl-spark text{font:500 10px var(--f-body);fill:var(--mu)}
+
 footer{max-width:1200px;margin:0 auto;color:var(--mu);font-size:.72rem;line-height:1.5;
   padding-block:4px calc(22px + env(safe-area-inset-bottom,0px));padding-left:max(18px,env(safe-area-inset-left,0px));padding-right:max(18px,env(safe-area-inset-right,0px))}
 footer a{color:var(--accent)}
@@ -175,6 +207,21 @@ footer a{color:var(--accent)}
     <div class="tiles" id="hours"></div>
   </section>
 
+
+  <section class="card wide">
+    <h2>Regenradar <small>DWD · letzte Stunde und 2 h Vorhersage</small></h2>
+    <p class="rad-sum" id="rad-sum">Lade Radarbilder …</p>
+    <div class="radar"><div id="radarmap"></div></div>
+    <div class="rad-ctl">
+      <button class="icon-btn" id="rad-play" type="button" aria-label="Abspielen"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 5v14l12-7z"/></svg></button>
+      <input type="range" id="rad-slider" min="0" max="0" value="0" aria-label="Zeitpunkt">
+      <span class="rad-time" id="rad-time">–</span>
+    </div>
+    <div class="rscale">
+      <span style="--c:rgb(155,231,255)">0,1</span><span style="--c:rgb(79,195,247)">0,5</span><span style="--c:rgb(42,138,246)">1</span><span style="--c:rgb(34,197,94)">2</span><span style="--c:rgb(234,179,8)">5</span><span style="--c:rgb(249,115,22)">10</span><span style="--c:rgb(239,68,68)">20</span><span style="--c:rgb(192,38,211)">40 mm/h</span>
+    </div>
+  </section>
+
   <section class="card wide">
     <h2>Die nächsten Tage</h2>
     <div class="days" id="days"><div class="load">Lade Vorhersage …</div></div>
@@ -193,6 +240,12 @@ footer a{color:var(--accent)}
       </div>
       <div id="cold"><div class="load">Frage Stationen ab …</div></div>
       <div id="min12" hidden></div>
+    </section>
+    <section class="card">
+      <h2>Strahlung <small>BfS-Messnetz</small></h2>
+      <div id="odl"><div class="load">Lade Messwerte …</div></div>
+      <div id="odl-spark"></div>
+      <div class="note">Natürliche Werte in Deutschland liegen etwa zwischen 0,05 und 0,18 µSv/h. Granitböden wie im Bayerwald liefern eher höhere Werte.</div>
     </section>
   </aside>
 </main>
@@ -594,6 +647,186 @@ async function loadStations() {
   $("cold").innerHTML = stTable(cold, "now", "Temp.");
   $("min12").innerHTML = stTable(mins, "min", "Tiefstwert");
 }
+
+/* ---------- Regenradar (DWD über Bright Sky) ---------- */
+// RADOLAN-Gitter: polarstereografisch, wahr bei 60° N, Mittelmeridian 10° E, 1 Pixel = 1 km
+function radProj(lat, lon) {
+  const r = Math.PI / 180, R = 6370.04;
+  const M = (1 + Math.sin(60 * r)) / (1 + Math.sin(lat * r));
+  return [R * M * Math.cos(lat * r) * Math.sin((lon - 10) * r), -R * M * Math.cos(lat * r) * Math.cos((lon - 10) * r)];
+}
+const RSCALE = [[0.1,[155,231,255,150]],[0.5,[79,195,247,185]],[1,[42,138,246,205]],[2,[34,197,94,215]],[5,[234,179,8,225]],[10,[249,115,22,235]],[20,[239,68,68,240]],[40,[192,38,211,245]]];
+function rcol(mmh) { let c = null; for (const [t, v] of RSCALE) if (mmh >= t) c = v; return c; }
+async function inflate(b64) {
+  const bin = Uint8Array.from(atob(b64), ch => ch.charCodeAt(0));
+  if (typeof DecompressionStream === "undefined") throw new Error("Browser zu alt für Radar");
+  const buf = await new Response(new Blob([bin]).stream().pipeThrough(new DecompressionStream("deflate"))).arrayBuffer();
+  return new Uint16Array(buf);
+}
+const RAD = {map:null, overlay:null, marker:null, frames:[], i:0, timer:null, playing:false, bounds:null};
+const RADIUS_RADAR = 75000; // m
+function radarMap() {
+  if (RAD.map || typeof L === "undefined") return RAD.map;
+  RAD.map = L.map("radarmap", {zoomControl:true, attributionControl:true, scrollWheelZoom:false, dragging:!L.Browser.mobile, tap:false})
+    .setView([ORT.lat, ORT.lon], 9);
+  L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {maxZoom:12, subdomains:"abcd",
+    attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> · © <a href="https://carto.com/attributions">CARTO</a> · Radar: DWD'}).addTo(RAD.map);
+  return RAD.map;
+}
+async function loadRadar() {
+  const res = await getJSON("/radar", {lat:ORT.lat, lon:ORT.lon, distance:RADIUS_RADAR, format:"compressed"}, 25000);
+  const recs = res.radar || [];
+  if (!recs.length) throw new Error("keine Radarbilder");
+  const first = await inflate(recs[0].precipitation_5);
+  let W, H;
+  if (Array.isArray(res.bbox)) { H = res.bbox[2] - res.bbox[0] + 1; W = res.bbox[3] - res.bbox[1] + 1; }
+  else { W = H = Math.round(Math.sqrt(first.length)); }
+  const cx = res.latlon_position?.x ?? (W - 1) / 2, cy = res.latlon_position?.y ?? (H - 1) / 2;
+  const [px, py] = radProj(ORT.lat, ORT.lon);
+  // Ausgabe-Raster in Web-Mercator: Breite/Länge um den Ort, jedes Pixel auf das Radargitter abgebildet
+  const dLat = RADIUS_RADAR / 111320, dLon = RADIUS_RADAR / (111320 * Math.cos(ORT.lat * Math.PI / 180));
+  const S = 300, north = ORT.lat + dLat, south = ORT.lat - dLat, west = ORT.lon - dLon, east = ORT.lon + dLon;
+  const mY = lat => Math.log(Math.tan(Math.PI / 4 + lat * Math.PI / 360));
+  const yN = mY(north), yS = mY(south);
+  const idx = new Int32Array(S * S);
+  for (let j = 0; j < S; j++) {
+    const lat = (2 * Math.atan(Math.exp(yN + (yS - yN) * (j + .5) / S)) - Math.PI / 2) * 180 / Math.PI;
+    for (let i = 0; i < S; i++) {
+      const lon = west + (east - west) * (i + .5) / S;
+      const [x, y] = radProj(lat, lon);
+      const c = Math.round(cx + (x - px)), r = Math.round(cy - (y - py));
+      idx[j * S + i] = c >= 0 && c < W && r >= 0 && r < H ? r * W + c : -1;
+    }
+  }
+  const cv = document.createElement("canvas"); cv.width = cv.height = S;
+  const ctx = cv.getContext("2d");
+  const frames = [], grids = [];
+  for (let k = 0; k < recs.length; k++) {
+    const g = k === 0 ? first : await inflate(recs[k].precipitation_5);
+    grids.push(g);
+    const img = ctx.createImageData(S, S), d = img.data;
+    let wet = 0;
+    for (let p = 0; p < idx.length; p++) {
+      const q = idx[p]; if (q < 0) continue;
+      const col = rcol(g[q] * 0.12); // 0,01 mm/5 min → mm/h
+      if (!col) continue;
+      wet++; d.set(col, p * 4);
+    }
+    ctx.putImageData(img, 0, 0);
+    frames.push({t:new Date(recs[k].timestamp), url:cv.toDataURL(), wet});
+  }
+  RAD.frames = frames; RAD.bounds = [[south, west], [north, east]];
+  const now = Date.now();
+  let iNow = 0; frames.forEach((f, k) => { if (f.t <= now) iNow = k; });
+  RAD.iNow = iNow;
+  const map = radarMap();
+  if (map) {
+    map.setView([ORT.lat, ORT.lon], map.getZoom());
+    if (RAD.overlay) RAD.overlay.remove();
+    RAD.overlay = L.imageOverlay(frames[iNow].url, RAD.bounds, {opacity:.85, interactive:false}).addTo(map);
+    if (RAD.marker) RAD.marker.remove();
+    RAD.marker = L.circleMarker([ORT.lat, ORT.lon], {radius:6, color:"#0c1426", weight:2, fillColor:"#ffffff", fillOpacity:1})
+      .bindTooltip(ORT.name, {permanent:true, direction:"right", className:"maplabel"}).addTo(map);
+    setTimeout(() => map.invalidateSize(), 50);
+  }
+  const sl = $("rad-slider"); sl.max = frames.length - 1;
+  showFrame(iNow);
+  // Kurzfazit: kommt in den nächsten 2 h Regen am Ort?
+  const centre = Math.round(cy) * W + Math.round(cx);
+  let hit = null;
+  for (let k = iNow; k < recs.length; k++) {
+    const g = grids[k];
+    let m = 0;
+    for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) { const q = centre + dy * W + dx; if (q >= 0 && q < g.length) m = Math.max(m, g[q] * 0.12); }
+    if (m >= 0.1) { hit = {t: frames[k].t, m, k}; break; }
+  }
+  $("rad-sum").innerHTML = hit
+    ? (hit.k === iNow ? `<b>Es regnet gerade</b> in ${esc(ORT.name)}.` : `<b>Regen ab etwa ${hhmm(hit.t)} Uhr</b> in ${esc(ORT.name)} erwartet.`)
+    : `<b>Kein Regen</b> in ${esc(ORT.name)} in den nächsten 2 Stunden.`;
+  if (!matchMedia("(prefers-reduced-motion: reduce)").matches && !RAD.playing) togglePlay(true);
+}
+function showFrame(k) {
+  const f = RAD.frames[k]; if (!f) return;
+  RAD.i = k; $("rad-slider").value = k;
+  if (RAD.overlay) RAD.overlay.setUrl(f.url);
+  const fc = f.t > Date.now();
+  $("rad-time").innerHTML = `${hhmm(f.t)} Uhr <span class="tag ${fc ? "fc" : ""}">${fc ? "Vorhersage" : "Messung"}</span>`;
+}
+function togglePlay(on) {
+  RAD.playing = on ?? !RAD.playing;
+  clearInterval(RAD.timer);
+  $("rad-play").setAttribute("aria-label", RAD.playing ? "Pause" : "Abspielen");
+  $("rad-play").innerHTML = RAD.playing
+    ? '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>'
+    : '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 5v14l12-7z"/></svg>';
+  if (RAD.playing) RAD.timer = setInterval(() => {
+    if (document.hidden || !RAD.frames.length) return;
+    showFrame((RAD.i + 1) % RAD.frames.length);
+  }, 450);
+}
+
+/* ---------- Strahlung (BfS ODL-Messnetz) ---------- */
+const BFS = "https://www.imis.bfs.de/ogc/opendata/ows";
+let ODL_AT = 0;
+function km(a, b, c, d) {
+  const r = Math.PI / 180, x = (d - b) * r * Math.cos((a + c) / 2 * r), y = (c - a) * r;
+  return Math.sqrt(x * x + y * y) * 6371;
+}
+async function bfs(params, timeout = 20000) {
+  const q = Object.entries({service:"WFS", version:"1.0.0", request:"GetFeature", outputFormat:"application/json", ...params})
+    .map(([k, v]) => k + "=" + encodeURIComponent(v)).join("&");
+  let timer;
+  const to = new Promise((_, rej) => { timer = setTimeout(() => rej(new Error("Zeitüberschreitung")), timeout); });
+  try {
+    const r = await Promise.race([fetch(BFS + "?" + q), to]);
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    return await r.json();
+  } finally { clearTimeout(timer); }
+}
+async function loadODL(force) {
+  if (!force && Date.now() - ODL_AT < 55 * 6e4 && ODL_AT) return;  // Werte sind Stundenmittel
+  const box = [ORT.lon - 0.9, ORT.lat - 0.6, ORT.lon + 0.9, ORT.lat + 0.6].map(v => v.toFixed(3)).join(",");
+  let fc;
+  try { fc = await bfs({typeName:"opendata:odlinfo_odl_1h_latest", bbox:box}); } catch { fc = null; }
+  if (!fc || !fc.features?.length) fc = await bfs({typeName:"opendata:odlinfo_odl_1h_latest"});
+  const st = (fc.features || []).map(f => {
+    const p = f.properties || {}, [lon, lat] = f.geometry?.coordinates || [];
+    return {kenn:p.kenn, name:p.name, v:p.value, h:p.height_above_sea, end:p.end_measure, lat, lon,
+      d: lat != null ? km(ORT.lat, ORT.lon, lat, lon) : 1e9};
+  }).filter(s => s.v != null && s.d < 60 && (!s.end || Date.now() - Date.parse(s.end) < 6 * 36e5)).sort((a, b) => a.d - b.d).slice(0, 6);
+  if (!st.length) throw new Error("keine Messstellen in der Nähe");
+  const vmax = Math.max(0.2, ...st.map(s => s.v));
+  $("odl").innerHTML = st.map((s, i) => `<div class="od">
+      <div class="nm"><b>${esc(s.name)}</b><small>${Math.round(s.d)} km · ${s.h != null ? Math.round(s.h) + " m" : ""}</small></div>
+      <div class="ob"><i style="width:${(s.v / vmax * 100).toFixed(0)}%"></i></div>
+      <span class="ov">${s.v.toLocaleString("de-DE",{minimumFractionDigits:3,maximumFractionDigits:3})}</span>
+    </div>`).join("") + `<div class="unit">µSv/h, Stundenmittel bis ${hhmm(new Date(st[0].end))} Uhr</div>`;
+  ODL_AT = Date.now();
+  // Verlauf der nächstgelegenen Sonde, 7 Tage
+  try {
+    const ts = await bfs({typeName:"opendata:odlinfo_timeseries_odl_1h", version:"1.1.0", viewparams:"kenn:" + st[0].kenn, sortBy:"end_measure D", maxFeatures:"168"});
+    const pts = (ts.features || []).map(f => ({t:new Date(f.properties.end_measure), v:f.properties.value})).filter(p => p.v != null).sort((a, b) => a.t - b.t);
+    $("odl-spark").innerHTML = pts.length > 5 ? spark(pts, st[0].name) : "";
+  } catch { $("odl-spark").innerHTML = ""; }
+}
+function spark(pts, name) {
+  const W = 320, H = 70, L = 4, R = 4, T = 8, B = 16;
+  const t0 = pts[0].t, t1 = pts[pts.length - 1].t;
+  const vs = pts.map(p => p.v), lo = Math.min(...vs), hi = Math.max(...vs), pad = Math.max(0.005, (hi - lo) * .15);
+  const x = t => L + (t - t0) / Math.max(1, t1 - t0) * (W - L - R);
+  const y = v => T + (hi + pad - v) / (hi - lo + 2 * pad) * (H - T - B);
+  const P = pts.map(p => [x(p.t).toFixed(1), y(p.v).toFixed(1)]);
+  const line = "M" + P.map(p => p.join(",")).join("L");
+  const fmt = v => v.toLocaleString("de-DE",{minimumFractionDigits:3,maximumFractionDigits:3});
+  const last = P[P.length - 1];
+  return `<div class="sp-h">${esc(name)}, letzte 7 Tage <span>${fmt(lo)} – ${fmt(hi)}</span></div>
+    <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Verlauf der Strahlung in ${esc(name)}, letzte 7 Tage">
+      <path d="${line}L${last[0]},${H - B}L${P[0][0]},${H - B}Z" fill="rgba(134,215,160,.14)"/>
+      <path d="${line}" fill="none" stroke="#86d7a0" stroke-width="1.6" vector-effect="non-scaling-stroke"/>
+      <text x="${L}" y="${H - 3}">${wd(t0)} ${dm(t0)}.</text><text x="${W - R}" y="${H - 3}" text-anchor="end">heute</text>
+    </svg>`;
+}
+
 function stTable(rows, f) {
   if (!rows.length) return '<div class="err">Keine Stationsdaten verfügbar.</div>';
   return rows.map((r, i) => `<div class="st">
@@ -633,11 +866,13 @@ async function run(fn, els) {
   try { await fn(); for (const el of els) { $(el).classList.remove("fade"); void $(el).offsetWidth; $(el).classList.add("fade"); } }
   catch (e) { for (const el of els) $(el).innerHTML = `<div class="err">Daten gerade nicht abrufbar (${esc(e.message || "Netzwerkfehler")}). Nächster Versuch in 10 Minuten.</div>`; }
 }
-let busy = false, lastRun = Date.now();
+let busy = false, lastRun = Date.now(), forceODL = false;
 async function refresh() {
   if (busy) return; busy = true; lastRun = Date.now();
   $("reload").classList.add("spin");
-  await Promise.all([run(loadForecast, ["cur","chart","hours","days"]), run(loadWarnings, ["warn"]), run(loadStations, ["cold","min12"])]);
+  await Promise.all([run(loadForecast, ["cur","chart","hours","days"]), run(loadWarnings, ["warn"]), run(loadStations, ["cold","min12"]),
+    run(loadRadar, ["rad-sum"]), run(() => loadODL(forceODL), ["odl"])]);
+  forceODL = false;
   const n = new Date();
   $("stand").textContent = `Stand ${hhmm(n)} Uhr`;
   $("reload").classList.remove("spin");
@@ -653,6 +888,7 @@ function initOrt() {
     ORT = {key: sel.value, ...ORTE[sel.value]};
     for (const id of ["chart","days","cold"]) $(id).innerHTML = '<div class="load">Lade …</div>';
     $("hours").innerHTML = ""; $("min12").innerHTML = "";
+    $("odl").innerHTML = '<div class="load">Lade …</div>'; $("odl-spark").innerHTML = ""; forceODL = true;
     refresh();
   });
 }
@@ -676,6 +912,8 @@ function initStars() {
 let rz;
 window.addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(() => LAST && renderChart(LAST.recs, LAST.now), 150); });
 $("reload").addEventListener("click", refresh);
+$("rad-play").addEventListener("click", () => togglePlay());
+$("rad-slider").addEventListener("input", e => { togglePlay(false); showFrame(+e.target.value); });
 document.addEventListener("visibilitychange", () => { if (!document.hidden && Date.now() - lastRun > REFRESH) refresh(); });
 initStars(); initOrt(); initTabs();
 refresh();
