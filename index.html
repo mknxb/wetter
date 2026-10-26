@@ -145,6 +145,7 @@ h2 small{font:500 .72rem var(--f-body);letter-spacing:.04em;text-transform:none;
 /* Radar */
 .radar{position:relative;height:340px;border-radius:14px;overflow:hidden;background:#0a1120;border:1px solid var(--line)}
 #radarmap{position:absolute;inset:0}
+.darktiles{filter:invert(1) hue-rotate(185deg) brightness(.95) contrast(.88) saturate(.55)}
 .leaflet-container{background:#0a1120;font:12px var(--f-body)}
 .leaflet-control-attribution{background:rgba(12,20,38,.75)!important;color:var(--mu)!important;font-size:10px}
 .leaflet-control-attribution a{color:var(--accent)!important}
@@ -566,7 +567,7 @@ function renderDays(recs, now, curT) {
     const rain = a.reduce((s, r) => s + (r.precipitation || 0), 0);
     return {a, lo: Math.min(...T_), hi: Math.max(...T_), rain, day,
       pp: Math.max(0, ...a.map(r => r.precipitation_probability ?? 0)),
-      gu: Math.max(0, ...a.map(r => r.wind_gust_speed ?? 0))};
+      gu: Math.max(0, ...a.filter(r => isMeasured(r, "wind_gust_speed")).map(r => r.wind_gust_speed ?? 0))};
   });
   const gLo = Math.min(...days.map(d => d.lo)), gHi = Math.max(...days.map(d => d.hi)), span = Math.max(1, gHi - gLo);
   const pos = v => ((v - gLo) / span * 100).toFixed(1);
@@ -669,8 +670,8 @@ function radarMap() {
   if (RAD.map || typeof L === "undefined") return RAD.map;
   RAD.map = L.map("radarmap", {zoomControl:true, attributionControl:true, scrollWheelZoom:false, dragging:!L.Browser.mobile, tap:false})
     .setView([ORT.lat, ORT.lon], 9);
-  L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {maxZoom:12, subdomains:"abcd",
-    attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> · © <a href="https://carto.com/attributions">CARTO</a> · Radar: DWD'}).addTo(RAD.map);
+  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {maxZoom:13, className:"darktiles",
+    attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> · Radar: DWD'}).addTo(RAD.map);
   return RAD.map;
 }
 async function loadRadar() {
