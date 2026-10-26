@@ -7,6 +7,10 @@
 <meta name="theme-color" content="#0c1426">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Bayerwald">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;700;800&family=Barlow:wght@400;500;600&display=swap">
@@ -80,7 +84,7 @@ button,select{font:inherit;color:inherit}
 /* ---------- Inhalt ---------- */
 main{max-width:1200px;margin:-92px auto 0;position:relative;display:grid;gap:16px;grid-template-columns:minmax(0,1fr);
   padding-block:0 20px;padding-left:max(14px,env(safe-area-inset-left,0px));padding-right:max(14px,env(safe-area-inset-right,0px))}
-@media (min-width:900px){main{grid-template-columns:minmax(0,1.45fr) minmax(0,1fr)}.wide{grid-column:1}.side{grid-column:2;grid-row:1 / span 4}}
+@media (min-width:900px){main{grid-template-columns:minmax(0,1.45fr) minmax(0,1fr)}.wide{grid-column:1}.side{grid-column:2;grid-row:1 / span 5}}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:16px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
   box-shadow:0 18px 40px -24px rgba(0,0,0,.6);min-width:0}
 .side{display:flex;flex-direction:column;gap:16px;min-width:0}
@@ -88,6 +92,20 @@ h2{margin:0 0 12px;font:700 1.05rem/1.1 var(--f-disp);letter-spacing:.14em;text-
 h2 small{font:500 .72rem var(--f-body);letter-spacing:.04em;text-transform:none;color:var(--mu)}
 .load{color:var(--mu);font-size:.85rem}
 .err{color:#f2c46b;font-size:.85rem}
+
+/* Heute im Bayerwald */
+.sigs{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.sg{display:grid;grid-template-columns:26px minmax(0,1fr);grid-template-rows:auto auto;column-gap:10px;align-items:center;text-align:left;
+  padding:10px 12px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.035);color:var(--mu);cursor:pointer;min-width:0;transition:border-color .2s,background .2s}
+.sg svg{grid-row:1 / span 2;width:24px;height:24px}
+.sg small{font-size:.66rem;letter-spacing:.12em;text-transform:uppercase}
+.sg b{font-size:.88rem;font-weight:600;line-height:1.25;color:var(--fg);overflow-wrap:anywhere}
+.sg.off b,.sg.na b{color:var(--mu);font-weight:500}
+.sg.on{border-color:color-mix(in srgb,var(--amber) 55%,transparent);background:color-mix(in srgb,var(--amber) 13%,transparent);color:var(--amber)}
+.sg.maybe{border-color:color-mix(in srgb,var(--accent) 40%,transparent);color:var(--accent)}
+.sg[aria-expanded="true"]{outline:2px solid var(--accent);outline-offset:1px}
+.sig-detail{margin-top:10px;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.05);font-size:.88rem;line-height:1.5;color:var(--fg)}
+.sig-detail b{color:var(--accent);margin-right:4px}
 
 /* Diagramm */
 .chart{position:relative;width:100%;height:210px}
@@ -214,6 +232,12 @@ footer a{color:var(--accent)}
 </header>
 
 <main>
+  <section class="card wide">
+    <h2>Heute im Bayerwald</h2>
+    <div class="sigs" id="sig"><div class="load">Werte werden zusammengetragen …</div></div>
+    <div class="sig-detail" id="sig-detail" hidden></div>
+  </section>
+
   <section class="card wide">
     <h2>Nächste 36 Stunden</h2>
     <div class="chart" id="chart"><div class="load">Lade Vorhersage …</div></div>
@@ -421,7 +445,7 @@ function currentOrt() {
   return ORTE[k] ? {key:k, ...ORTE[k]} : {key:START_ORT, ...ORTE[START_ORT]};
 }
 let ORT = currentOrt();
-let LAST = null; // letzte Vorhersage, für Neuzeichnen bei Größenänderung
+let LAST = null, CUR = null; // letzte Vorhersage, für Neuzeichnen bei Größenänderung
 
 /* ---------- Vorhersage + aktuell ---------- */
 async function loadForecast() {
@@ -451,6 +475,7 @@ function skyFor(icon, now, sun) {
 
 function renderCurrent(cur, recs, now) {
   const w = cur.weather, src = cur.sources?.find(s => s.id === w.source_id) || cur.sources?.[0];
+  CUR = w;
   const sun = sunTimes(now, ORT.lat, ORT.lon);
   $("hero").dataset.sky = skyFor(w.icon, now, sun);
   const dist = src?.distance != null ? ` · ${Math.round(src.distance / 1000)} km entfernt` : "";
@@ -641,12 +666,13 @@ async function loadStations() {
       getJSON("/current_weather", {...id, max_dist:1}),
       getJSON("/weather", {...id, date:from, last_date:to})
     ]);
-    const out = {name:kurz(s.station_name), land:land(s), hoehe:s.height};
+    const out = {name:kurz(s.station_name), land:land(s), hoehe:s.height, dist: s.distance != null ? s.distance / 1000 : null};
     if (c.status === "fulfilled") {
       const w = c.value.weather;
       const fc = (c.value.sources || []).some(x => x.id === w?.source_id && x.observation_type === "forecast");
       if (w && !fc && w.temperature != null && isMeasured(w, "temperature") && now - Date.parse(w.timestamp) < 3 * 36e5)
         out.now = {t:w.temperature, at:new Date(w.timestamp)};
+      if (w) { out.vis = isMeasured(w, "visibility") ? w.visibility : null; out.rh = isMeasured(w, "relative_humidity") ? w.relative_humidity : null; }
     }
     if (h.status === "fulfilled") {
       const obs = new Set((h.value.sources || []).filter(x => x.observation_type !== "forecast").map(x => x.id));
@@ -660,6 +686,7 @@ async function loadStations() {
     return out;
   });
   const ok = data.filter(Boolean);
+  STN = ok;
   // Nach Name zusammenfassen, falls zwei Quellen dieselbe Station liefern
   const uniq = arr => { const seen = new Set(); return arr.filter(x => !seen.has(x.name) && seen.add(x.name)); };
   const cold = uniq(ok.filter(x => x.now).sort((a, b) => a.now.t - b.now.t)).slice(0, 10);
@@ -928,6 +955,136 @@ function spark(pts, name) {
     </svg>`;
 }
 
+
+/* ---------- Heute im Bayerwald: Signale ---------- */
+let STN = [], EXTRA = null;
+const SIG_ICON = {
+  inv: '<path d="M3 17l5-7 3 4 3-5 7 8" /><path d="M2 20h20M5 22h14" opacity=".55"/>',
+  alp: '<path d="M2 19l5-9 3 5 4-8 8 12z"/><path d="M12 7l1.4 2.3" />',
+  bike:'<circle cx="6" cy="16" r="4"/><circle cx="18" cy="16" r="4"/><path d="M6 16l4-8h5l3 8M10 8l3 8h-7M14 5h3"/>',
+  uv:  '<circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/>',
+  pol: '<circle cx="12" cy="9" r="2.2"/><path d="M12 6.8V3M14.2 9H18M9.8 9H6M13.6 10.6l2.7 2.7M10.4 10.6l-2.7 2.7M12 11.2V21M12 17c-2 0-4-1-5-3M12 15c2 0 4-1 5-3"/>',
+  aur: '<path d="M3 18c3-8 6-12 9-12s6 4 9 12"/><path d="M6 18c2-5 4-8 6-8s4 3 6 8" opacity=".6"/><path d="M2 21h20"/>'
+};
+const POLLEN_N = {"-1":0,"0":0,"0-1":.5,"1":1,"1-2":1.5,"2":2,"2-3":2.5,"3":3};
+const POLLEN_T = v => v >= 2.5 ? "hoch" : v >= 1.5 ? "mittel" : v >= .5 ? "gering" : "keine";
+const POLLEN_NAME = {Graeser:"Gräser", Beifuss:"Beifuß"};
+
+async function loadExtra() {
+  try { const r = await fetch("extra.json?t=" + Date.now()); if (r.ok) EXTRA = await r.json(); } catch {}
+}
+
+function sigInversion() {
+  const ar = STN.find(s => s.name === "Großer Arber" && s.now);
+  const val = STN.filter(s => s.now && s.hoehe != null && s.hoehe < 550 && s.dist != null).sort((a, b) => a.dist - b.dist)[0];
+  if (!ar || !val) return {key:"inv", title:"Inversion", state:"na", short:"keine Daten", detail:"Für den Vergleich fehlen gerade Messwerte vom Arber oder aus dem Tal."};
+  const diff = ar.now.t - val.now.t, dh = ar.hoehe - val.hoehe, normal = -0.0065 * dh;
+  const foggy = (CUR?.icon === "fog") || (CUR?.relative_humidity >= 97);
+  const txt = `Großer Arber ${f1(ar.now.t)} °C (${Math.round(ar.hoehe)} m), ${esc(val.name)} ${f1(val.now.t)} °C (${Math.round(val.hoehe)} m). Normal wäre es oben rund ${f1(-normal)} Grad kälter.`;
+  if (diff > 0) return {key:"inv", title:"Inversion", state:"on", short: foggy ? "Über dem Nebel!" : `Arber ${f1(diff)}° wärmer`,
+    detail:`Oben ist es wärmer als im Tal: eine echte Inversion. ${foggy ? "Im Tal liegt Nebel, auf den Gipfeln scheint vermutlich die Sonne." : "Typisch für ruhiges Hochdruckwetter, oft mit Nebel oder Hochnebel in den Tälern."} ${txt}`};
+  if (diff > normal + 3) return {key:"inv", title:"Inversion", state:"maybe", short:"schwach ausgeprägt",
+    detail:`Oben ist es weniger kalt als üblich, die Luft ist stabil geschichtet. ${txt}`};
+  return {key:"inv", title:"Inversion", state:"off", short:"normale Schichtung", detail:`Keine Inversion: Mit der Höhe wird es wie üblich kälter. ${txt}`};
+}
+
+function sigAlpen() {
+  const ar = STN.find(s => s.name === "Großer Arber");
+  const now = new Date(), sun = sunTimes(now, ORT.lat, ORT.lon), day = now > sun.rise && now < sun.set;
+  if (!ar || ar.vis == null) return {key:"alp", title:"Alpenblick", state:"na", short:"keine Sichtdaten", detail:"Vom Arber kommt gerade keine Sichtweite."};
+  const km = ar.vis / 1000, rh = ar.rh;
+  const base = `Sichtweite am Arber ${Math.round(km)} km${rh != null ? `, Luftfeuchte ${Math.round(rh)} %` : ""}. Bis zu den Alpen sind es vom Arber rund 150 km, sichtbar werden sie bei sehr klarer, trockener Luft. Das ist eine Schätzung aus den Messwerten.`;
+  let state = "off", short = "diesig";
+  if (km >= 60 && (rh == null || rh < 75)) { state = "on"; short = "sehr klare Luft"; }
+  else if (km >= 35) { state = "maybe"; short = "gute Fernsicht"; }
+  if (!day) { state = state === "on" ? "maybe" : "off"; short = state === "maybe" ? "klar, morgen früh schauen" : "nachts"; }
+  return {key:"alp", title:"Alpenblick", state, short, detail: base};
+}
+
+function sigRadl() {
+  if (!LAST) return {key:"bike", title:"Radl-Fenster", state:"na", short:"–", detail:""};
+  const now = Date.now();
+  const hrs = LAST.recs.map(r => ({...r, _t: new Date(r.timestamp)})).filter(r => r._t >= now - 36e5 && r._t < now + 40 * 36e5);
+  const ok = r => { const h = hourOf(r._t); return h >= 8 && h <= 19 && !(r.precipitation > 0.05) && (r.precipitation_probability ?? 0) < 30
+    && (r.wind_gust_speed ?? 0) < 40 && r.temperature != null && r.temperature >= 4; };
+  const runs = []; let cur = null;
+  for (const r of hrs) {
+    if (ok(r) && cur && dayKey(r._t) === dayKey(cur.end._t) && r._t - cur.end._t <= 36e5) { cur.end = r; cur.n++; }
+    else if (ok(r)) { cur = {start:r, end:r, n:1}; runs.push(cur); }
+    else cur = null;
+  }
+  const best = d => runs.filter(x => dayKey(x.start._t) === d && x.n >= 2).sort((a, b) => b.n - a.n)[0];
+  const today = best(dayKey(new Date())), tom = best(dayKey(new Date(now + 864e5)));
+  const span = x => `${hhmm(x.start._t).slice(0,2)}–${String(hourOf(x.end._t) + 1).padStart(2, "0")} Uhr`;
+  const tmax = x => Math.round(Math.max(...hrs.filter(r => r._t >= x.start._t && r._t <= x.end._t).map(r => r.temperature)));
+  const crit = "Trocken (unter 30 % Regenrisiko), Böen unter 40 km/h, mindestens 4 °C, zwischen 8 und 20 Uhr.";
+  if (today) return {key:"bike", title:"Radl-Fenster", state:"on", short:`heute ${span(today)}`,
+    detail:`Bestes Fenster heute ${span(today)}, bis ${tmax(today)} °C.${tom ? ` Morgen: ${span(tom)}.` : ""} ${crit}`};
+  if (tom) return {key:"bike", title:"Radl-Fenster", state:"maybe", short:`morgen ${span(tom)}`,
+    detail:`Heute passt es nicht mehr. Morgen ${span(tom)}, bis ${tmax(tom)} °C. ${crit}`};
+  return {key:"bike", title:"Radl-Fenster", state:"off", short:"kein Fenster", detail:`Heute und morgen kein trockenes Fenster von mindestens 2 Stunden. ${crit}`};
+}
+
+function sigUV() {
+  const u = EXTRA?.uv;
+  if (!u?.forecast) return {key:"uv", title:"UV-Index", state:"na", short:"keine Daten", detail:""};
+  const v = u.forecast.today, a = u.arber?.today, w = u.forecast.tomorrow;
+  const lvl = x => x >= 8 ? "sehr hoch" : x >= 6 ? "hoch" : x >= 3 ? "mittel" : "niedrig";
+  const state = v >= 6 ? "on" : v >= 3 ? "maybe" : "off";
+  return {key:"uv", title:"UV-Index", state, short:`${v} · ${lvl(v)}`,
+    detail:`Heute ${v} (${lvl(v)}) im Raum ${esc(u.city)}${a != null ? `, am Großen Arber ${a}` : ""}. Morgen ${w ?? "–"}. Ab 3 ist Sonnenschutz sinnvoll, ab 6 unbedingt. Quelle: DWD.`};
+}
+
+function sigPollen() {
+  const p = EXTRA?.pollen?.pollen;
+  if (!p) return {key:"pol", title:"Pollen", state:"na", short:"keine Daten", detail:""};
+  const list = Object.entries(p).map(([n, v]) => ({n: POLLEN_NAME[n] || n, t: POLLEN_N[v.today] ?? 0, m: POLLEN_N[v.tomorrow] ?? 0})).sort((a, b) => b.t - a.t);
+  const act = list.filter(x => x.t >= .5), top = act[0];
+  const tomorrow = list.filter(x => x.m >= .5).map(x => `${x.n} ${POLLEN_T(x.m)}`).join(", ");
+  if (!top) return {key:"pol", title:"Pollen", state:"off", short:"kein Pollenflug",
+    detail:`Heute keine Belastung für ${esc(EXTRA.pollen.region || "die Region")}.${tomorrow ? " Morgen: " + tomorrow + "." : ""} Quelle: DWD-Pollenflug-Gefahrenindex.`};
+  return {key:"pol", title:"Pollen", state: top.t >= 2 ? "on" : "maybe", short:`${top.n} ${POLLEN_T(top.t)}`,
+    detail:`Heute: ${act.map(x => `${x.n} ${POLLEN_T(x.t)}`).join(", ")}.${tomorrow ? " Morgen: " + tomorrow + "." : ""} Region ${esc(EXTRA.pollen.region || "")}. Quelle: DWD.`};
+}
+
+function sigAurora() {
+  const s = EXTRA?.kp?.series;
+  if (!s?.length) return {key:"aur", title:"Polarlicht", state:"na", short:"keine Daten", detail:""};
+  const now = Date.now();
+  const next = s.filter(x => Date.parse(x.t) >= now - 3 * 36e5 && Date.parse(x.t) <= now + 24 * 36e5);
+  const kp = Math.max(0, ...next.map(x => x.kp));
+  const days = s.filter(x => Date.parse(x.t) > now + 24 * 36e5).map(x => x.kp);
+  const later = days.length ? Math.max(...days) : null;
+  let cloud = null;
+  if (LAST) {
+    const night = LAST.recs.filter(r => { const t = new Date(r.timestamp), h = hourOf(t); return t > now && t < now + 20 * 36e5 && (h >= 20 || h <= 4); }).map(r => r.cloud_cover).filter(v => v != null);
+    if (night.length) cloud = night.reduce((a, b) => a + b, 0) / night.length;
+  }
+  const sky = cloud == null ? "" : cloud < 40 ? " Der Himmel ist nachts überwiegend klar." : cloud < 75 ? " Nachts teils bewölkt." : " Nachts aber meist bewölkt.";
+  const base = `Höchster Kp-Index in den nächsten 24 Stunden: ${f1(kp)}.${later != null ? ` Danach bis ${f1(later)}.` : ""}${sky} In Süddeutschland braucht es etwa Kp 7, für Fotos Richtung Norden reicht manchmal Kp 6. Quelle: NOAA.`;
+  if (kp >= 7) return {key:"aur", title:"Polarlicht", state: cloud != null && cloud >= 75 ? "maybe" : "on", short:`Chance! Kp ${f1(kp)}`, detail: base};
+  if (kp >= 6) return {key:"aur", title:"Polarlicht", state:"maybe", short:`Kp ${f1(kp)} · nur Fotos`, detail: base};
+  return {key:"aur", title:"Polarlicht", state:"off", short:`ruhig · Kp ${f1(kp)}`, detail: base};
+}
+
+let SIGS = [], SIG_OPEN = null;
+function renderSignals() {
+  const order = {on:0, maybe:1, off:2, na:3};
+  SIGS = [sigInversion(), sigAlpen(), sigRadl(), sigUV(), sigPollen(), sigAurora()]
+    .map((s, i) => ({...s, i})).sort((a, b) => order[a.state] - order[b.state] || a.i - b.i);
+  $("sig").innerHTML = SIGS.map(s => `<button type="button" class="sg ${s.state}" data-k="${s.key}" aria-expanded="${SIG_OPEN === s.key}" aria-controls="sig-detail">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${SIG_ICON[s.key]}</svg>
+      <small>${s.title}</small><b>${s.short}</b></button>`).join("");
+  showSig(SIG_OPEN);
+}
+function showSig(k) {
+  SIG_OPEN = k;
+  const s = SIGS.find(x => x.key === k);
+  document.querySelectorAll(".sg").forEach(b => b.setAttribute("aria-expanded", b.dataset.k === k));
+  $("sig-detail").hidden = !s || !s.detail;
+  if (s) $("sig-detail").innerHTML = `<b>${s.title}</b> ${s.detail}`;
+}
+
 function stTable(rows, f) {
   if (!rows.length) return '<div class="err">Keine Stationsdaten verfügbar.</div>';
   return rows.map((r, i) => `<div class="st">
@@ -972,8 +1129,9 @@ async function refresh() {
   if (busy) return; busy = true; lastRun = Date.now();
   $("reload").classList.add("spin");
   await Promise.all([run(loadForecast, ["cur","chart","hours","days"]), run(loadWarnings, ["warn"]), run(loadStations, ["cold","min12"]),
-    run(loadRadar, ["rad-sum"]), run(loadPegel, ["pegel"]), run(() => loadODL(forceODL), ["odl"])]);
+    run(loadRadar, ["rad-sum"]), run(loadPegel, ["pegel"]), loadExtra(), run(() => loadODL(forceODL), ["odl"])]);
   forceODL = false;
+  try { renderSignals(); } catch (e) { $("sig").innerHTML = '<div class="err">Extras gerade nicht verfügbar.</div>'; }
   const n = new Date();
   $("stand").textContent = `Stand ${hhmm(n)} Uhr`;
   $("reload").classList.remove("spin");
@@ -1014,6 +1172,8 @@ let rz;
 window.addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(() => LAST && renderChart(LAST.recs, LAST.now), 150); });
 $("reload").addEventListener("click", refresh);
 $("rad-play").addEventListener("click", () => togglePlay());
+$("sig").addEventListener("click", e => { const b = e.target.closest(".sg"); if (b) showSig(SIG_OPEN === b.dataset.k ? null : b.dataset.k); });
+if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => {});
 $("rad-slider").addEventListener("input", e => { togglePlay(false); showFrame(+e.target.value); });
 document.addEventListener("visibilitychange", () => { if (!document.hidden && Date.now() - lastRun > REFRESH) refresh(); });
 initStars(); initOrt(); initTabs();
