@@ -3,7 +3,7 @@
 - Pollenflug-Gefahrenindex des DWD (Teilregion mit dem Bayerischen Wald)
 - Kp-Index (Polarlicht) des NOAA Space Weather Prediction Center
 Jede Quelle ist unabhaengig: faellt eine aus, bleiben die anderen erhalten."""
-import json, os, urllib.request
+import json, os, re, urllib.request
 from datetime import datetime, timezone
 
 OUT = "extra.json"
@@ -23,8 +23,8 @@ def uv():
     for c in UV_CITIES:
         if c in by:
             r = by[c]
-            return {"city": c, "forecast": r.get("forecast", {}), "last_update": d.get("last_update"),
-                    "cities": sorted(by)}
+            arber = by.get("Großer Arber", {}).get("forecast")
+            return {"city": c, "forecast": r.get("forecast", {}), "arber": arber, "last_update": d.get("last_update")}
     return {"city": None, "cities": sorted(by), "last_update": d.get("last_update")}
 
 
@@ -33,13 +33,16 @@ def pollen():
     rows = d.get("content", [])
     pick = None
     for r in rows:
-        if "Wald" in str(r.get("partregion_name", "")) and r.get("region_id") == 120:
+        n = str(r.get("partregion_name", ""))
+        # "Bay. Wald" gehoert dazu, "o. Bayr. Wald" (ohne Bayerischen Wald) nicht
+        if r.get("region_id") == 120 and re.search(r"Bayr?\. ?Wald", n) and not re.search(r"o\. ?Bayr?\. ?Wald", n):
             pick = r
     if not pick:
         pick = next((r for r in rows if r.get("region_id") == 120), None)
     return {"region": (pick or {}).get("partregion_name") or (pick or {}).get("region_name"),
             "pollen": (pick or {}).get("Pollen", {}), "legend": d.get("legend", {}),
-            "last_update": d.get("last_update"), "next_update": d.get("next_update")}
+            "last_update": d.get("last_update"), "next_update": d.get("next_update"),
+            "regions": [r.get("partregion_name") for r in rows if r.get("region_id") == 120]}
 
 
 def rows_to_dicts(d):
