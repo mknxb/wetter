@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Wetter Bayerwald Live</title>
+<meta name="theme-color" content="#0b1118">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@500;600;700&display=swap">
+<style>
+/* Layout: Kopfband, dann drei Spalten (Jetzt | Vorhersage | Stationen), am Handy untereinander */
+:root{
+  --bg:#0b1118; --panel:#111a24; --row:#16212d; --line:#223142;
+  --fg:#e6edf4; --mu:#8a9aac; --head:#7fb4ec; --band:#16304f;
+  --kalt:#6fb2ff; --warm:#f2a98c; --trend:#f0a03c; --ok:#7cc48a;
+  --w-minor:#e8c547; --w-moderate:#f08a2e; --w-severe:#e5484d; --w-extreme:#b35ad6;
+  --f-disp:"Barlow Semi Condensed","Arial Narrow",system-ui,sans-serif;
+  --f-body:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.4 var(--f-body);font-variant-numeric:tabular-nums}
+.band{background:var(--band)}
+.band .in{display:flex;flex-wrap:wrap;gap:4px 16px;align-items:baseline;justify-content:space-between;
+  padding-block:calc(10px + env(safe-area-inset-top,0px)) 10px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1{font:700 1.45rem/1.15 var(--f-disp);margin:0;letter-spacing:.01em;text-wrap:balance}
+.stand{color:#b7c6d6;font-size:.85rem}
+.stand button{font:inherit;color:var(--head);background:none;border:1px solid var(--line);border-radius:4px;padding:2px 8px;margin-left:6px;cursor:pointer}
+.stand button:focus-visible,select:focus-visible{outline:2px solid var(--head);outline-offset:2px}
+main{display:grid;gap:18px 22px;grid-template-columns:1fr;
+  padding-block:16px 24px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));max-width:1500px;margin:0 auto}
+@media (min-width:760px){main{grid-template-columns:minmax(0,1fr) minmax(0,1.3fr)}.c3{grid-column:1 / -1}}
+@media (min-width:1180px){main{grid-template-columns:minmax(0,.85fr) minmax(0,1.2fr) minmax(0,1.2fr)}.c3{grid-column:auto}}
+.col{display:flex;flex-direction:column;gap:18px;min-width:0}
+h2{font:600 1.05rem/1.2 var(--f-disp);color:var(--head);margin:0 0 6px;letter-spacing:.02em}
+h2 small{font:400 .75rem var(--f-body);color:var(--mu);letter-spacing:0;margin-left:6px}
+.big{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.temp{font:700 clamp(3.2rem,11vw,4.6rem)/1 var(--f-disp);letter-spacing:-.01em}
+.trend{display:flex;flex-direction:column;align-items:center;color:var(--trend);font-size:.78rem;font-weight:600}
+.trend svg{width:46px;height:30px}
+.cond{display:flex;align-items:center;gap:8px;font:600 1.35rem var(--f-disp);margin:6px 0 4px}
+.cond svg{width:34px;height:34px}
+.kv{color:var(--mu);line-height:1.6}
+.kv b{color:var(--fg);font-weight:500}
+.ort{display:flex;gap:8px;align-items:center;color:var(--mu);font-size:.85rem;margin-top:10px}
+select{font:inherit;color:var(--fg);background:var(--row);border:1px solid var(--line);border-radius:4px;padding:3px 6px}
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;width:100%;font-size:.88rem}
+th{color:var(--mu);font-weight:500;font-size:.74rem;text-align:right;padding:4px 6px;background:var(--row);white-space:nowrap}
+td{padding:4px 6px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--line)}
+tbody tr:nth-child(even) td{background:rgba(255,255,255,.025)}
+th.l,td.l{text-align:left}
+td.ic{padding:1px 4px;text-align:center}td.ic svg{width:22px;height:22px;vertical-align:middle}
+td.nm{max-width:12.5em;overflow:hidden;text-overflow:ellipsis}
+.k{color:var(--kalt)}.wa{color:var(--warm)}.tk{color:var(--kalt);font-weight:600}
+.rk{display:inline-grid;place-items:center;width:1.35em;height:1.35em;border-radius:50%;font-size:.75rem;font-weight:700;color:#111}
+.r1{background:#e9c46a}.r2{background:#cfd6de}.r3{background:#c8875a}.rn{color:var(--mu);background:none}
+.hint{color:var(--mu);font-size:.72rem;margin-top:4px}
+.warn{border-left:5px solid var(--w-minor);background:var(--panel);padding:7px 10px;margin-bottom:8px;border-radius:3px}
+.warn b{display:block;font-weight:600}.warn small{color:var(--mu)}
+.warn.moderate{border-color:var(--w-moderate)}.warn.severe{border-color:var(--w-severe)}.warn.extreme{border-color:var(--w-extreme)}
+.okmsg{color:var(--ok)}
+.err{color:#e8b04a;font-size:.82rem}
+.load{color:var(--mu);font-size:.85rem}
+footer{color:var(--mu);font-size:.72rem;padding-block:0 calc(18px + env(safe-area-inset-bottom,0px));
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));max-width:1500px;margin:0 auto}
+footer a{color:var(--head)}
+@media (prefers-reduced-motion:no-preference){.fresh{animation:fl 1.2s ease-out}@keyframes fl{from{background:rgba(127,180,236,.18)}to{background:transparent}}}
+</style>
+</head>
+<body>
+<header class="band"><div class="in">
+  <h1>Wetter Bayerischer Wald / Böhmerwald</h1>
+  <div class="stand">Stand <span id="stand">–</span><button id="reload" type="button">Aktualisieren</button></div>
+</div></header>
+
+<main>
+  <section class="col">
+    <div>
+      <h2>Aktuell <small id="cur-src"></small></h2>
+      <div id="cur"><div class="load">Lade Messwerte …</div></div>
+      <div class="ort"><label for="ortwahl">Ort</label><select id="ortwahl"></select></div>
+    </div>
+    <div>
+      <h2>Warnungen</h2>
+      <div id="warn"><div class="load">Lade DWD-Warnungen …</div></div>
+    </div>
+  </section>
+
+  <section class="col">
+    <div>
+      <h2>Die nächsten Tage</h2>
+      <div class="tw" id="days"><div class="load">Lade Vorhersage …</div></div>
+      <div class="hint">mm = Regen, % = Regenwahrscheinlichkeit; Wind/Böen in km/h</div>
+    </div>
+    <div>
+      <h2>Verlauf (3-Stunden-Schritte)</h2>
+      <div class="tw" id="hours"><div class="load">Lade Verlauf …</div></div>
+    </div>
+  </section>
+
+  <section class="col c3">
+    <div>
+      <h2>Kälteste Orte jetzt <small>(100 km)</small></h2>
+      <div class="tw" id="cold"><div class="load">Frage Stationen ab …</div></div>
+    </div>
+    <div>
+      <h2>Tiefstwerte letzte 12 h <small>(100 km)</small></h2>
+      <div class="tw" id="min12"><div class="load">Frage Stationen ab …</div></div>
+    </div>
+  </section>
+</main>
+
+<footer>Quelle: Deutscher Wetterdienst (DWD Open Data) über <a href="https://brightsky.dev" target="_blank" rel="noopener">Bright Sky</a>; tschechische Stationen über den internationalen SYNOP-Austausch. Live im Browser abgefragt, Aktualisierung alle 10 Minuten. Keine amtliche Warnung, maßgeblich ist <a href="https://www.dwd.de/warnungen" target="_blank" rel="noopener">dwd.de</a>. Uhrzeit bei Stationen = Messzeit.</footer>
+
+<script>
+"use strict";
+const API = "https://api.brightsky.dev";
+const TZ = "Europe/Berlin";
+const RADIUS = 100000;          // m, Umkreis für Stationen
+const REFRESH = 10 * 60 * 1000; // 10 Minuten
+
+const ORTE = {
+  zwiesel:   {name:"Zwiesel",        lat:49.0236, lon:13.2312},
+  koetzting: {name:"Bad Kötzting",   lat:49.1767, lon:12.8547},
+  blaibach:  {name:"Blaibach",       lat:49.1636, lon:12.8086},
+  cham:      {name:"Cham",           lat:49.2183, lon:12.6650},
+  regen:     {name:"Regen",          lat:48.9700, lon:13.1270},
+  arber:     {name:"Großer Arber",   lat:49.1125, lon:13.1350},
+  deggendorf:{name:"Deggendorf",     lat:48.8353, lon:12.9644},
+  furth:     {name:"Furth im Wald",  lat:49.3097, lon:12.8400}
+};
+// Gebiete, für die DWD-Warnungen abgefragt werden
+const WARNPUNKTE = ["zwiesel","koetzting","cham","regen","arber","deggendorf"];
+
+/* ---------- Hilfen ---------- */
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const nf1 = new Intl.NumberFormat("de-DE",{minimumFractionDigits:1,maximumFractionDigits:1});
+const f1 = v => v == null || isNaN(v) ? "–" : nf1.format(v);
+const f0 = v => v == null || isNaN(v) ? "–" : String(Math.round(v));
+const hhmm = d => new Intl.DateTimeFormat("de-DE",{timeZone:TZ,hour:"2-digit",minute:"2-digit"}).format(d);
+const dayKey = d => new Intl.DateTimeFormat("en-CA",{timeZone:TZ,year:"numeric",month:"2-digit",day:"2-digit"}).format(d);
+const wd = d => new Intl.DateTimeFormat("de-DE",{timeZone:TZ,weekday:"short"}).format(d).replace(".","");
+const dm = d => new Intl.DateTimeFormat("de-DE",{timeZone:TZ,day:"2-digit",month:"2-digit"}).format(d).replace(/\.$/, "");
+const hourOf = d => +new Intl.DateTimeFormat("en-GB",{timeZone:TZ,hour:"2-digit",hourCycle:"h23"}).format(d);
+const RICHT = ["N","NO","O","SO","S","SW","W","NW"];
+const dir = deg => deg == null ? "" : RICHT[Math.round(deg / 45) % 8];
+
+async function getJSON(path, params, timeout = 15000) {
+  const q = Object.entries({...params, tz: TZ}).filter(([, v]) => v != null)
+    .map(([k, v]) => encodeURIComponent(k) + "=" + encodeURIComponent(v)).join("&");
+  const url = API + path + "?" + q;          // reiner String: manche Vorschau-Umgebungen können URL-/Signal-Objekte nicht weiterreichen
+  let timer;
+  const to = new Promise((_, rej) => { timer = setTimeout(() => rej(new Error("Zeitüberschreitung")), timeout); });
+  try {
+    const r = await Promise.race([fetch(url), to]);
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    return await r.json();
+  } finally { clearTimeout(timer); }
+}
+// begrenzt parallele Abfragen
+async function pool(items, n, fn) {
+  const out = new Array(items.length); let i = 0;
+  await Promise.all(Array.from({length: Math.min(n, items.length)}, async () => {
+    while (i < items.length) { const k = i++; try { out[k] = await fn(items[k]); } catch { out[k] = null; } }
+  }));
+  return out;
+}
+
+/* ---------- Sonnenauf-/untergang (Sonnengleichung) ---------- */
+function sunTimes(date, lat, lon) {
+  const r = Math.PI / 180, J = date.getTime() / 864e5 + 2440587.5;
+  const n = Math.ceil(J - 2451545 + 0.0008);
+  const Js = n - lon / 360;
+  const M = (357.5291 + 0.98560028 * Js) % 360;
+  const C = 1.9148 * Math.sin(M*r) + 0.02 * Math.sin(2*M*r) + 0.0003 * Math.sin(3*M*r);
+  const L = (M + C + 180 + 102.9372) % 360;
+  const Jt = 2451545 + Js + 0.0053 * Math.sin(M*r) - 0.0069 * Math.sin(2*L*r);
+  const dec = Math.asin(Math.sin(L*r) * Math.sin(23.4397*r));
+  const cw = (Math.sin(-0.833*r) - Math.sin(lat*r) * Math.sin(dec)) / (Math.cos(lat*r) * Math.cos(dec));
+  const w = Math.acos(Math.max(-1, Math.min(1, cw))) / r;
+  const toD = j => new Date((j - 2440587.5) * 864e5);
+  return {rise: toD(Jt - w / 360), set: toD(Jt + w / 360)};
+}
+
+/* ---------- Wetter-Symbole (inline SVG) ---------- */
+const SV = {
+  sun:   '<circle cx="16" cy="16" r="6" fill="#f5c542"/><g stroke="#f5c542" stroke-width="2" stroke-linecap="round"><path d="M16 3v4M16 25v4M3 16h4M25 16h4M6.8 6.8l2.8 2.8M22.4 22.4l2.8 2.8M6.8 25.2l2.8-2.8M22.4 9.6l2.8-2.8"/></g>',
+  moon:  '<path d="M20 5a11 11 0 1 0 7 17A9 9 0 0 1 20 5z" fill="#d7dde6"/>',
+  sunS:  '<circle cx="11" cy="11" r="5" fill="#f5c542"/><g stroke="#f5c542" stroke-width="1.8" stroke-linecap="round"><path d="M11 2v2.5M2 11h2.5M4.6 4.6l1.8 1.8M17.4 4.6l-1.8 1.8M4.6 17.4l1.8-1.8"/></g>',
+  moonS: '<path d="M13 3a8 8 0 1 0 5 12.5A6.5 6.5 0 0 1 13 3z" fill="#d7dde6"/>',
+  cloud: c => `<path d="M9 26h15a6 6 0 0 0 .8-11.95A8 8 0 0 0 9.3 15.2 5.5 5.5 0 0 0 9 26z" fill="${c}"/>`,
+};
+function icon(name) {
+  const lc = "#c3ccd6", dc = "#8d99a6";
+  let g;
+  switch (name) {
+    case "clear-day": g = SV.sun; break;
+    case "clear-night": g = SV.moon; break;
+    case "partly-cloudy-day": g = SV.sunS + SV.cloud(lc); break;
+    case "partly-cloudy-night": g = SV.moonS + SV.cloud(lc); break;
+    case "cloudy": g = SV.cloud(lc); break;
+    case "fog": g = `<g stroke="${lc}" stroke-width="2.4" stroke-linecap="round"><path d="M5 11h22M3 16h24M6 21h20M9 26h14"/></g>`; break;
+    case "wind": g = `<g fill="none" stroke="${lc}" stroke-width="2.2" stroke-linecap="round"><path d="M3 12h17a3.5 3.5 0 1 0-3.5-3.5M3 18h22a3.5 3.5 0 1 1-3.5 3.5M3 24h12"/></g>`; break;
+    case "rain": g = `<g transform="translate(0,-4)">${SV.cloud(dc)}</g><g stroke="#6fb2ff" stroke-width="2" stroke-linecap="round"><path d="M11 25l-1.5 4M17 25l-1.5 4M23 25l-1.5 4"/></g>`; break;
+    case "sleet": g = `<g transform="translate(0,-4)">${SV.cloud(dc)}</g><g stroke="#6fb2ff" stroke-width="2" stroke-linecap="round"><path d="M11 25l-1.5 4M23 25l-1.5 4"/></g><circle cx="17" cy="27.5" r="1.7" fill="#eef3f8"/>`; break;
+    case "snow": g = `<g transform="translate(0,-4)">${SV.cloud(dc)}</g><g fill="#eef3f8"><circle cx="10.5" cy="27" r="1.8"/><circle cx="16.5" cy="28.5" r="1.8"/><circle cx="22.5" cy="27" r="1.8"/></g>`; break;
+    case "hail": g = `<g transform="translate(0,-4)">${SV.cloud(dc)}</g><g fill="#dfe8f2"><circle cx="11" cy="27" r="2"/><circle cx="17" cy="28.5" r="2"/><circle cx="23" cy="27" r="2"/></g>`; break;
+    case "thunderstorm": g = `<g transform="translate(0,-4)">${SV.cloud(dc)}</g><path d="M17 20l-4 6h3.5l-2 5 6-7.5H17l2-3.5z" fill="#f5c542"/>`; break;
+    default: g = SV.cloud("#5b6876");
+  }
+  return `<svg viewBox="0 0 32 32" aria-hidden="true">${g}</svg>`;
+}
+const TEXT = {"clear-day":"sonnig","clear-night":"klar","partly-cloudy-day":"wolkig","partly-cloudy-night":"wolkig",
+  "cloudy":"bedeckt","fog":"Nebel","wind":"windig","rain":"Regen","sleet":"Schneeregen","snow":"Schnee",
+  "hail":"Hagel","thunderstorm":"Gewitter"};
+function condText(w) {
+  if (w.icon === "cloudy" || w.icon?.startsWith("partly")) {
+    const cc = w.cloud_cover;
+    if (cc != null) return cc >= 95 ? "bedeckt" : cc >= 70 ? "stark bewölkt" : cc >= 30 ? "wolkig" : "heiter";
+  }
+  return TEXT[w.icon] || (w.condition === "dry" ? "trocken" : "–");
+}
+// Symbol einer Zeitspanne: das "schlimmste" Wetter, sonst das häufigste
+const RANG = ["thunderstorm","hail","snow","sleet","rain"];
+function spanIcon(recs, preferDay) {
+  for (const k of RANG) if (recs.filter(r => r.icon === k).length >= Math.max(1, Math.ceil(recs.length / 6))) return k;
+  const cnt = {};
+  for (const r of recs) if (r.icon) cnt[r.icon] = (cnt[r.icon] || 0) + 1;
+  let best = Object.entries(cnt).sort((a, b) => b[1] - a[1])[0]?.[0] || "cloudy";
+  if (preferDay) best = best.replace("-night", "-day");
+  return best;
+}
+const isMeasured = (w, f) => !(w.fallback_source_ids && w.fallback_source_ids[f]);
+
+/* ---------- Ort ---------- */
+function currentOrt() {
+  const p = new URLSearchParams(location.search);
+  if (p.get("lat") && p.get("lon")) return {key:"custom", name:p.get("name") || "Standort", lat:+p.get("lat"), lon:+p.get("lon")};
+  let k = p.get("ort");
+  if (!k) { try { k = localStorage.getItem("wetter-ort"); } catch {} }
+  return ORTE[k] ? {key:k, ...ORTE[k]} : {key:"zwiesel", ...ORTE.zwiesel};
+}
+let ORT = currentOrt();
+
+/* ---------- Abschnitte ---------- */
+async function loadForecast() {
+  const now = new Date();
+  const start = new Date(now.getTime() - 4 * 36e5);
+  const end = new Date(now.getTime() + 4 * 864e5);
+  const [cur, wx] = await Promise.all([
+    getJSON("/current_weather", {lat:ORT.lat, lon:ORT.lon}),
+    getJSON("/weather", {lat:ORT.lat, lon:ORT.lon, date:dayKey(start) === dayKey(now) ? dayKey(now) : start.toISOString(), last_date:dayKey(end)})
+  ]);
+  renderCurrent(cur, wx.weather, now);
+  renderDays(wx.weather, now);
+  renderHours(wx.weather, now);
+}
+
+function renderCurrent(cur, recs, now) {
+  const w = cur.weather, src = cur.sources?.find(s => s.id === w.source_id) || cur.sources?.[0];
+  const t = new Date(w.timestamp);
+  $("cur-src").textContent = `${src?.station_name || ORT.name} · ${hhmm(t)} Uhr`;
+  // Tendenz: Messwert vor ~3 Stunden
+  const past = recs.filter(r => new Date(r.timestamp) <= new Date(now - 2.5 * 36e5) && r.temperature != null).pop();
+  let tr = "gleich", path = "M4 15h30M26 7l10 8-10 8";
+  if (past && w.temperature != null) {
+    const d = w.temperature - past.temperature;
+    if (d > 0.7) { tr = "steigend"; path = "M5 25L33 7M22 6h11v11"; }
+    else if (d < -0.7) { tr = "fallend"; path = "M5 5l28 18M22 24h11V13"; }
+  }
+  const sun = sunTimes(now, ORT.lat, ORT.lon);
+  const wind = w.wind_speed_10 ?? w.wind_speed_30 ?? w.wind_speed_60;
+  const wdir = w.wind_direction_10 ?? w.wind_direction_30 ?? w.wind_direction_60;
+  const gust = w.wind_gust_speed_10 ?? w.wind_gust_speed_30 ?? w.wind_gust_speed_60;
+  $("cur").innerHTML = `
+    <div class="big"><div class="temp">${f1(w.temperature)} °C</div>
+      <div class="trend"><svg viewBox="0 0 40 30" aria-hidden="true"><path d="${path}" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>${tr}</div></div>
+    <div class="cond">${icon(w.icon)}<span>${esc(condText(w))}</span></div>
+    <div class="kv">Wind <b>${dir(wdir)} ${f0(wind)} km/h</b>, Böen <b>${f0(gust)}</b><br>
+      Feuchte <b>${f0(w.relative_humidity)} %</b> · Luftdruck <b>${f0(w.pressure_msl)} hPa</b><br>
+      Sonne ↑ <b>${hhmm(sun.rise)}</b> &nbsp;↓ <b>${hhmm(sun.set)}</b></div>`;
+}
+
+function renderDays(recs, now) {
+  const by = new Map();
+  for (const r of recs) {
+    const d = new Date(r.timestamp), k = dayKey(d);
+    if (!by.has(k)) by.set(k, []);
+    by.get(k).push({...r, _d:d});
+  }
+  const keys = [...by.keys()].filter(k => k >= dayKey(now)).slice(0, 4);
+  const rows = keys.map((k, i) => {
+    const a = by.get(k), T = a.map(r => r.temperature).filter(v => v != null);
+    const day = a.filter(r => { const h = hourOf(r._d); return h >= 9 && h <= 18; });
+    const rain = a.reduce((s, r) => s + (r.precipitation || 0), 0);
+    const pp = Math.max(0, ...a.map(r => r.precipitation_probability ?? 0));
+    const gu = Math.max(0, ...a.map(r => r.wind_gust_speed ?? 0));
+    const label = i === 0 ? "Heute" : `${wd(a[0]._d)} ${dm(a[0]._d)}.`;
+    return `<tr><td class="l">${label}</td><td class="ic">${icon(spanIcon(day.length ? day : a, true))}</td>
+      <td class="k">${f0(Math.min(...T))}°</td><td class="wa">${f0(Math.max(...T))}°</td>
+      <td>${f1(rain)}</td><td>${pp}</td><td>${f0(gu)}</td></tr>`;
+  }).join("");
+  $("days").innerHTML = `<table><thead><tr><th class="l">Tag</th><th>Wetter</th><th>Tief</th><th>Hoch</th><th>mm</th><th>%</th><th>Böen</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+function renderHours(recs, now) {
+  const base = new Date(now); base.setMinutes(0, 0, 0);
+  const today = dayKey(now), rows = [];
+  for (let i = 0; i < 12; i++) {
+    const a0 = new Date(base.getTime() + i * 3 * 36e5), a1 = new Date(a0.getTime() + 3 * 36e5);
+    const b = recs.filter(r => { const d = new Date(r.timestamp); return d >= a0 && d < a1; });
+    if (!b.length) continue;
+    const T = b.map(r => r.temperature).filter(v => v != null);
+    const rain = b.reduce((s, r) => s + (r.precipitation || 0), 0);
+    const ws = b.map(r => r.wind_speed).filter(v => v != null);
+    const mid = b[Math.floor(b.length / 2)];
+    const pre = dayKey(a0) === today ? "" : wd(a0) + " ";
+    rows.push(`<tr><td class="l">${pre}${hhmm(a0).slice(0,2)}–${hhmm(a1).slice(0,2)}</td>
+      <td class="ic">${icon(spanIcon(b, false))}</td>
+      <td class="k">${f1(Math.min(...T))}°</td><td class="wa">${f1(Math.max(...T))}°</td>
+      <td>${f1(rain)}</td><td class="l">${dir(mid.wind_direction)} ${f0(ws.reduce((s, v) => s + v, 0) / (ws.length || 1))}</td>
+      <td>${f0(Math.max(0, ...b.map(r => r.wind_gust_speed ?? 0)))}</td></tr>`);
+  }
+  $("hours").innerHTML = `<table><thead><tr><th class="l">Zeit</th><th>Wetter</th><th>Min</th><th>Max</th><th>mm</th><th class="l">Wind</th><th>Böen</th></tr></thead><tbody>${rows.join("")}</tbody></table>`;
+}
+
+function land(s) {
+  const w = +s.wmo_station_id;
+  if (s.dwd_station_id && !(w >= 11000 && w < 12000)) return "DE";
+  if (w >= 11400 && w < 11800) return "CZ";
+  if (w >= 11000 && w < 11400) return "AT";
+  if (w >= 10000 && w < 11000) return "DE";
+  return "";
+}
+const kurz = n => String(n || "").replace(/\s*\(.*?\)\s*/g, " ").trim();
+
+async function loadStations() {
+  const now = Date.now();
+  const res = await getJSON("/sources", {lat:ORT.lat, lon:ORT.lon, max_dist:RADIUS});
+  const map = new Map();
+  for (const s of res.sources || []) {
+    if (s.observation_type !== "synop" && s.observation_type !== "current") continue;
+    if (!s.last_record || now - Date.parse(s.last_record) > 6 * 36e5) continue;
+    const key = s.wmo_station_id || s.dwd_station_id || s.station_name;
+    const p = map.get(key);
+    if (!p || (p.observation_type !== "synop" && s.observation_type === "synop")) map.set(key, s);
+  }
+  const list = [...map.values()];
+  const from = new Date(now - 12 * 36e5).toISOString(), to = new Date(now).toISOString();
+  const data = await pool(list, 6, async s => {
+    const id = s.wmo_station_id ? {wmo_station_id:s.wmo_station_id} : {dwd_station_id:s.dwd_station_id};
+    const [c, h] = await Promise.allSettled([
+      getJSON("/current_weather", {...id, max_dist:1}),
+      getJSON("/weather", {...id, date:from, last_date:to})
+    ]);
+    const out = {name:kurz(s.station_name), land:land(s), hoehe:s.height};
+    if (c.status === "fulfilled") {
+      const w = c.value.weather;
+      if (w && w.temperature != null && isMeasured(w, "temperature") && now - Date.parse(w.timestamp) < 3 * 36e5)
+        out.now = {t:w.temperature, at:new Date(w.timestamp)};
+    }
+    if (h.status === "fulfilled") {
+      const rs = (h.value.weather || []).filter(r => r.temperature != null && isMeasured(r, "temperature"));
+      if (rs.length) {
+        const m = rs.reduce((a, b) => b.temperature < a.temperature ? b : a);
+        out.min = {t:m.temperature, at:new Date(m.timestamp)};
+        if (!out.now) { const l = rs[rs.length - 1]; if (now - Date.parse(l.timestamp) < 3 * 36e5) out.now = {t:l.temperature, at:new Date(l.timestamp)}; }
+      }
+    }
+    return out;
+  });
+  const ok = data.filter(Boolean);
+  // Nach Name zusammenfassen, falls zwei Quellen dieselbe Station liefern
+  const uniq = arr => { const seen = new Set(); return arr.filter(x => !seen.has(x.name) && seen.add(x.name)); };
+  const cold = uniq(ok.filter(x => x.now).sort((a, b) => a.now.t - b.now.t)).slice(0, 10);
+  const mins = uniq(ok.filter(x => x.min).sort((a, b) => a.min.t - b.min.t)).slice(0, 8);
+  $("cold").innerHTML = stTable(cold, "now", "Temp.");
+  $("min12").innerHTML = stTable(mins, "min", "Tiefstwert");
+}
+function stTable(rows, f, label) {
+  if (!rows.length) return '<div class="err">Keine Stationsdaten verfügbar.</div>';
+  const rk = i => `<span class="rk ${i < 3 ? "r" + (i + 1) : "rn"}">${i + 1}</span>`;
+  return `<table><thead><tr><th></th><th class="l">Ort</th><th class="l">Land</th><th>Höhe</th><th>${label}</th><th>Uhr</th></tr></thead><tbody>${
+    rows.map((r, i) => `<tr><td>${rk(i)}</td><td class="l nm" title="${esc(r.name)}">${i < 3 ? "<b>" + esc(r.name) + "</b>" : esc(r.name)}</td>
+      <td class="l">${r.land}</td><td>${r.hoehe != null ? Math.round(r.hoehe) + " m" : "–"}</td>
+      <td class="tk">${f1(r[f].t)} °C</td><td>${hhmm(r[f].at)}</td></tr>`).join("")}</tbody></table>`;
+}
+
+async function loadWarnings() {
+  const res = await Promise.allSettled(WARNPUNKTE.map(k => getJSON("/alerts", {lat:ORTE[k].lat, lon:ORTE[k].lon})));
+  if (res.every(r => r.status === "rejected")) throw new Error("DWD-Warnungen nicht erreichbar");
+  const seen = new Map();
+  res.forEach(r => {
+    if (r.status !== "fulfilled") return;
+    const loc = r.value.location?.name_short || r.value.location?.name || "";
+    for (const a of r.value.alerts || []) {
+      const key = a.alert_id || a.id;
+      if (!seen.has(key)) seen.set(key, {...a, orte: new Set()});
+      if (loc) seen.get(key).orte.add(loc);
+    }
+  });
+  const order = {extreme:0, severe:1, moderate:2, minor:3};
+  const al = [...seen.values()].sort((a, b) => (order[a.severity] ?? 9) - (order[b.severity] ?? 9));
+  if (!al.length) { $("warn").innerHTML = '<div class="okmsg">Keine Warnungen für die konfigurierten Gebiete.</div>'; return; }
+  const fmt = d => d ? `${wd(new Date(d))} ${hhmm(new Date(d))}` : "bis auf Weiteres";
+  $("warn").innerHTML = al.map(a => `<div class="warn ${esc(a.severity)}"><b>${esc(a.headline_de || a.event_de)}</b>
+    <small>${fmt(a.onset)} – ${fmt(a.expires)} · ${esc([...a.orte].join(", "))}</small></div>`).join("");
+}
+
+/* ---------- Steuerung ---------- */
+async function run(fn, els) {
+  try { await fn(); for (const el of els) { $(el).classList.remove("fresh"); void $(el).offsetWidth; $(el).classList.add("fresh"); } }
+  catch (e) { for (const el of els) $(el).innerHTML = `<div class="err">Daten gerade nicht abrufbar (${esc(e.message || "Netzwerkfehler")}). Nächster Versuch in 10 Minuten.</div>`; }
+}
+let busy = false;
+async function refresh() {
+  if (busy) return; busy = true;
+  await Promise.all([run(loadForecast, ["cur","days","hours"]), run(loadWarnings, ["warn"]), run(loadStations, ["cold","min12"])]);
+  const n = new Date();
+  $("stand").textContent = `${dm(n)}.${n.getFullYear()}, ${hhmm(n)} Uhr`;
+  busy = false;
+}
+function initOrt() {
+  const sel = $("ortwahl");
+  sel.innerHTML = Object.entries(ORTE).map(([k, o]) => `<option value="${k}">${esc(o.name)}</option>`).join("")
+    + (ORT.key === "custom" ? `<option value="custom">${esc(ORT.name)}</option>` : "");
+  sel.value = ORT.key;
+  sel.addEventListener("change", () => {
+    if (!ORTE[sel.value]) return;
+    ORT = {key: sel.value, ...ORTE[sel.value]};
+    try { localStorage.setItem("wetter-ort", sel.value); } catch {}
+    for (const id of ["cur","days","hours","cold","min12"]) $(id).innerHTML = '<div class="load">Lade …</div>';
+    refresh();
+  });
+}
+$("reload").addEventListener("click", refresh);
+document.addEventListener("visibilitychange", () => { if (!document.hidden && Date.now() - lastRun > REFRESH) { lastRun = Date.now(); refresh(); } });
+let lastRun = Date.now();
+initOrt();
+refresh();
+setInterval(() => { if (!document.hidden) { lastRun = Date.now(); refresh(); } }, REFRESH);
+</script>
+</body>
+</html>
