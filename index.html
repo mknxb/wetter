@@ -167,6 +167,7 @@ h2 small{font:500 .72rem var(--f-body);letter-spacing:.04em;text-transform:none;
 .od .nm b{display:block;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.od .nm small{color:var(--mu);font-size:.72rem}
 .ob{height:6px;border-radius:9px;background:rgba(255,255,255,.08);overflow:hidden}.ob i{display:block;height:100%;border-radius:9px;background:linear-gradient(90deg,#4fb37a,#a8e6b8)}
 .ov{font:700 1rem var(--f-disp);text-align:right;color:var(--ok)}
+.subh{font-size:.78rem;font-weight:600;color:var(--fg);margin:14px 0 4px}.subh:first-of-type{margin-top:0}.subh small{color:var(--mu);font-weight:400;margin-left:4px}
 .unit,.note{font-size:.72rem;color:var(--mu);margin-top:6px}
 .sp-h{display:flex;justify-content:space-between;gap:8px;font-size:.74rem;color:var(--mu);margin-top:14px}
 .sp-h span{white-space:nowrap}
@@ -244,7 +245,9 @@ footer a{color:var(--accent)}
     </section>
     <section class="card">
       <h2>Strahlung <small>BfS-Messnetz</small></h2>
+      <div class="subh"><span class="flag">DE</span>Deutschland</div>
       <div id="odl"><div class="load">Lade Messwerte …</div></div>
+      <div id="odl-cz"></div>
       <div id="odl-spark"></div>
       <div class="note">Natürliche Werte in Deutschland liegen etwa zwischen 0,05 und 0,18 µSv/h. Granitböden wie im Bayerwald liefern eher höhere Werte.</div>
     </section>
@@ -803,12 +806,42 @@ async function loadODL(force) {
       <span class="ov">${s.v.toLocaleString("de-DE",{minimumFractionDigits:3,maximumFractionDigits:3})}</span>
     </div>`).join("") + `<div class="unit">µSv/h, Stundenmittel bis ${hhmm(new Date(st[0].end))} Uhr</div>`;
   ODL_AT = Date.now();
+  loadCZ().catch(() => { $("odl-cz").innerHTML = '<div class="note">Tschechische Werte gerade nicht abrufbar.</div>'; });
   // Verlauf der nächstgelegenen Sonde, 7 Tage
   try {
     const ts = await bfs({typeName:"opendata:odlinfo_timeseries_odl_1h", version:"1.1.0", viewparams:"kenn:" + st[0].kenn, sortBy:"end_measure D", maxFeatures:"168"});
     const pts = (ts.features || []).map(f => ({t:new Date(f.properties.end_measure), v:f.properties.value})).filter(p => p.v != null).sort((a, b) => a.t - b.t);
     $("odl-spark").innerHTML = pts.length > 5 ? spark(pts, st[0].name) : "";
   } catch { $("odl-spark").innerHTML = ""; }
+}
+
+// Tschechische Sonden: EURDEP-Daten (europäischer Austausch), bereitgestellt über denselben BfS-Dienst
+function eurdepRow(f) {
+  const p = f.properties || {}, [lon, lat] = f.geometry?.coordinates || [];
+  const id = String(p.id ?? p.locality_code ?? p.code ?? f.id ?? "");
+  const cc = String(p.country ?? p.country_code ?? id.replace(/^[^A-Z]*/, "").slice(0, 2)).toUpperCase();
+  let v = p.value ?? p.val ?? p.dose_rate ?? p.value_nsv;
+  if (typeof v === "string") v = parseFloat(v.replace(",", "."));
+  const unit = String(p.unit ?? "");
+  if (v != null && (/nSv/i.test(unit) || v > 5)) v = v / 1000;
+  const name = kurz(p.name ?? p.locality_name ?? p.site_name ?? p.locality ?? id);
+  const end = p.end_measure ?? p.end_time ?? p.endtime ?? p.time ?? p.end;
+  return {cc, name, v, end, lat, lon, d: lat != null ? km(ORT.lat, ORT.lon, lat, lon) : 1e9};
+}
+async function loadCZ() {
+  const box = [ORT.lon - 0.3, ORT.lat - 0.7, ORT.lon + 1.6, ORT.lat + 0.9].map(v => v.toFixed(3)).join(",");
+  let fc;
+  try { fc = await bfs({typeName:"opendata:eurdep_latestValue", bbox:box}); } catch { fc = null; }
+  if (!fc || !fc.features?.length) fc = await bfs({typeName:"opendata:eurdep_latestValue"});
+  const cz = (fc.features || []).map(eurdepRow)
+    .filter(s => s.cc === "CZ" && s.v != null && !isNaN(s.v) && s.d < 90).sort((a, b) => a.d - b.d).slice(0, 4);
+  if (!cz.length) { $("odl-cz").innerHTML = '<div class="note">Für Tschechien kamen gerade keine Werte.</div>'; return; }
+  const vmax = Math.max(0.2, ...cz.map(s => s.v));
+  $("odl-cz").innerHTML = '<div class="subh"><span class="flag">CZ</span>Tschechien <small>EURDEP</small></div>' + cz.map(s => `<div class="od">
+      <div class="nm"><b>${esc(s.name)}</b><small>${Math.round(s.d)} km${s.end ? " · " + hhmm(new Date(s.end)) + " Uhr" : ""}</small></div>
+      <div class="ob"><i style="width:${(s.v / vmax * 100).toFixed(0)}%"></i></div>
+      <span class="ov">${s.v.toLocaleString("de-DE",{minimumFractionDigits:3,maximumFractionDigits:3})}</span>
+    </div>`).join("");
 }
 function spark(pts, name) {
   const W = 320, H = 70, L = 4, R = 4, T = 8, B = 16;
@@ -889,7 +922,7 @@ function initOrt() {
     ORT = {key: sel.value, ...ORTE[sel.value]};
     for (const id of ["chart","days","cold"]) $(id).innerHTML = '<div class="load">Lade …</div>';
     $("hours").innerHTML = ""; $("min12").innerHTML = "";
-    $("odl").innerHTML = '<div class="load">Lade …</div>'; $("odl-spark").innerHTML = ""; forceODL = true;
+    $("odl").innerHTML = '<div class="load">Lade …</div>'; $("odl-spark").innerHTML = ""; $("odl-cz").innerHTML = ""; forceODL = true;
     refresh();
   });
 }
