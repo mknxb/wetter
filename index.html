@@ -235,6 +235,13 @@ function spanIcon(recs, preferDay) {
   if (preferDay) best = best.replace("-night", "-day");
   return best;
 }
+// Regen-/Schneesymbol, sobald nennenswerter Niederschlag fällt
+function rainIcon(recs, sum, min = 0.5) {
+  if (!(sum >= min)) return null;
+  for (const k of RANG) if (recs.some(r => r.icon === k)) return k;
+  const t = recs.map(r => r.temperature).filter(v => v != null);
+  return t.length && Math.max(...t) < 1 ? "snow" : "rain";
+}
 const isMeasured = (w, f) => !(w.fallback_source_ids && w.fallback_source_ids[f]);
 
 /* ---------- Ort ---------- */
@@ -301,7 +308,7 @@ function renderDays(recs, now) {
     const pp = Math.max(0, ...a.map(r => r.precipitation_probability ?? 0));
     const gu = Math.max(0, ...a.map(r => r.wind_gust_speed ?? 0));
     const label = i === 0 ? "Heute" : `${wd(a[0]._d)} ${dm(a[0]._d)}.`;
-    return `<tr><td class="l">${label}</td><td class="ic">${icon(spanIcon(day.length ? day : a, true))}</td>
+    return `<tr><td class="l">${label}</td><td class="ic">${icon(rainIcon(a, rain) || spanIcon(day.length ? day : a, true))}</td>
       <td class="k">${f0(Math.min(...T))}°</td><td class="wa">${f0(Math.max(...T))}°</td>
       <td>${f1(rain)}</td><td>${pp}</td><td>${f0(gu)}</td></tr>`;
   }).join("");
@@ -321,7 +328,7 @@ function renderHours(recs, now) {
     const mid = b[Math.floor(b.length / 2)];
     const pre = dayKey(a0) === today ? "" : wd(a0) + " ";
     rows.push(`<tr><td class="l">${pre}${hhmm(a0).slice(0,2)}–${hhmm(a1).slice(0,2)}</td>
-      <td class="ic">${icon(spanIcon(b, false))}</td>
+      <td class="ic">${icon(rainIcon(b, rain, 0.1) || spanIcon(b, false))}</td>
       <td class="k">${f1(Math.min(...T))}°</td><td class="wa">${f1(Math.max(...T))}°</td>
       <td>${f1(rain)}</td><td class="l">${dir(mid.wind_direction)} ${f0(ws.reduce((s, v) => s + v, 0) / (ws.length || 1))}</td>
       <td>${f0(Math.max(0, ...b.map(r => r.wind_gust_speed ?? 0)))}</td></tr>`);
@@ -337,7 +344,15 @@ function land(s) {
   if (w >= 10000 && w < 11000) return "DE";
   return "";
 }
-const kurz = n => String(n || "").replace(/\s*\(.*?\)\s*/g, " ").trim();
+const NAMEN = {"Grosser Arber":"Großer Arber","Waldmuenchen":"Waldmünchen","Churanov":"Churáňov","Kirchberg/Niederbaye":"Kirchberg im Wald",
+  "Muenchen":"München","Fuerstenzell":"Fürstenzell","Schoensee-Dietersdor":"Schönsee-Dietersdorf","Lindberg-Buchenau":"Lindberg-Buchenau",
+  "Kocelovice":"Kocelovice","Ceske Budejovice":"České Budějovice","Primda":"Přimda","Plzen-Mikulka":"Plzeň-Mikulka","Temelin":"Temelín",
+  "Untergriesbach-Glotz":"Untergriesbach-Glotzing","Wiesenfelden-Utzenze":"Wiesenfelden-Utzenzell","Kasperske Hory":"Kašperské Hory","Strakonice":"Strakonice"};
+function kurz(n) {
+  let s = String(n || "").replace(/\s*\(.*?\)\s*/g, " ").trim();
+  if (s === s.toUpperCase()) s = s.toLowerCase().replace(/(^|[\s\-\/])(\p{L})/gu, (m, a, b) => a + b.toUpperCase());
+  return NAMEN[s] || s;
+}
 
 async function loadStations() {
   const now = Date.now();
@@ -361,11 +376,13 @@ async function loadStations() {
     const out = {name:kurz(s.station_name), land:land(s), hoehe:s.height};
     if (c.status === "fulfilled") {
       const w = c.value.weather;
-      if (w && w.temperature != null && isMeasured(w, "temperature") && now - Date.parse(w.timestamp) < 3 * 36e5)
+      const fc = (c.value.sources || []).some(x => x.id === w?.source_id && x.observation_type === "forecast");
+      if (w && !fc && w.temperature != null && isMeasured(w, "temperature") && now - Date.parse(w.timestamp) < 3 * 36e5)
         out.now = {t:w.temperature, at:new Date(w.timestamp)};
     }
     if (h.status === "fulfilled") {
-      const rs = (h.value.weather || []).filter(r => r.temperature != null && isMeasured(r, "temperature"));
+      const obs = new Set((h.value.sources || []).filter(x => x.observation_type !== "forecast").map(x => x.id));
+      const rs = (h.value.weather || []).filter(r => r.temperature != null && isMeasured(r, "temperature") && obs.has(r.source_id));
       if (rs.length) {
         const m = rs.reduce((a, b) => b.temperature < a.temperature ? b : a);
         out.min = {t:m.temperature, at:new Date(m.timestamp)};
