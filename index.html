@@ -161,6 +161,18 @@ h2 small{font:500 .72rem var(--f-body);letter-spacing:.04em;text-transform:none;
 .tag.fc{background:rgba(255,180,84,.18);color:var(--amber)}
 .rscale{display:flex;margin-top:8px;font-size:.66rem;color:var(--mu)}
 .rscale span{flex:1;padding-top:6px;border-top:6px solid var(--c);text-align:left}
+/* Pegel */
+.pg{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:10px;padding:7px 0;border-top:1px solid var(--line)}
+.pg .nm b{font-weight:600}.pg .nm a{color:inherit;text-decoration:none}.pg .nm small{display:block;color:var(--mu);font-size:.72rem}
+.pv{text-align:right;font-size:.75rem;color:var(--mu)}.pv b{font:700 1.15rem var(--f-disp);color:var(--fg);margin-right:2px}
+.pt{display:block;font-size:.7rem;color:var(--mu)}.pt.up{color:var(--amber)}.pt.dn{color:var(--accent)}
+.ms{font-size:.62rem;font-weight:700;padding:1px 5px;border-radius:4px;margin-left:4px;vertical-align:1px;color:#1a1200}
+.ms1{background:var(--w-minor)}.ms2{background:var(--w-moderate)}.ms3{background:var(--w-severe);color:#fff}.ms4{background:var(--w-extreme);color:#fff}
+.pwarn{border-radius:12px;padding:10px 12px;margin-bottom:6px;color:var(--fg);background:color-mix(in srgb,var(--c) 18%,transparent);border:1px solid color-mix(in srgb,var(--c) 50%,transparent)}
+.pwarn.ms1{--c:var(--w-minor)}.pwarn.ms2{--c:var(--w-moderate)}.pwarn.ms3{--c:var(--w-severe)}.pwarn.ms4{--c:var(--w-extreme)}.pwarn.rise{--c:var(--amber)}
+.pwarn b{display:block}
+.pall{margin-top:10px}.pall summary{cursor:pointer;color:var(--accent);font-size:.85rem;font-weight:600;padding:6px 0}
+
 /* Strahlung */
 .od{display:grid;grid-template-columns:minmax(0,1fr) 30% 3.6em;align-items:center;gap:10px;padding:7px 0;border-top:1px solid var(--line)}
 .od:first-child{border-top:0}
@@ -233,6 +245,10 @@ footer a{color:var(--accent)}
     <section class="card">
       <h2>Warnungen <small>DWD</small></h2>
       <div id="warn"><div class="load">Lade Warnungen …</div></div>
+    </section>
+    <section class="card">
+      <h2>Gewässer <small>Regen &amp; Chamb</small></h2>
+      <div id="pegel"><div class="load">Lade Pegel …</div></div>
     </section>
     <section class="card">
       <h2>Kälteste Orte <small>100 km</small></h2>
@@ -843,6 +859,57 @@ async function loadCZ() {
       <span class="ov">${s.v.toLocaleString("de-DE",{minimumFractionDigits:3,maximumFractionDigits:3})}</span>
     </div>`).join("");
 }
+
+/* ---------- Pegel (HND Bayern, über GitHub Actions in pegel.json abgelegt) ---------- */
+const PEGEL_KEY = ["15228008", "15202300"];             // Kötzting (Zulauf) und Chamerau (unterhalb Blaibach)
+const OBERLAUF = /Weißer Regen|Schwarzer Regen|Großer Regen|Kleiner Regen|Teisnach|Aitnach/;
+const FLUSS_ORDER = ["Regen", "Weißer Regen", "Schwarzer Regen", "Großer Regen", "Kleiner Regen", "Chamb"];
+function pTrend(s) {
+  const h = s.hist || []; if (h.length < 2) return null;
+  const last = h[h.length - 1], tl = Date.parse(last[0]);
+  let ref = null; for (const x of h) if (tl - Date.parse(x[0]) >= 2.5 * 36e5) ref = x;
+  if (!ref) ref = h[0];
+  const hrs = (tl - Date.parse(ref[0])) / 36e5; if (hrs < 0.9) return null;
+  return {d: last[1] - ref[1], hrs};
+}
+function pRow(s) {
+  const tr = pTrend(s);
+  const tt = tr && Math.abs(tr.d) >= 2 ? `<span class="pt ${tr.d > 0 ? "up" : "dn"}">${tr.d > 0 ? "▲" : "▼"} ${tr.d > 0 ? "+" : ""}${Math.round(tr.d)} cm/${Math.round(tr.hrs)} h</span>` : `<span class="pt">gleich</span>`;
+  const ms = s.stage > 0 ? `<span class="ms ms${Math.min(4, s.stage)}">MS ${s.stage}</span>` : "";
+  const name = s.url ? `<a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.name)}</a>` : esc(s.name);
+  return `<div class="pg"><div class="nm"><b>${name} ${ms}</b><small>${esc(s.river)}${s.flow != null ? " · " + f1(s.flow) + " m³/s" : ""}${s.hint ? " · " + esc(s.hint) : ""}</small></div>
+    <div class="pv">${/see|talsperre/i.test(s.name + s.river) && s.level > 100
+      ? `<b>${s.level.toLocaleString("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2})}</b> m ü. NN`
+      : s.level != null ? `<b>${Math.round(s.level)}</b> cm${tt}` : `<b>${f1(s.flow)}</b> m³/s`}</div></div>`;
+}
+async function loadPegel() {
+  let data;
+  try {
+    const r = await fetch("pegel.json?t=" + Date.now());
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    data = await r.json();
+  } catch (e) { $("pegel").innerHTML = '<div class="note">Pegelwerte werden gerade eingerichtet und erscheinen in Kürze.</div>'; return; }
+  const st = (data.stations || []).filter(s => s.level != null || s.flow != null);
+  if (!st.length) throw new Error("keine Pegelwerte");
+  const maxMs = Math.max(0, ...st.map(s => s.stage || 0));
+  const rising = st.filter(s => OBERLAUF.test(s.river)).map(s => ({s, t: pTrend(s)})).filter(x => x.t && x.t.d >= 15).sort((a, b) => b.t.d - a.t.d);
+  let banner;
+  if (maxMs > 0) {
+    const hit = st.filter(s => s.stage === maxMs).map(s => s.name).join(", ");
+    banner = `<div class="pwarn ms${Math.min(4, maxMs)}"><b>Hochwasser-Meldestufe ${maxMs}</b> an ${esc(hit)}</div>`;
+  } else if (rising.length) {
+    banner = `<div class="pwarn rise"><b>Wasser steigt am Oberlauf</b> ${rising.slice(0, 3).map(x => `${esc(x.s.name)} +${Math.round(x.t.d)} cm`).join(", ")} in ${Math.round(rising[0].t.hrs)} h</div>`;
+  } else banner = `<div class="ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M7.5 12.5l3 3 6-6.5"/></svg>Keine Meldestufe, kein auffälliger Anstieg.</div>`;
+  const key = PEGEL_KEY.map(id => st.find(s => s.id === id)).filter(Boolean);
+  const groups = {};
+  for (const s of st) (groups[s.river || "Sonstige"] ??= []).push(s);
+  const order = Object.keys(groups).sort((a, b) => ((FLUSS_ORDER.indexOf(a) + 1) || 99) - ((FLUSS_ORDER.indexOf(b) + 1) || 99) || a.localeCompare(b, "de"));
+  const age = (Date.now() - Date.parse(data.updated)) / 6e4;
+  $("pegel").innerHTML = banner
+    + `<div class="subh">Für Blaibach</div>` + key.map(pRow).join("")
+    + `<details class="pall"><summary>Alle ${st.length} Pegel im Einzugsgebiet</summary>${order.map(r => `<div class="subh">${esc(r)}</div>` + groups[r].map(pRow).join("")).join("")}</details>`
+    + `<div class="unit">Stand ${hhmm(new Date(data.updated))} Uhr${age > 120 ? " · älter als 2 Stunden" : ""} · Quelle: Hochwassernachrichtendienst Bayern</div>`;
+}
 function spark(pts, name) {
   const W = 320, H = 70, L = 4, R = 4, T = 8, B = 16;
   const t0 = pts[0].t, t1 = pts[pts.length - 1].t;
@@ -905,7 +972,7 @@ async function refresh() {
   if (busy) return; busy = true; lastRun = Date.now();
   $("reload").classList.add("spin");
   await Promise.all([run(loadForecast, ["cur","chart","hours","days"]), run(loadWarnings, ["warn"]), run(loadStations, ["cold","min12"]),
-    run(loadRadar, ["rad-sum"]), run(() => loadODL(forceODL), ["odl"])]);
+    run(loadRadar, ["rad-sum"]), run(loadPegel, ["pegel"]), run(() => loadODL(forceODL), ["odl"])]);
   forceODL = false;
   const n = new Date();
   $("stand").textContent = `Stand ${hhmm(n)} Uhr`;
