@@ -1,0 +1,26 @@
+name: Pegel abholen
+on:
+  schedule:
+    - cron: "7,37 * * * *"   # zweimal pro Stunde
+  workflow_dispatch:
+  push:
+    paths: ["scripts/pegel.py", ".github/workflows/pegel.yml"]
+permissions:
+  contents: write
+concurrency: pegel
+jobs:
+  pegel:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: python scripts/pegel.py
+      - name: Speichern
+        run: |
+          git config user.name "pegel-bot"
+          git config user.email "pegel-bot@users.noreply.github.com"
+          git add pegel.json
+          git diff --cached --quiet || git commit -m "Pegel $(TZ=Europe/Berlin date '+%d.%m. %H:%M')"
+          git pull --rebase -q && git push
