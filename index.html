@@ -642,7 +642,7 @@ const NAMEN = {"Grosser Arber":"Großer Arber","Bad Koetzting":"Bad Kötzting","
   "Kocelovice":"Kocelovice","Ceske Budejovice":"České Budějovice","Primda":"Přimda","Plzen-Mikulka":"Plzeň-Mikulka","Temelin":"Temelín",
   "Untergriesbach-Glotz":"Untergriesbach-Glotzing","Wiesenfelden-Utzenze":"Wiesenfelden-Utzenzell","Kasperske Hory":"Kašperské Hory","Strakonice":"Strakonice"};
 function kurz(n) {
-  let s = String(n || "").replace(/\s*\(.*?\)\s*/g, " ").trim();
+  let s = String(n || "").replace(/\s*\(.*?\)\s*/g, " ").replace(/,\s*(Kreis|Kr\.|Lkr\.?).*$/i, "").replace(/[-,\s]+$/, "").trim();
   if (s === s.toUpperCase()) s = s.toLowerCase().replace(/(^|[\s\-\/])(\p{L})/gu, (m, a, b) => a + b.toUpperCase());
   return NAMEN[s] || s;
 }
@@ -1005,7 +1005,8 @@ function sigRadl() {
   if (!LAST) return {key:"bike", title:"Radl-Fenster", state:"na", short:"–", detail:""};
   const now = Date.now();
   const hrs = LAST.recs.map(r => ({...r, _t: new Date(r.timestamp)})).filter(r => r._t >= now - 36e5 && r._t < now + 40 * 36e5);
-  const ok = r => { const h = hourOf(r._t); return h >= 8 && h <= 19 && !(r.precipitation > 0.05) && (r.precipitation_probability ?? 0) < 30
+  const light = r => { const st = sunTimes(r._t, ORT.lat, ORT.lon); return r._t >= st.rise - 15 * 6e4 && r._t.getTime() + 36e5 <= st.set.getTime() + 15 * 6e4; };
+  const ok = r => { const h = hourOf(r._t); return h >= 7 && h <= 20 && light(r) && !(r.precipitation > 0.05) && (r.precipitation_probability ?? 0) < 30
     && (r.wind_gust_speed ?? 0) < 40 && r.temperature != null && r.temperature >= 4; };
   const runs = []; let cur = null;
   for (const r of hrs) {
@@ -1017,7 +1018,7 @@ function sigRadl() {
   const today = best(dayKey(new Date())), tom = best(dayKey(new Date(now + 864e5)));
   const span = x => `${hhmm(x.start._t).slice(0,2)}–${String(hourOf(x.end._t) + 1).padStart(2, "0")} Uhr`;
   const tmax = x => Math.round(Math.max(...hrs.filter(r => r._t >= x.start._t && r._t <= x.end._t).map(r => r.temperature)));
-  const crit = "Trocken (unter 30 % Regenrisiko), Böen unter 40 km/h, mindestens 4 °C, zwischen 8 und 20 Uhr.";
+  const crit = "Trocken (unter 30 % Regenrisiko), Böen unter 40 km/h, mindestens 4 °C, bei Tageslicht.";
   if (today) return {key:"bike", title:"Radl-Fenster", state:"on", short:`heute ${span(today)}`,
     detail:`Bestes Fenster heute ${span(today)}, bis ${tmax(today)} °C.${tom ? ` Morgen: ${span(tom)}.` : ""} ${crit}`};
   if (tom) return {key:"bike", title:"Radl-Fenster", state:"maybe", short:`morgen ${span(tom)}`,
