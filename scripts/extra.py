@@ -79,7 +79,8 @@ def snow_arber():
     index = get_bytes(KL).decode("latin-1")
     have = set(re.findall(r"tageswerte_KL_(\d{5})_akt\.zip", index))
     lst = get_bytes(KL + "KL_Tageswerte_Beschreibung_Stationen.txt").decode("latin-1")
-    cands = [line.split()[0] for line in lst.splitlines() if re.search(r"Arber", line, re.I) and line[:5].isdigit()]
+    lines = {line.split()[0]: line for line in lst.splitlines() if re.search(r"Arber", line, re.I) and line[:5].isdigit()}
+    cands = list(lines)
     sid = next((c for c in cands if c in have), None)
     if not sid:
         raise RuntimeError(f"keine Tageswerte fuer Arber (Kandidaten {cands}, {len(have)} Stationen im Verzeichnis)")
@@ -98,7 +99,8 @@ def snow_arber():
             continue
         ds = r[i_d].strip()
         series.append([f"{ds[0:4]}-{ds[4:6]}-{ds[6:8]}", v])
-    return {"station_id": sid, "series": series[-30:]}
+    meta = lines[sid].split()
+    return {"station_id": sid, "station": " ".join(meta[6:-2]), "height": meta[3], "series": series[-30:]}
 
 def rows_to_dicts(d):
     # NOAA liefert je nach Produkt Liste von Listen (mit Kopfzeile) oder Liste von Objekten
