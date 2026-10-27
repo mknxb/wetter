@@ -8,6 +8,7 @@ from zoneinfo import ZoneInfo
 
 URL = "https://www.hnd.bayern.de/pegel"
 PREFIX = "152"            # Pegelnummern im Einzugsgebiet des Regen (inkl. Chamb)
+EXTRA = {"10081004", "10078000", "10088003"}   # Donau: Deggendorf, Pfelling, Hofkirchen
 OUT = "pegel.json"
 KEEP_H = 48               # Verlauf, der fuer die Tendenz aufgehoben wird
 TZ = ZoneInfo("Europe/Berlin")
@@ -25,7 +26,7 @@ class P(HTMLParser):
             self.href = a.get("href")
         elif tag == "img" and re.fullmatch(r"p\d{8}", a.get("id") or ""):
             pid = a["id"][1:]
-            if pid.startswith(PREFIX):
+            if pid.startswith(PREFIX) or pid in EXTRA:
                 self.rows.append({**a, "_id": pid, "_href": self.href})
 
     def handle_endtag(self, tag):
