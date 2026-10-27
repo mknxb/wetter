@@ -5,7 +5,7 @@
 - Biowetter des DWD (Zone mit Ostbayern)
 - Schneehoehe der DWD-Station Grosser Arber (Tageswerte, Stand Vortag)
 Jede Quelle ist unabhaengig: faellt eine aus, bleiben die anderen erhalten."""
-import csv, io, json, os, re, urllib.request, zipfile
+import csv, io, json, os, re, urllib.error, urllib.request, zipfile
 from datetime import datetime, timezone
 
 OUT = "extra.json"
@@ -48,8 +48,11 @@ def pollen():
 
 
 def get_bytes(url):
-    with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=90) as r:
-        return r.read()
+    try:
+        with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=90) as r:
+            return r.read()
+    except urllib.error.HTTPError as e:
+        raise RuntimeError(f"HTTP {e.code} bei {url}") from None
 
 
 BIO_PREFER = re.compile(r"Ostbayern|Bayerischer Wald|Oberpfalz|Niederbayern|Bayern", re.I)
@@ -72,14 +75,14 @@ KL = "https://opendata.dwd.de/climate_environment/CDC/observations_germany/clima
 
 
 def snow_arber():
+    # Verzeichnis lesen: welche Stationen haben aktuelle Tageswerte?
+    index = get_bytes(KL).decode("latin-1")
+    have = set(re.findall(r"tageswerte_KL_(\d{5})_akt\.zip", index))
     lst = get_bytes(KL + "KL_Tageswerte_Beschreibung_Stationen.txt").decode("latin-1")
-    sid = None
-    for line in lst.splitlines():
-        if re.search(r"Arber", line, re.I):
-            sid = line.split()[0]
-            break
+    cands = [line.split()[0] for line in lst.splitlines() if re.search(r"Arber", line, re.I) and line[:5].isdigit()]
+    sid = next((c for c in cands if c in have), None)
     if not sid:
-        raise RuntimeError("Station Grosser Arber nicht in der Liste")
+        raise RuntimeError(f"keine Tageswerte fuer Arber (Kandidaten {cands}, {len(have)} Stationen im Verzeichnis)")
     z = zipfile.ZipFile(io.BytesIO(get_bytes(KL + f"tageswerte_KL_{sid}_akt.zip")))
     name = next(n for n in z.namelist() if n.startswith("produkt_klima_tag"))
     rows = list(csv.reader(io.StringIO(z.read(name).decode("latin-1")), delimiter=";"))
@@ -96,7 +99,6 @@ def snow_arber():
         ds = r[i_d].strip()
         series.append([f"{ds[0:4]}-{ds[4:6]}-{ds[6:8]}", v])
     return {"station_id": sid, "series": series[-30:]}
-
 
 def rows_to_dicts(d):
     # NOAA liefert je nach Produkt Liste von Listen (mit Kopfzeile) oder Liste von Objekten
