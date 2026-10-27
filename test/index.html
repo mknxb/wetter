@@ -151,6 +151,8 @@ h2 small{font:500 .72rem var(--f-body);letter-spacing:.04em;text-transform:none;
 .odx::after{content:"";width:7px;height:7px;border-right:2px solid var(--mu);border-bottom:2px solid var(--mu);transform:rotate(45deg);justify-self:center;transition:transform .2s;margin-top:-4px}
 .odx[aria-expanded="true"]::after{transform:rotate(-135deg);margin-top:4px;border-color:var(--accent)}
 .odx:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.odl-head{margin:10px 0 2px}
+#odl-cz .subh{margin-top:16px}
 .odl-vl{padding:4px 0 12px}.vl-skala{margin-top:14px;padding-top:10px;border-top:1px dashed var(--line)}.odl-vl .seg{margin:4px 0 8px}
 .odl-z{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
 .skala{margin-top:8px}
@@ -1867,8 +1869,9 @@ async function loadODLOrt(force) {
     return `<div class="od od2 odx" role="button" tabindex="0" data-kenn="${esc(s.kenn)}" aria-expanded="false"><div class="nm"><b>${esc(s.name)}</b><small>${Math.round(s.km)} km · Wochenmittel ${fmt3(s.mittel7)}${t24 != null ? ` · 24 h ${t24 >= 0 ? "+" : "−"}${fmt3(Math.abs(t24))}` : ""}</small></div>
       <span class="ov">${fmt3(s.wert)}${p != null ? `<em class="${p > 15 ? "up" : p < -15 ? "dn" : ""}">${p >= 0 ? "+" : "−"}${Math.abs(Math.round(p))} %</em>` : ""}</span></div>`;
   };
-  $("odl").innerHTML = (z ? `<div class="odl-z ${z.k}"><b>${z.t}</b> ${z.d}</div>` : "") + near.map(row).join("")
-    + `<div class="unit">Stundenwerte in µSv/h bis ${hhmm(new Date(near[0].ende))} Uhr · Prozent = Abweichung vom 7-Tage-Mittel der Sonde · Sonde antippen für Verlauf und Einordnung</div>`;
+  $("odl").innerHTML = (z ? `<div class="odl-z ${z.k}"><b>${z.t}</b> ${z.d}</div>` : "")
+    + `<div class="unit odl-head">µSv/h, Stundenwert bis ${hhmm(new Date(near[0].ende))} Uhr · % = Abweichung vom Wochenmittel · antippen für Verlauf</div>`
+    + near.map(row).join("");
   ODLV.erste = near[0].kenn;
   $("odl-spark").innerHTML = "";
   ODLV.sonden = {}; near.forEach(s => ODLV.sonden[s.kenn] = s); odlEinordnung();
