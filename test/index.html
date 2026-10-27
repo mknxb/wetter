@@ -148,7 +148,9 @@ h2 small{font:500 .72rem var(--f-body);letter-spacing:.04em;text-transform:none;
 
 .od.od2{grid-template-columns:minmax(0,1fr) auto}
 .odl-z{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
-.skala{margin-top:14px}
+.skala{margin-top:8px}
+.odl-sk{margin-top:16px;padding-top:12px;border-top:1px solid var(--line)}
+.odl-sk:empty{display:none}
 .sk-bar{position:relative;height:12px;border-radius:99px;overflow:hidden;background:rgba(255,255,255,.06)}
 .sk-bar i{position:absolute;top:0;bottom:0}
 .sk-dot{position:absolute;top:50%;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;background:#fff;border:3px solid var(--ink);box-shadow:0 0 0 2px rgba(134,215,160,.6)}
@@ -352,6 +354,7 @@ footer a{color:var(--accent)}
       <div id="odl"><div class="load">Lade Messwerte …</div></div>
       <div id="odl-cz"></div>
       <div id="odl-spark"></div>
+      <div id="odl-skala" class="odl-sk"></div>
       <div class="note">Granitböden wie im Bayerischen Wald liefern eher höhere natürliche Werte. Quelle: BfS-Messnetz (ODL), Werte über den eigenen Abholdienst.</div>
     </section>
   </aside>
@@ -1699,7 +1702,8 @@ async function loadODLOrt(force) {
       <span class="ov">${fmt3(s.wert)}${p != null ? `<em class="${p > 15 ? "up" : p < -15 ? "dn" : ""}">${p >= 0 ? "+" : "−"}${Math.abs(Math.round(p))} %</em>` : ""}</span></div>`;
   };
   $("odl").innerHTML = (z ? `<div class="odl-z ${z.k}"><b>${z.t}</b> ${z.d}</div>` : "") + near.map(row).join("")
-    + `<div class="unit">Stundenwerte in µSv/h bis ${hhmm(new Date(near[0].ende))} Uhr · Prozent = Abweichung vom 7-Tage-Mittel der Sonde</div>` + odlSkala(near[0].wert);
+    + `<div class="unit">Stundenwerte in µSv/h bis ${hhmm(new Date(near[0].ende))} Uhr · Prozent = Abweichung vom 7-Tage-Mittel der Sonde</div>`;
+  $("odl-skala").innerHTML = `<div class="subh">Einordnung: ${esc(near[0].name)} ${fmt3(near[0].wert)} µSv/h <small>nächste Sonde</small></div>` + odlSkala(near[0].wert);
   const pts = (near[0].stunden || []).map(([t, v]) => ({t: new Date(t + "Z"), v}));
   $("odl-spark").innerHTML = pts.length > 5 ? spark(pts, near[0].name) : "";
   loadCZ().catch(() => { $("odl-cz").innerHTML = '<div class="note">Tschechische Werte gerade nicht abrufbar.</div>'; });
@@ -2048,7 +2052,7 @@ function initOrt() {
     ORT = {key: sel.value, ...ORTE[sel.value]};
     for (const id of ["chart","days","cold"]) $(id).innerHTML = '<div class="load">Lade …</div>';
     $("hours").innerHTML = ""; $("min12").innerHTML = "";
-    $("odl").innerHTML = '<div class="load">Lade …</div>'; $("odl-spark").innerHTML = ""; $("odl-cz").innerHTML = ""; forceODL = true;
+    $("odl").innerHTML = '<div class="load">Lade …</div>'; $("odl-spark").innerHTML = ""; $("odl-cz").innerHTML = ""; $("odl-skala").innerHTML = ""; forceODL = true;
     $("rb-body").innerHTML = '<div class="load">Lade Archiv …</div>'; $("pegel").innerHTML = '<div class="load">Lade …</div>';
     refresh();
   });
