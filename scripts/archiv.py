@@ -30,6 +30,7 @@ ORTE = {
 }
 SEIT = "1991-01-01"
 KL = "https://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/daily/kl/"
+RR = "https://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/daily/more_precip/"
 REG = "https://opendata.dwd.de/climate_environment/CDC/regional_averages_DE/annual/air_temperature_mean/regional_averages_tm_year.txt"
 BFS = "https://www.imis.bfs.de/ogc/opendata/ows"
 NOW = datetime.now(timezone.utc)
@@ -122,6 +123,44 @@ def zip_produkt(url):
     return parse_produkt(z.read(name))
 
 
+def zip_regen(url):
+    z = zipfile.ZipFile(io.BytesIO(get_bytes(url, 300)))
+    name = next(n for n in z.namelist() if n.startswith("produkt_nieder_tag"))
+    rows = list(csv.reader(io.StringIO(z.read(name).decode("latin-1")), delimiter=";"))
+    head = [h.strip() for h in rows[0]]
+    i_d, i_r, i_s = head.index("MESS_DATUM"), head.index("RS"), head.index("SH_TAG")
+    out = {}
+    for r in rows[1:]:
+        ds = r[i_d].strip()
+        d = f"{ds[0:4]}-{ds[4:6]}-{ds[6:8]}"
+        if d < SEIT:
+            continue
+        def val(i):
+            try:
+                v = float(r[i])
+            except (ValueError, IndexError):
+                return None
+            return None if v <= -999 else v
+        out[d] = {"regen": val(i_r), "schnee": val(i_s)}
+    return out
+
+
+def pick(stations, have, hist_files, lat, lon, ort, frisch, maxkm):
+    cands = []
+    for s in stations.values():
+        if s["id"] not in have or s["bis"] < frisch:
+            continue
+        d = km(lat, lon, s["lat"], s["lon"])
+        if d > maxkm:
+            continue
+        lang = s["von"] <= "19910101" and s["id"] in hist_files
+        dh = abs(s["hoehe"] - (1400 if ort == "arber" else 450))
+        score = d + (0 if lang else 12) + dh / 40
+        cands.append((score, d, s))
+    cands.sort(key=lambda c: c[0])
+    return (cands[0][2], cands[0][1]) if cands else (None, None)
+
+
 COLS = ["tmin", "tmax", "tmit", "regen", "sonne", "schnee", "boe", "wind", "feuchte"]
 
 
@@ -152,48 +191,58 @@ def read_tage(ort):
 def teil_tage(status):
     st = status.setdefault("tage", {})
     today = NOW.date().isoformat()
-    if st.get("tag") == today and all(os.path.exists(path("tage", f"{o}.csv")) for o in ORTE):
+    if st.get("tag") == today and st.get("v") == 2 and all(os.path.exists(path("tage", f"{o}.csv")) for o in ORTE):
         return "heute schon aktuell"
-    rec_idx = get_bytes(KL + "recent/").decode("latin-1")
-    have = set(re.findall(r"tageswerte_KL_(\d{5})_akt\.zip", rec_idx))
-    hist_idx = get_bytes(KL + "historical/").decode("latin-1")
-    hist_files = {m.group(1): m.group(0) for m in re.finditer(r"tageswerte_KL_(\d{5})_\d{8}_\d{8}_hist\.zip", hist_idx)}
+    frisch = (NOW.date() - timedelta(days=12)).strftime("%Y%m%d")
+    have = set(re.findall(r"tageswerte_KL_(\d{5})_akt\.zip", get_bytes(KL + "recent/").decode("latin-1")))
+    hist = {m.group(1): m.group(0) for m in re.finditer(r"tageswerte_KL_(\d{5})_\d{8}_\d{8}_hist\.zip", get_bytes(KL + "historical/").decode("latin-1"))}
     stations = parse_stations(get_bytes(KL + "recent/KL_Tageswerte_Beschreibung_Stationen.txt").decode("latin-1"))
-    zuordnung = {}
+    rhave = set(re.findall(r"tageswerte_RR_(\d{5})_akt\.zip", get_bytes(RR + "recent/").decode("latin-1")))
+    rhist = {m.group(1): m.group(0) for m in re.finditer(r"tageswerte_RR_(\d{5})_\d{8}_\d{8}_hist\.zip", get_bytes(RR + "historical/").decode("latin-1"))}
+    rstations = parse_stations(get_bytes(RR + "recent/RR_Tageswerte_Beschreibung_Stationen.txt").decode("latin-1"))
+    zuordnung, cache, rcache = {}, {}, {}
     for ort, (name, lat, lon) in ORTE.items():
-        cands = []
-        for s in stations.values():
-            if s["id"] not in have:
-                continue
-            d = km(lat, lon, s["lat"], s["lon"])
-            if d > 60:
-                continue
-            lang = s["von"] <= "19910101" and s["id"] in hist_files
-            dh = abs(s["hoehe"] - (1400 if ort == "arber" else 450))
-            # nah, lange Reihe, aehnliche Hoehe
-            score = d + (0 if lang else 25) + dh / 40
-            cands.append((score, d, s, lang))
-        cands.sort(key=lambda c: c[0])
-        if not cands:
+        s, d = pick(stations, have, hist, lat, lon, ort, frisch, 60)
+        if not s:
             continue
-        _, d, s, lang = cands[0]
-        zuordnung[ort] = {"id": s["id"], "name": s["name"], "hoehe": s["hoehe"], "km": round(d, 1), "seit": s["von"], "lat": s["lat"], "lon": s["lon"]}
-    cache = {}
-    for ort, s in zuordnung.items():
-        sid = s["id"]
-        if sid not in cache:
-            data = read_tage(ort) if read_tage(ort) and st.get("station", {}).get(ort) == sid else {}
-            if not data and sid in hist_files:
-                data.update(zip_produkt(KL + "historical/" + hist_files[sid]))
-            data.update(zip_produkt(KL + f"recent/tageswerte_KL_{sid}_akt.zip"))
-            cache[sid] = data
-        write_tage(ort, cache[sid])
-        s["bis"] = max(cache[sid]) if cache[sid] else None
-        s["tage"] = len(cache[sid])
+        r, rd = pick(rstations, rhave, rhist, lat, lon, ort, frisch, 15)
+        z = {"id": s["id"], "name": s["name"], "hoehe": s["hoehe"], "km": round(d, 1), "seit": s["von"], "lat": s["lat"], "lon": s["lon"]}
+        if r:
+            z["regen"] = {"id": r["id"], "name": r["name"], "hoehe": r["hoehe"], "km": round(rd, 1), "seit": r["von"]}
+        old_ok = st.get("v") == 2 and st.get("station", {}).get(ort) == s["id"] + "/" + (r["id"] if r else "")
+        key = s["id"]
+        if key not in cache:
+            data = {}
+            if old_ok:
+                data = read_tage(ort)
+            if not data and s["id"] in hist:
+                data.update(zip_produkt(KL + "historical/" + hist[s["id"]]))
+            for dd, rec in zip_produkt(KL + f"recent/tageswerte_KL_{s['id']}_akt.zip").items():
+                data[dd] = rec
+            cache[key] = data
+        data = {dd: dict(rec) for dd, rec in cache[key].items()}
+        if r:
+            if r["id"] not in rcache:
+                rr = {}
+                if r["id"] in rhist and not old_ok:
+                    rr.update(zip_regen(RR + "historical/" + rhist[r["id"]]))
+                rr.update(zip_regen(RR + f"recent/tageswerte_RR_{r['id']}_akt.zip"))
+                rcache[r["id"]] = rr
+            for dd, rec in rcache[r["id"]].items():
+                row = data.setdefault(dd, {})
+                if rec["regen"] is not None:
+                    row["regen"] = rec["regen"]
+                if rec["schnee"] is not None:
+                    row["schnee"] = rec["schnee"]
+        write_tage(ort, data)
+        z["bis"] = max(data) if data else None
+        z["tage"] = len(data)
+        zuordnung[ort] = z
+        st.setdefault("station", {})[ort] = s["id"] + "/" + (r["id"] if r else "")
     save_json("stationen.json", zuordnung)
     st["tag"] = today
-    st["station"] = {o: z["id"] for o, z in zuordnung.items()}
-    return f"{len(zuordnung)} Orte, Stationen {sorted(set(st['station'].values()))}"
+    st["v"] = 2
+    return "; ".join(f"{o}: {z['name']} ({z['km']} km){' + Regen ' + z['regen']['name'] if z.get('regen') else ''}" for o, z in zuordnung.items())
 
 
 def teil_bayern(status):

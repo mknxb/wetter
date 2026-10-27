@@ -26,7 +26,8 @@ def uv():
         if c in by:
             r = by[c]
             arber = by.get("Großer Arber", {}).get("forecast")
-            return {"city": c, "forecast": r.get("forecast", {}), "arber": arber, "last_update": d.get("last_update")}
+            return {"city": c, "forecast": r.get("forecast", {}), "arber": arber, "last_update": d.get("last_update"),
+                    "all": {k: v.get("forecast") for k, v in by.items() if k}}
     return {"city": None, "cities": sorted(by), "last_update": d.get("last_update")}
 
 
@@ -44,7 +45,8 @@ def pollen():
     return {"region": (pick or {}).get("partregion_name") or (pick or {}).get("region_name"),
             "pollen": (pick or {}).get("Pollen", {}), "legend": d.get("legend", {}),
             "last_update": d.get("last_update"), "next_update": d.get("next_update"),
-            "regions": [r.get("partregion_name") for r in rows if r.get("region_id") == 120]}
+            "regions": [r.get("partregion_name") for r in rows if r.get("region_id") == 120],
+            "all": {str(r.get("partregion_name") or r.get("region_name")): r.get("Pollen", {}) for r in rows if r.get("region_id") == 120}}
 
 
 def get_bytes(url):
