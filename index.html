@@ -354,7 +354,8 @@ async function pool(items, n, fn) {
 
 /* ---------- Sonnenauf-/untergang (Sonnengleichung) ---------- */
 function sunTimes(date, lat, lon) {
-  const r = Math.PI / 180, J = date.getTime() / 864e5 + 2440587.5;
+  // immer der Kalendertag in Berlin, nicht der Zeitpunkt (sonst springt die Rechnung um 12 Uhr UTC auf morgen)
+  const r = Math.PI / 180, J = Date.parse(dayKey(date) + "T00:00:00Z") / 864e5 + 2440587.5;
   const n = Math.ceil(J - 2451545 + 0.0008);
   const Js = n - lon / 360;
   const M = (357.5291 + 0.98560028 * Js) % 360;
