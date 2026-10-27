@@ -1029,13 +1029,32 @@ function pTrend(s) {
   const hrs = (tl - Date.parse(ref[0])) / 36e5; if (hrs < 0.9) return null;
   return {d: last[1] - ref[1], hrs};
 }
+/* Speicher: Wasserspiegel (m ü. NN) in verständliche Größen umrechnen.
+   Frauenau: Stauziel 767, Hochwasserstauziel 768 m (HND-Stammdaten), Stauraum ca. 20,8–21 Mio m³. Eine amtliche
+   Inhaltslinie ist nicht veröffentlicht; Näherung V ~ ((h − 700) / 68)^3,46, abgeglichen an einen veröffentlichten
+   Stauinhalt (753,30 m ≈ 8,96 Mio m³). 100 % = Stauziel 767 m. Ergebnis daher "ca.".
+   Drachensee: Dauerstau 405,00 m (2,3 Mio m³), Vollstau 408,25 m (6,3 Mio m³), dazwischen 4,0 Mio m³ Hochwasser-Rückhalteraum (WWA Regensburg). */
+const SPEICHER = {
+  "15215600": {
+    wert: h => Math.max(0, Math.min(105, 100 * Math.pow(Math.max(0, h - 700) / 67, 3.46))),   // 100 % = Stauziel 767 m
+    zeile: (h, v) => ({big: `${Math.round(v)} %`, lbl: "gefüllt (ca.)", sub: `${nf(h, 2)} m ü. NN · ${nf(767 - h, 1)} m unter Stauziel`}),
+    unit: "%", yF: v => nf(v, 2), info: "Füllstand ca. in Prozent, 100 % = Stauziel 767 m ü. NN. Näherung aus dem Wasserspiegel, eine amtliche Inhaltskurve ist nicht veröffentlicht."
+  },
+  "15242406": {
+    wert: h => (h - 405) * 100,
+    zeile: (h, v) => { const p = Math.max(0, Math.min(100, (h - 405) / 3.25 * 100));
+      return {big: p < 1 ? "normal" : `${Math.round(p)} %`, lbl: p < 1 ? "Rückhalteraum frei" : "Rückhalteraum belegt", sub: `${nf(h, 2)} m ü. NN · ${v >= 0 ? "+" : "−"}${nf(Math.abs(v), 0)} cm zum Dauerstau`}; },
+    unit: "cm", yF: v => nf(v, 0), info: "Wasserspiegel in cm über dem Dauerstau (405,00 m ü. NN). Bei Hochwasser füllt sich der Rückhalteraum bis zum Vollstau 408,25 m (+325 cm, 4 Mio m³)."
+  }
+};
 function pRow(s) {
   const tr = pTrend(s);
   const tt = tr && Math.abs(tr.d) >= 2 ? `<span class="pt ${tr.d > 0 ? "up" : "dn"}">${tr.d > 0 ? "▲" : "▼"} ${tr.d > 0 ? "+" : ""}${Math.round(tr.d)} cm/${Math.round(tr.hrs)} h</span>` : `<span class="pt">gleich</span>`;
   const ms = s.stage > 0 ? `<span class="ms ms${Math.min(4, s.stage)}">MS ${s.stage}</span>` : "";
   const name = esc(s.name);
-  return `<div class="pg pgx" role="button" tabindex="0" data-id="${esc(s.id)}" aria-expanded="false"><div class="nm"><b>${name} ${ms}</b><small>${esc(s.river)}${s.flow != null ? " · " + f1(s.flow) + " m³/s" : ""}${s.hint ? " · " + esc(s.hint) : ""}</small></div>
-    <div class="pv">${/see|talsperre/i.test(s.name + s.river) && s.level > 100
+  return `<div class="pg pgx" role="button" tabindex="0" data-id="${esc(s.id)}" aria-expanded="false"><div class="nm"><b>${name} ${ms}</b><small>${SPEICHER[s.id] && s.level != null ? SPEICHER[s.id].zeile(s.level, SPEICHER[s.id].wert(s.level)).sub : esc(s.river) + (s.flow != null ? " · " + f1(s.flow) + " m³/s" : "") + (s.hint ? " · " + esc(s.hint) : "")}</small></div>
+    <div class="pv">${SPEICHER[s.id] && s.level != null ? (z => `<b>${z.big}</b><span class="pt">${z.lbl}</span>`)(SPEICHER[s.id].zeile(s.level, SPEICHER[s.id].wert(s.level)))
+      : /see|talsperre/i.test(s.name + s.river) && s.level > 100
       ? `<b>${s.level.toLocaleString("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2})}</b> m ü. NN`
       : s.level != null ? `<b>${Math.round(s.level)}</b> cm${tt}` : `<b>${f1(s.flow)}</b> m³/s`}</div></div>`;
 }
@@ -1066,8 +1085,9 @@ async function pegelStunden(id) {   // eigenes Archiv (Monatsdateien) + aktuelle
 async function pgVerlauf(box, s) {
   const range = PGV.range, see = /see|talsperre/i.test(s.name + s.river) && s.level > 100;
   const seg = `<div class="seg">${[["7", "7 Tage"], ["30", "30 Tage"], ["365", "1 Jahr"]].map(([k, t]) => `<button type="button" data-r="${k}" aria-pressed="${range === k}">${t}</button>`).join("")}</div>`;
-  const ms = ARC.ms?.[s.id] || {}, unit = see ? "m" : "cm", yF = v => see ? nf(v, 2) : nf(v, 0);
-  const foot = `<div class="note">Eigenes Archiv aus den Werten des Hochwassernachrichtendienstes Bayern, gesammelt seit 26.10.2026.${s.url ? ` <a href="${esc(s.url)}" target="_blank" rel="noopener">Pegel beim HND ansehen ↗</a>` : ""}</div>`;
+  const SP = SPEICHER[s.id], tf = SP ? SP.wert : (v => v);
+  const ms = ARC.ms?.[s.id] || {}, unit = SP ? SP.unit : see ? "m" : "cm", yF = SP ? SP.yF : (v => see ? nf(v, 2) : nf(v, 0));
+  const foot = `<div class="note">${SP ? SP.info + " " : ""}Eigenes Archiv aus den Werten des Hochwassernachrichtendienstes Bayern, gesammelt seit 26.10.2026.${s.url ? ` <a href="${esc(s.url)}" target="_blank" rel="noopener">Pegel beim HND ansehen ↗</a>` : ""}</div>`;
   if (s.level == null) { box.innerHTML = `<div class="note">An diesem Pegel wird nur der Abfluss gemeldet, kein Wasserstand.</div>` + foot; return; }
   const hl = [];
   if (!see && ms.MW) hl.push({type: "hline", v: ms.MW, color: "rgba(238,243,251,.5)", label: "Mittelwasser"});
@@ -1077,7 +1097,7 @@ async function pgVerlauf(box, s) {
     const pts = await pegelStunden(s.id);
     if (!box.isConnected || PGV.range !== range) return;
     if (pts.length < 3) { box.innerHTML = seg + '<div class="note">Noch zu wenige Werte für einen Verlauf.</div>' + foot; return; }
-    const vals = pts.map(p => p.v), mn = Math.min(...vals), mx = Math.max(...vals);
+    const vals = pts.map(p => tf(p.v)), mn = Math.min(...vals), mx = Math.max(...vals);
     const tag = d => new Intl.DateTimeFormat("de-DE", {timeZone: TZ, weekday: "short", day: "numeric", month: "numeric"}).format(d);
     const span = (pts.at(-1).t - pts[0].t) / 864e5, n = pts.length;
     box.innerHTML = seg + `<p class="rb-sum">jetzt ${yF(vals.at(-1))} ${unit} · Spanne ${yF(mn)} – ${yF(mx)} ${unit}${ms.MW && !see ? ` · Mittelwasser ${ms.MW} cm` : ""}</p><div class="rbc"></div>` + foot;
@@ -1091,7 +1111,7 @@ async function pgVerlauf(box, s) {
   const P = ARC.pegelTage || [], today = dayKey(new Date()), dates = [];
   for (let i = +range - 1; i >= 0; i--) dates.push(addDays(today, -i));
   const m = new Map(P.filter(r => String(r.id) === s.id).map(r => [r.datum, r]));
-  const rows = dates.map(d => m.get(d) || null), ok = rows.filter(Boolean);
+  const rows = dates.map(d => { const r = m.get(d); return r ? {...r, mittel: tf(r.mittel), min: tf(r.min), max: tf(r.max)} : null; }), ok = rows.filter(Boolean);
   if (ok.length < 2) { box.innerHTML = seg + '<div class="note">Für diesen Zeitraum liegen noch zu wenige Tageswerte im Archiv. Es füllt sich Tag für Tag.</div>' + foot; return; }
   const first = ok[0].datum;
   box.innerHTML = seg + `<p class="rb-sum">Tagesmittel · Spanne ${yF(Math.min(...ok.map(r => r.min)))} – ${yF(Math.max(...ok.map(r => r.max)))} ${unit} · Archiv ab ${dShort(first)}</p><div class="rbc"></div>
