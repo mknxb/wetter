@@ -75,7 +75,7 @@ def snow_arber():
     lst = get_bytes(KL + "KL_Tageswerte_Beschreibung_Stationen.txt").decode("latin-1")
     sid = None
     for line in lst.splitlines():
-        if re.search(r"Gro.er Arber", line):
+        if re.search(r"Arber", line, re.I):
             sid = line.split()[0]
             break
     if not sid:
@@ -133,6 +133,7 @@ def main():
             res[name] = fn()
         except Exception as e:  # Quelle gerade nicht erreichbar: alten Stand behalten
             print(name, "Fehler:", e)
+            res.setdefault("errors", {})[name] = f"{type(e).__name__}: {e}"[:300]
             if name in old:
                 res[name] = old[name]
     json.dump(res, open(OUT, "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
