@@ -11,6 +11,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<meta name="robots" content="noindex">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;700;800&family=Barlow:wght@400;500;600&display=swap">
@@ -29,6 +30,7 @@
   color-scheme:dark;
 }
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 html{-webkit-text-size-adjust:100%;background:var(--ink)}
 body{margin:0;background:var(--ink);color:var(--fg);font:15px/1.45 var(--f-body);font-variant-numeric:tabular-nums;min-height:100vh}
 button,select{font:inherit;color:inherit}
@@ -90,7 +92,7 @@ button,select{font:inherit;color:inherit}
 /* ---------- Inhalt ---------- */
 main{max-width:1200px;margin:-72px auto 0;position:relative;display:grid;gap:16px;grid-template-columns:minmax(0,1fr);
   padding-block:0 20px;padding-left:max(14px,env(safe-area-inset-left,0px));padding-right:max(14px,env(safe-area-inset-right,0px))}
-@media (min-width:900px){main{grid-template-columns:minmax(0,1.45fr) minmax(0,1fr)}.wide{grid-column:1}.side{grid-column:2;grid-row:1 / span 5}}
+@media (min-width:900px){main{grid-template-columns:minmax(0,1.45fr) minmax(0,1fr)}.wide{grid-column:1}.side{grid-column:2;grid-row:1 / span 4}.full{grid-column:1 / -1}}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:16px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
   box-shadow:0 18px 40px -24px rgba(0,0,0,.6);min-width:0}
 .side{display:flex;flex-direction:column;gap:16px;min-width:0}
@@ -118,6 +120,53 @@ h2 small{font:500 .72rem var(--f-body);letter-spacing:.04em;text-transform:none;
 .sig-detail{margin-top:10px;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.05);font-size:.88rem;line-height:1.5;color:var(--fg)}
 .sig-detail b{color:var(--accent);margin-right:4px}
 
+
+/* Schritt 2: Rückblick, Regen, Strahlung */
+.chart .tip,.rbc .tip{position:absolute;z-index:2;pointer-events:none;display:flex;flex-direction:column;gap:1px;padding:7px 10px;border-radius:10px;
+  background:rgba(8,14,30,.92);border:1px solid var(--line);font-size:.74rem;color:var(--mu);white-space:nowrap;box-shadow:0 8px 20px -10px rgba(0,0,0,.7)}
+.rbc .tip b{color:var(--fg);font-size:.78rem}.rbc .tip .tt{font:700 1.15rem var(--f-disp);letter-spacing:.02em}
+.rbc{position:relative;margin-top:6px}.rbc svg{display:block;width:100%;height:auto;touch-action:pan-y;cursor:crosshair;-webkit-user-select:none;user-select:none}
+.rbc text{font:500 11px var(--f-body);fill:var(--mu)}
+.seg{display:flex;flex-wrap:wrap;gap:6px;margin:-4px 0 10px}
+.seg button{border:1px solid var(--line);background:none;border-radius:999px;padding:4px 11px;font-size:.76rem;font-weight:600;color:var(--mu);cursor:pointer}
+.seg button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
+#rb-tabs{flex-wrap:wrap}
+.rb-sum{margin:0 0 4px;font-size:.88rem;color:var(--mu)}.rb-sum b{color:var(--fg);font:700 1.05rem var(--f-disp);letter-spacing:.02em}
+.rb-rec{margin:10px 0 0;padding:8px 12px;border-radius:10px;background:rgba(255,180,84,.1);border:1px solid rgba(255,180,84,.3);font-size:.85rem}
+.stripes{position:relative;height:26px;border-radius:6px;overflow:hidden;margin-top:14px}.stripes i{position:absolute;top:0;bottom:0}
+.stripes-l{display:flex;justify-content:space-between;gap:8px;font-size:.66rem;color:var(--mu);margin-top:4px}.stripes-l span:nth-child(2){text-align:center}
+.odl-z{border-radius:12px;padding:9px 12px;margin-bottom:8px;font-size:.84rem;border:1px solid var(--line)}
+.odl-z b{margin-right:4px}.odl-z.ok{background:rgba(134,215,160,.1);border-color:rgba(134,215,160,.35)}.odl-z.ok b{color:var(--ok)}
+.odl-z.rain{background:rgba(111,183,255,.1);border-color:rgba(111,183,255,.35)}.odl-z.rain b{color:var(--cold)}
+.odl-z.spike{background:rgba(242,205,75,.1);border-color:rgba(242,205,75,.35)}.odl-z.spike b{color:var(--w-minor)}
+.odl-z.alarm{background:rgba(239,75,85,.14);border-color:rgba(239,75,85,.5)}.odl-z.alarm b{color:#ff8a8a}
+.ov em{display:block;font:600 .66rem var(--f-body);font-style:normal;color:var(--mu)}.ov em.up{color:var(--amber)}.ov em.dn{color:var(--cold)}
+.odl-skala{display:block;width:100%;height:auto;margin-top:12px}.odl-skala text{font:500 9.5px var(--f-body);fill:var(--mu)}
+.rain3{display:grid;grid-template-columns:1fr 1fr 1.3fr;gap:8px;margin:2px 0 10px}
+.rain3 span{padding:7px 10px;border-radius:10px;border:1px solid var(--line);background:rgba(111,183,255,.06);min-width:0}
+.rain3 small{display:block;font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--mu)}
+.rain3 b{font:700 1.05rem var(--f-disp);color:var(--cold)}.rain3 b.st{font:600 .78rem var(--f-body);color:var(--fg);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.od.od2{grid-template-columns:minmax(0,1fr) auto}
+.odx{cursor:pointer;grid-template-columns:minmax(0,1fr) auto 14px!important;border-radius:0}
+.odx::after{content:"";width:7px;height:7px;border-right:2px solid var(--mu);border-bottom:2px solid var(--mu);transform:rotate(45deg);justify-self:center;transition:transform .2s;margin-top:-4px}
+.odx[aria-expanded="true"]::after{transform:rotate(-135deg);margin-top:4px;border-color:var(--accent)}
+.odx:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.odl-head{margin:10px 0 2px}
+#odl-cz .subh{margin-top:16px}
+.odl-vl{padding:4px 0 12px}.vl-skala{margin-top:14px;padding-top:10px;border-top:1px dashed var(--line)}.odl-vl .seg{margin:4px 0 8px}
+.odl-z{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.skala{margin-top:8px}
+.odl-sk{margin-top:16px;padding-top:12px;border-top:1px solid var(--line)}
+.odl-sk:empty{display:none}
+.sk-bar{position:relative;height:12px;border-radius:99px;overflow:hidden;background:rgba(255,255,255,.06)}
+.sk-bar i{position:absolute;top:0;bottom:0}
+.sk-dot{position:absolute;top:50%;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;background:#fff;border:3px solid var(--ink);box-shadow:0 0 0 2px rgba(134,215,160,.6)}
+.sk-bar{overflow:visible}
+.sk-ax{position:relative;height:1.2em;font-size:.66rem;color:var(--mu);margin-top:5px}.sk-ax span{position:absolute;top:0;white-space:nowrap}
+.sk-leg{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:4px 12px;margin-top:10px;font-size:.74rem;color:var(--mu)}
+.sk-leg i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.z1{background:rgba(134,215,160,.75)}.z2{background:rgba(134,215,160,.35)}.z3{background:rgba(242,205,75,.35)}.z4{background:rgba(245,138,44,.6)}.z5{background:rgba(239,75,85,.75)}
 
 /* Diagramm */
 .chart{position:relative;width:100%;height:210px}
@@ -205,6 +254,11 @@ h2 small{font:500 .72rem var(--f-body);letter-spacing:.04em;text-transform:none;
 .pwarn{border-radius:12px;padding:10px 12px;margin-bottom:6px;color:var(--fg);background:color-mix(in srgb,var(--c) 18%,transparent);border:1px solid color-mix(in srgb,var(--c) 50%,transparent)}
 .pwarn.ms1{--c:var(--w-minor)}.pwarn.ms2{--c:var(--w-moderate)}.pwarn.ms3{--c:var(--w-severe)}.pwarn.ms4{--c:var(--w-extreme)}.pwarn.rise{--c:var(--amber)}
 .pwarn b{display:block}
+.pgx{cursor:pointer;grid-template-columns:minmax(0,1fr) auto 14px}
+.pgx::after{content:"";width:7px;height:7px;border-right:2px solid var(--mu);border-bottom:2px solid var(--mu);transform:rotate(45deg);justify-self:center;transition:transform .2s;margin-top:-4px}
+.pgx[aria-expanded="true"]::after{transform:rotate(-135deg);margin-top:4px;border-color:var(--accent)}
+.pgx:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.pg-vl{padding:4px 0 12px}.pg-vl .seg{margin:4px 0 8px}.pg-vl .note a{color:var(--accent)}
 .pall{margin-top:10px}.pall summary{cursor:pointer;color:var(--accent);font-size:.85rem;font-weight:600;padding:6px 0}
 
 /* Strahlung */
@@ -220,6 +274,7 @@ h2 small{font:500 .72rem var(--f-body);letter-spacing:.04em;text-transform:none;
 #odl-spark svg{display:block;width:100%;height:70px;margin-top:4px}
 #odl-spark text{font:500 10px var(--f-body);fill:var(--mu)}
 
+footer .quellen{margin:6px 0 10px;padding-left:18px;text-align:left}footer .quellen li{margin:3px 0}footer p{margin:6px 0}
 footer{max-width:1200px;margin:0 auto;color:var(--mu);font-size:.72rem;line-height:1.5;
   padding-block:4px calc(22px + env(safe-area-inset-bottom,0px));padding-left:max(18px,env(safe-area-inset-left,0px));padding-right:max(18px,env(safe-area-inset-right,0px))}
 footer a{color:var(--accent)}
@@ -277,13 +332,14 @@ footer a{color:var(--accent)}
     <div class="days" id="days"><div class="load">Lade Vorhersage …</div></div>
   </section>
 
+
   <aside class="side">
     <section class="card">
       <h2>Warnungen <small>DWD</small></h2>
       <div id="warn"><div class="load">Lade Warnungen …</div></div>
     </section>
     <section class="card">
-      <h2>Gewässer <small>Regen &amp; Chamb</small></h2>
+      <h2>Gewässer <small>Regen, Chamb, Donau</small></h2>
       <div id="pegel"><div class="load">Lade Pegel …</div></div>
     </section>
     <section class="card">
@@ -301,12 +357,34 @@ footer a{color:var(--accent)}
       <div id="odl"><div class="load">Lade Messwerte …</div></div>
       <div id="odl-cz"></div>
       <div id="odl-spark"></div>
-      <div class="note">Natürliche Werte in Deutschland liegen etwa zwischen 0,05 und 0,18 µSv/h. Granitböden wie im Bayerwald liefern eher höhere Werte.</div>
+      <div id="odl-skala" class="odl-sk"></div>
+      <div class="note">Granitböden wie im Bayerischen Wald liefern eher höhere natürliche Werte. Quelle: BfS-Messnetz (ODL), Werte über den eigenen Abholdienst.</div>
     </section>
   </aside>
+
+  <section class="card full" id="rueckblick">
+    <h2>Rückblick</h2>
+    <div class="tabs" role="tablist" id="rb-tabs">
+      <button type="button" role="tab" data-t="wetter" aria-selected="true">Temperatur</button>
+      <button type="button" role="tab" data-t="regen" aria-selected="false">Regen</button>
+    </div>
+    <div class="seg" id="rb-range"></div>
+    <div id="rb-body"><div class="load">Lade Archiv …</div></div>
+  </section>
 </main>
 
-<footer>Daten: Deutscher Wetterdienst (DWD Open Data) über <a href="https://brightsky.dev" target="_blank" rel="noopener">Bright Sky</a>, tschechische Stationen über den internationalen SYNOP-Austausch. Live abgefragt, alle 10 Minuten aktualisiert. Keine amtliche Warnung, maßgeblich ist <a href="https://www.dwd.de/warnungen" target="_blank" rel="noopener">dwd.de</a>.</footer>
+<footer>
+  <p><b>Quellen</b></p>
+  <ul class="quellen">
+    <li>Wetter, Vorhersage, Radar, Warnungen: Deutscher Wetterdienst (DWD Open Data) über <a href="https://brightsky.dev" target="_blank" rel="noopener">Bright Sky</a>; tschechische Wetterstationen über den internationalen SYNOP-Austausch</li>
+    <li>UV-Index, Pollenflug, Biowetter, Klima-Tageswerte seit 1991, Bayern-Jahresmittel seit 1881: <a href="https://opendata.dwd.de" target="_blank" rel="noopener">DWD Open Data</a></li>
+    <li>Pegel und Speicher: <a href="https://www.hnd.bayern.de" target="_blank" rel="noopener">Hochwassernachrichtendienst Bayern</a> (LfU)</li>
+    <li>Strahlung: <a href="https://odlinfo.bfs.de" target="_blank" rel="noopener">BfS-Messnetz ODL</a>; Tschechien über den europäischen Austausch EURDEP</li>
+    <li>Polarlicht (Kp-Index): <a href="https://www.swpc.noaa.gov" target="_blank" rel="noopener">NOAA SWPC</a> · Karte: © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>-Mitwirkende</li>
+    <li>Eigene Berechnungen: Waldbrandindex (FWI), Sonne und Mond, Signale; eigenes Archiv für Pegel und Strahlung</li>
+  </ul>
+  <p>Live-Werte alle 10 Minuten, Pegel, Strahlung und Archiv alle 30 Minuten über GitHub. Keine amtliche Warnung, maßgeblich sind <a href="https://www.dwd.de/warnungen" target="_blank" rel="noopener">dwd.de</a> und <a href="https://www.hnd.bayern.de" target="_blank" rel="noopener">hnd.bayern.de</a>.</p>
+</footer>
 
 <script>
 "use strict";
@@ -463,13 +541,14 @@ let LAST = null, CUR = null; // letzte Vorhersage, für Neuzeichnen bei Größen
 /* ---------- Vorhersage + aktuell ---------- */
 async function loadForecast() {
   const now = new Date();
-  const start = new Date(now.getTime() - 4 * 36e5);
+  const start = new Date(now.getTime() - 74 * 36e5);
   const end = new Date(now.getTime() + 4 * 864e5);
   const [cur, wx] = await Promise.all([
     getJSON("/current_weather", {lat:ORT.lat, lon:ORT.lon}),
-    getJSON("/weather", {lat:ORT.lat, lon:ORT.lon, date:dayKey(start) === dayKey(now) ? dayKey(now) : start.toISOString(), last_date:dayKey(end)})
+    getJSON("/weather", {lat:ORT.lat, lon:ORT.lon, date:start.toISOString(), last_date:dayKey(end)})
   ]);
   LAST = {recs: wx.weather, now};
+  calcRain(wx.weather, wx.sources, cur.weather, now);
   renderCurrent(cur, wx.weather, now);
   renderChart(wx.weather, now);
   renderTiles(wx.weather, now);
@@ -522,11 +601,11 @@ function renderCurrent(cur, recs, now) {
   $("cur").innerHTML = `
     <div class="now">
       <div class="temp">${f1(w.temperature)}<sup>°C</sup></div>
-      <div class="cond"><span class="ico">${icon(w.icon)}</span><b>${esc(condText(w))}</b>${trend}</div>
+      <div class="cond"><span class="ico">${icon(w.icon)}</span><b>${esc(condText(w))}</b>${trend}<span id="klima-chip"></span></div>
     </div>
     <div class="stats">
-      <div class="stat"><small>Wind</small><b>${arrow}${f0(wind)} <span>km/h ${dir(wdir)}</span></b></div>
-      <div class="stat"><small>Böen</small><b>${f0(gust)} <span>km/h</span></b></div>
+      <div class="stat"><small>Wind</small><b>${arrow}${f0(wind)} <span>km/h ${dir(wdir)}</span></b><em>Böen ${f0(gust)} km/h</em></div>
+      <div class="stat"><small>Regen heute</small><b>${RAIN?.ok ? nf(RAIN.today) : "–"} <span>mm</span></b><em>${RAIN?.ok ? `letzte Stunde ${nf(RAIN.hour ?? 0)} mm` : "keine Messung"}</em></div>
       <div class="stat"><small>Feuchte</small><b>${f0(w.relative_humidity)} <span>%</span></b></div>
       <div class="stat"><small>Luftdruck</small><b>${f0(w.pressure_msl)} <span>hPa</span></b>${pressTrend(w, recs, now)}</div>
       <div class="stat"><small>Sonne</small><b>${hhmm(sun.rise)}<span>–</span>${hhmm(sun.set)}</b></div>
@@ -937,13 +1016,18 @@ async function loadCZ() {
   let fc;
   try { fc = await bfs({typeName:"opendata:eurdep_latestValue", bbox:box}); } catch { fc = null; }
   if (!fc || !fc.features?.length) fc = await bfs({typeName:"opendata:eurdep_latestValue"});
-  const cz = (fc.features || []).map(eurdepRow)
-    .filter(s => s.cc === "CZ" && s.v != null && !isNaN(s.v) && s.d < 90).sort((a, b) => a.d - b.d).slice(0, 4);
+  const seen = new Map();
+  for (const s of (fc.features || []).map(eurdepRow)) {
+    if (s.cc !== "CZ" || s.v == null || isNaN(s.v) || s.d >= 90) continue;
+    const k = s.name + "|" + (s.lat ?? "").toString().slice(0, 6);
+    const o = seen.get(k);
+    if (!o || Date.parse(s.end || 0) > Date.parse(o.end || 0)) seen.set(k, s);
+  }
+  const cz = [...seen.values()].sort((a, b) => a.d - b.d).slice(0, 4);
   if (!cz.length) { $("odl-cz").innerHTML = '<div class="note">Für Tschechien kamen gerade keine Werte.</div>'; return; }
   const vmax = Math.max(0.2, ...cz.map(s => s.v));
-  $("odl-cz").innerHTML = '<div class="subh"><span class="flag">CZ</span>Tschechien <small>EURDEP</small></div>' + cz.map(s => `<div class="od">
+  $("odl-cz").innerHTML = '<div class="subh"><span class="flag">CZ</span>Tschechien <small>EURDEP</small></div>' + cz.map(s => `<div class="od od2">
       <div class="nm"><b>${esc(s.name)}</b><small>${Math.round(s.d)} km${s.end ? " · " + hhmm(new Date(s.end)) + " Uhr" : ""}</small></div>
-      <div class="ob"><i style="width:${(s.v / vmax * 100).toFixed(0)}%"></i></div>
       <span class="ov">${s.v.toLocaleString("de-DE",{minimumFractionDigits:3,maximumFractionDigits:3})}</span>
     </div>`).join("");
 }
@@ -960,16 +1044,110 @@ function pTrend(s) {
   const hrs = (tl - Date.parse(ref[0])) / 36e5; if (hrs < 0.9) return null;
   return {d: last[1] - ref[1], hrs};
 }
+/* Speicher: Wasserspiegel (m ü. NN) in verständliche Größen umrechnen.
+   Frauenau: Stauziel 767, Hochwasserstauziel 768 m (HND-Stammdaten), Stauraum ca. 20,8–21 Mio m³. Eine amtliche
+   Inhaltslinie ist nicht veröffentlicht; Näherung V ~ ((h − 700) / 68)^3,46, abgeglichen an einen veröffentlichten
+   Stauinhalt (753,30 m ≈ 8,96 Mio m³). 100 % = Stauziel 767 m. Ergebnis daher "ca.".
+   Drachensee: Dauerstau 405,00 m (2,3 Mio m³), Vollstau 408,25 m (6,3 Mio m³), dazwischen 4,0 Mio m³ Hochwasser-Rückhalteraum (WWA Regensburg). */
+const SPEICHER = {
+  "15215600": {
+    wert: h => Math.max(0, Math.min(105, 100 * Math.pow(Math.max(0, h - 700) / 67, 3.46))),   // 100 % = Stauziel 767 m
+    zeile: (h, v) => ({big: `${Math.round(v)} %`, lbl: "gefüllt (ca.)", sub: `${nf(h, 2)} m ü. NN · ${nf(767 - h, 1)} m unter Stauziel`}),
+    unit: "%", yF: v => nf(v, 2), info: "Füllstand ca. in Prozent, 100 % = Stauziel 767 m ü. NN. Näherung aus dem Wasserspiegel, eine amtliche Inhaltskurve ist nicht veröffentlicht."
+  },
+  "15242406": {
+    wert: h => (h - 405) * 100,
+    zeile: (h, v) => { const p = Math.max(0, Math.min(100, (h - 405) / 3.25 * 100));
+      return {big: p < 1 ? "normal" : `${Math.round(p)} %`, lbl: p < 1 ? "Rückhalteraum frei" : "Rückhalteraum belegt", sub: `${nf(h, 2)} m ü. NN · ${v >= 0 ? "+" : "−"}${nf(Math.abs(v), 0)} cm zum Dauerstau`}; },
+    unit: "cm", yF: v => nf(v, 0), info: "Wasserspiegel in cm über dem Dauerstau (405,00 m ü. NN). Bei Hochwasser füllt sich der Rückhalteraum bis zum Vollstau 408,25 m (+325 cm, 4 Mio m³)."
+  }
+};
 function pRow(s) {
   const tr = pTrend(s);
   const tt = tr && Math.abs(tr.d) >= 2 ? `<span class="pt ${tr.d > 0 ? "up" : "dn"}">${tr.d > 0 ? "▲" : "▼"} ${tr.d > 0 ? "+" : ""}${Math.round(tr.d)} cm/${Math.round(tr.hrs)} h</span>` : `<span class="pt">gleich</span>`;
   const ms = s.stage > 0 ? `<span class="ms ms${Math.min(4, s.stage)}">MS ${s.stage}</span>` : "";
-  const name = s.url ? `<a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.name)}</a>` : esc(s.name);
-  return `<div class="pg"><div class="nm"><b>${name} ${ms}</b><small>${esc(s.river)}${s.flow != null ? " · " + f1(s.flow) + " m³/s" : ""}${s.hint ? " · " + esc(s.hint) : ""}</small></div>
-    <div class="pv">${/see|talsperre/i.test(s.name + s.river) && s.level > 100
+  const name = esc(s.name);
+  return `<div class="pg pgx" role="button" tabindex="0" data-id="${esc(s.id)}" aria-expanded="false"><div class="nm"><b>${name} ${ms}</b><small>${SPEICHER[s.id] && s.level != null ? SPEICHER[s.id].zeile(s.level, SPEICHER[s.id].wert(s.level)).sub : esc(s.river) + (s.flow != null ? " · " + f1(s.flow) + " m³/s" : "") + (s.hint ? " · " + esc(s.hint) : "")}</small></div>
+    <div class="pv">${SPEICHER[s.id] && s.level != null ? (z => `<b>${z.big}</b><span class="pt">${z.lbl}</span>`)(SPEICHER[s.id].zeile(s.level, SPEICHER[s.id].wert(s.level)))
+      : /see|talsperre/i.test(s.name + s.river) && s.level > 100
       ? `<b>${s.level.toLocaleString("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2})}</b> m ü. NN`
       : s.level != null ? `<b>${Math.round(s.level)}</b> cm${tt}` : `<b>${f1(s.flow)}</b> m³/s`}</div></div>`;
 }
+/* Verlauf je Pegel: Zeile antippen, Diagramm klappt darunter auf */
+const PGV = {range: "7", std: {}};
+function pgOpen(row) {
+  const was = row.getAttribute("aria-expanded") === "true";
+  document.querySelectorAll(".pg-vl").forEach(x => x.remove());
+  document.querySelectorAll(".pgx").forEach(r => r.setAttribute("aria-expanded", "false"));
+  if (was) return;
+  const s = (window.PEGEL_DATA?.stations || []).find(x => x.id === row.dataset.id); if (!s) return;
+  row.setAttribute("aria-expanded", "true");
+  const box = document.createElement("div"); box.className = "pg-vl"; box.dataset.id = s.id;
+  row.after(box); pgVerlauf(box, s);
+}
+async function pegelStunden(id) {   // eigenes Archiv (Monatsdateien) + aktuelle Werte aus pegel.json
+  const now = new Date(), mons = [dayKey(now).slice(0, 7), dayKey(new Date(now - 8 * 864e5)).slice(0, 7)];
+  await Promise.all([...new Set(mons)].map(async m => {
+    if (PGV.std[m]) return;
+    try { PGV.std[m] = parseCsv(await fetchText(ARCHIV + `pegel/${m}.csv`)); } catch { PGV.std[m] = []; }
+  }));
+  const map = new Map(), grenze = Date.now() - 7 * 864e5;
+  for (const m of new Set(mons)) for (const r of PGV.std[m]) if (String(r.id) === id) map.set(r.zeit.slice(0, 16), r.stand_cm);
+  const s = (window.PEGEL_DATA?.stations || []).find(x => x.id === id);
+  for (const [t, v] of s?.hist || []) map.set(t.slice(0, 16), v);
+  return [...map].map(([t, v]) => ({t: new Date(t + "Z"), v})).filter(p => p.v != null && +p.t >= grenze).sort((a, b) => a.t - b.t);
+}
+async function pgVerlauf(box, s) {
+  const range = PGV.range, see = /see|talsperre/i.test(s.name + s.river) && s.level > 100;
+  const seg = `<div class="seg">${[["7", "7 Tage"], ["30", "30 Tage"], ["365", "1 Jahr"]].map(([k, t]) => `<button type="button" data-r="${k}" aria-pressed="${range === k}">${t}</button>`).join("")}</div>`;
+  const SP = SPEICHER[s.id], tf = SP ? SP.wert : (v => v);
+  const ms = ARC.ms?.[s.id] || {}, unit = SP ? SP.unit : see ? "m" : "cm", yF = SP ? SP.yF : (v => see ? nf(v, 2) : nf(v, 0));
+  const foot = `<div class="note">${SP ? SP.info + " " : ""}Eigenes Archiv aus den Werten des Hochwassernachrichtendienstes Bayern, gesammelt seit 26.10.2026.${s.url ? ` <a href="${esc(s.url)}" target="_blank" rel="noopener">Pegel beim HND ansehen ↗</a>` : ""}</div>`;
+  if (s.level == null) { box.innerHTML = `<div class="note">An diesem Pegel wird nur der Abfluss gemeldet, kein Wasserstand.</div>` + foot; return; }
+  const hl = [];
+  if (!see && ms.MW) hl.push({type: "hline", v: ms.MW, color: "rgba(238,243,251,.5)", label: "Mittelwasser"});
+  if (!see && ms["1"]) hl.push({type: "hline", v: ms["1"], color: "#f2cd4b", label: "Meldestufe 1"});
+  box.innerHTML = seg + '<div class="load">Lade Verlauf …</div>';
+  if (range === "7") {
+    const pts = await pegelStunden(s.id);
+    if (!box.isConnected || PGV.range !== range) return;
+    if (pts.length < 3) { box.innerHTML = seg + '<div class="note">Noch zu wenige Werte für einen Verlauf.</div>' + foot; return; }
+    const vals = pts.map(p => tf(p.v)), mn = Math.min(...vals), mx = Math.max(...vals);
+    const tag = d => new Intl.DateTimeFormat("de-DE", {timeZone: TZ, weekday: "short", day: "numeric", month: "numeric"}).format(d);
+    const span = (pts.at(-1).t - pts[0].t) / 864e5, n = pts.length;
+    box.innerHTML = seg + `<p class="rb-sum">jetzt ${yF(vals.at(-1))} ${unit} · Spanne ${yF(mn)} – ${yF(mx)} ${unit}${ms.MW && !see ? ` · Mittelwasser ${ms.MW} cm` : ""}</p><div class="rbc"></div>` + foot;
+    const step = Math.max(1, Math.round(n / Math.max(1, span) * (span > 3 ? 2 : 1)));
+    drawChart(box.querySelector(".rbc"), {n, h: 160, aria: `Wasserstand ${s.name}`, fromZero: false, yFmt: yF,
+      xLabel: i => { const k = n - 1 - i; return k === 0 ? "jetzt" : (k % step === 0 && i > n * 0.08 && k > n * 0.12 ? tag(pts[i].t).replace(/\.$/, "") : null); },
+      layers: [{type: "line", vals, color: "#6fb7ff", width: 1.8, dots: n < 12}, ...hl],
+      tip: i => `<b>${tag(pts[i].t)} ${hhmm(pts[i].t)}</b><span class="tt" style="color:#6fb7ff">${yF(vals[i])} ${unit}</span>`});
+    return;
+  }
+  const P = ARC.pegelTage || [], today = dayKey(new Date()), dates = [];
+  for (let i = +range - 1; i >= 0; i--) dates.push(addDays(today, -i));
+  const m = new Map(P.filter(r => String(r.id) === s.id).map(r => [r.datum, r]));
+  const rows = dates.map(d => { const r = m.get(d); return r ? {...r, mittel: tf(r.mittel), min: tf(r.min), max: tf(r.max)} : null; }), ok = rows.filter(Boolean);
+  if (ok.length < 2) { box.innerHTML = seg + '<div class="note">Für diesen Zeitraum liegen noch zu wenige Tageswerte im Archiv. Es füllt sich Tag für Tag.</div>' + foot; return; }
+  const first = ok[0].datum;
+  box.innerHTML = seg + `<p class="rb-sum">Tagesmittel · Spanne ${yF(Math.min(...ok.map(r => r.min)))} – ${yF(Math.max(...ok.map(r => r.max)))} ${unit} · Archiv ab ${dShort(first)}</p><div class="rbc"></div>
+    <div class="legend"><span><i style="background:#6fb7ff"></i>Tagesmittel</span><span><i style="background:#6fb7ff;opacity:.3"></i>Tagesspanne</span></div>` + foot;
+  drawChart(box.querySelector(".rbc"), {n: dates.length, h: 160, aria: `Tageswerte ${s.name}`, fromZero: false, yFmt: yF,
+    xLabel: i => (i % Math.ceil(dates.length / 6) === 0) ? dShort(dates[i]) : null,
+    layers: [{type: "range", lo: rows.map(r => r ? r.min : null), hi: rows.map(r => r ? r.max : null), color: "rgba(111,183,255,.3)"},
+             {type: "line", vals: rows.map(r => r ? r.mittel : null), color: "#6fb7ff", width: 2, dots: ok.length < 15}, ...hl],
+    tip: i => `<b>${dShort(dates[i])}</b>${rows[i] ? `<span class="tt" style="color:#6fb7ff">Mittel ${yF(rows[i].mittel)} ${unit}</span><span>${yF(rows[i].min)} – ${yF(rows[i].max)} ${unit}</span>` : "<span>kein Wert</span>"}`});
+}
+function initPGV() {
+  const card = $("pegel").closest(".card");
+  card.addEventListener("click", e => {
+    const r = e.target.closest(".pg-vl .seg button[data-r]");
+    if (r) { PGV.range = r.dataset.r; const box = r.closest(".pg-vl"); const s = (window.PEGEL_DATA?.stations || []).find(x => x.id === box.dataset.id); if (s) pgVerlauf(box, s); return; }
+    if (e.target.closest(".pg-vl")) return;
+    const row = e.target.closest(".pgx"); if (row) pgOpen(row);
+  });
+  card.addEventListener("keydown", e => { const row = e.target.closest(".pgx"); if (row && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); pgOpen(row); } });
+}
+
 async function loadPegel() {
   let data;
   try {
@@ -988,15 +1166,16 @@ async function loadPegel() {
   } else if (rising.length) {
     banner = `<div class="pwarn rise"><b>Wasser steigt am Oberlauf</b> ${rising.slice(0, 3).map(x => `${esc(x.s.name)} +${Math.round(x.t.d)} cm`).join(", ")} in ${Math.round(rising[0].t.hrs)} h</div>`;
   } else banner = `<div class="ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M7.5 12.5l3 3 6-6.5"/></svg>Keine Meldestufe, kein auffälliger Anstieg.</div>`;
-  const key = PEGEL_KEY.map(id => st.find(s => s.id === id)).filter(Boolean);
+  const key = cfg().pegel.map(id => st.find(s => s.id === id)).filter(Boolean);
+  window.PEGEL_DATA = data;
   const groups = {};
   for (const s of st) (groups[s.river || "Sonstige"] ??= []).push(s);
   const order = Object.keys(groups).sort((a, b) => ((FLUSS_ORDER.indexOf(a) + 1) || 99) - ((FLUSS_ORDER.indexOf(b) + 1) || 99) || a.localeCompare(b, "de"));
   const age = (Date.now() - Date.parse(data.updated)) / 6e4;
   $("pegel").innerHTML = banner
-    + `<div class="subh">Für Blaibach</div>` + key.map(pRow).join("")
-    + `<details class="pall"><summary>Alle ${st.length} Pegel im Einzugsgebiet</summary>${order.map(r => `<div class="subh">${esc(r)}</div>` + groups[r].map(pRow).join("")).join("")}</details>`
-    + `<div class="unit">Stand ${hhmm(new Date(data.updated))} Uhr${age > 120 ? " · älter als 2 Stunden" : ""} · Quelle: Hochwassernachrichtendienst Bayern</div>`;
+    + regenBlock() + `<div class="subh">Für ${esc(ORT.name)}</div>` + key.map(pRow).join("")
+    + `<details class="pall"><summary>Alle ${st.length} Pegel der Region</summary>${order.map(r => `<div class="subh">${esc(r)}</div>` + groups[r].map(pRow).join("")).join("")}</details>`
+    + `<div class="unit">Stand ${hhmm(new Date(data.updated))} Uhr${age > 120 ? " · älter als 2 Stunden" : ""} · Quelle: Hochwassernachrichtendienst Bayern · Pegel antippen für den Verlauf</div>`;
 }
 function spark(pts, name) {
   const W = 320, H = 70, L = 4, R = 4, T = 8, B = 16;
@@ -1213,7 +1392,8 @@ Object.assign(SIG_ICON, {
   pv:   '<rect x="3" y="10" width="18" height="8" rx="1"/><path d="M3 14h18M9 10v8M15 10v8M7 6l1.5 1.5M12 3v3M17 6l-1.5 1.5"/>',
   frost:'<path d="M12 2v20M4.9 6l14.2 12M19.1 6L4.9 18M9 3.5l3 2.5 3-2.5M9 20.5l3-2.5 3 2.5"/>',
   bio:  '<path d="M3 12h4l2-5 4 10 2-5h6"/>',
-  snow: '<path d="M2 20l6-10 4 6 3-4 7 8z"/><path d="M8 10l2-3 2 3" opacity=".6"/>'
+  snow: '<path d="M2 20l6-10 4 6 3-4 7 8z"/><path d="M8 10l2-3 2 3" opacity=".6"/>',
+  fire: '<path d="M12 22c4 0 7-2.8 7-7 0-3-2-5.5-3.5-7 .2 2-1 3.5-2.2 3.5C14 8 12.5 4.5 10 2c.3 3.2-2.3 5.6-3.8 7.6C5 11.2 5 12.7 5 15c0 4.2 3 7 7 7z"/><path d="M12 22c-1.7 0-3-1.2-3-3 0-1.5 1-2.6 2-3.6.2 1.2 1 1.8 1.7 1.8.6-1 .3-2.2-.2-3.2 1.8 1 3.5 2.8 3.5 5 0 1.8-1.4 3-3 3z" opacity=".55"/>'
 });
 const SCHAUER = [["01-03","Quadrantiden"],["04-22","Lyriden"],["08-12","Perseiden"],["10-08","Draconiden"],["10-21","Orioniden"],["11-17","Leoniden"],["12-14","Geminiden"],["12-22","Ursiden"]];
 let MOON = null, ARBER = null;
@@ -1321,11 +1501,619 @@ function sigSchnee() {
   return {key:"snow", title:"Schnee Arber", state:"off", short:"kein Schnee", detail};
 }
 
+
+/* ================= Schritt 2: Ortsbezug, Regen, Strahlung, Waldbrand, Archiv und Rückblick ================= */
+const ARCHIV = "https://raw.githubusercontent.com/mknxb/wetter/daten/";
+// Was zu welchem Ort gehört: Pegel, UV-Messort, Pollen-Teilregion
+const ORT_CFG = {
+  blaibach:   {pegel:["15228008","15202300"], uv:"Regensburg", pollen:/Bay\. ?Wald/},
+  koetzting:  {pegel:["15228008","15202300"], uv:"Regensburg", pollen:/Bay\. ?Wald/},
+  cham:       {pegel:["15204000","15246000"], uv:"Regensburg", pollen:/Bay\. ?Wald/},
+  furth:      {pegel:["15243001","15246000"], uv:"Regensburg", pollen:/Bay\. ?Wald/},
+  arber:      {pegel:["15221009","15228008"], uv:"Großer Arber", pollen:/Bay\. ?Wald/},
+  zwiesel:    {pegel:["15214003","15210206"], uv:"Regensburg", pollen:/Bay\. ?Wald/},
+  regen:      {pegel:["15212700","15212008"], uv:"Regensburg", pollen:/Bay\. ?Wald/},
+  deggendorf: {pegel:["10081004","10078000"], uv:"Regensburg", pollen:/Donauniederung/}
+};
+function ortKey() {   // eigener Standort (?lat=&lon=) → nächstgelegener bekannter Ort
+  if (ORTE[ORT.key]) return ORT.key;
+  return Object.entries(ORTE).sort((a, b) => km(ORT.lat, ORT.lon, a[1].lat, a[1].lon) - km(ORT.lat, ORT.lon, b[1].lat, b[1].lon))[0][0];
+}
+const cfg = () => ORT_CFG[ortKey()];
+const addDays = (d, n) => new Date(Date.parse(d + "T00:00:00Z") + n * 864e5).toISOString().slice(0, 10);
+const nf = (v, d = 1) => v == null || isNaN(v) ? "–" : v.toLocaleString("de-DE", {minimumFractionDigits: d, maximumFractionDigits: d});
+const sgn = (v, d = 1) => (v > 0 ? "+" : v < 0 ? "−" : "±") + nf(Math.abs(v), d);
+const MONATE = ["Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"];
+
+/* ---------- Regen am Ort (gemessen) ---------- */
+let RAIN = null;
+function calcRain(recs, sources, cur, now) {
+  const obsIds = new Set((sources || []).filter(s => s.observation_type !== "forecast").map(s => s.id));
+  const obs = recs.filter(r => obsIds.has(r.source_id) && Date.parse(r.timestamp) <= now.getTime() && r.precipitation != null);
+  const sum = (from) => obs.filter(r => Date.parse(r.timestamp) > from).reduce((a, r) => a + r.precipitation, 0);
+  const t0 = localMidnight(now).getTime(), n = now.getTime();
+  const lastObs = obs.length ? obs[obs.length - 1] : null;
+  const st = (sources || []).find(s => lastObs && s.id === lastObs.source_id);
+  RAIN = {
+    hour: cur?.precipitation_60 ?? (lastObs ? lastObs.precipitation : null),
+    today: sum(t0 - 1), h3: sum(n - 3 * 36e5), h24: sum(n - 24 * 36e5), h72: sum(n - 72 * 36e5),
+    station: st ? kurz(st.station_name) : null, ok: obs.length > 0
+  };
+  return RAIN;
+}
+
+/* ---------- Archiv laden ---------- */
+const ARC = {tage: {}, stationen: null, bayern: null, odlAkt: null, pegelTage: null, ms: null, odlTage: {}};
+async function fetchText(url) {
+  const r = await fetch(url + (url.includes("?") ? "&" : "?") + "t=" + Math.floor(Date.now() / 6e5));
+  if (!r.ok) throw new Error("HTTP " + r.status);
+  return r.text();
+}
+function parseCsv(txt) {
+  const lines = txt.trim().split(/\r?\n/), head = lines.shift().split(";");
+  return lines.map(l => { const p = l.split(";"), o = {}; head.forEach((h, i) => { const v = p[i]; o[h] = i === 0 || v === "" || v == null || isNaN(+v) ? (i === 0 ? v : (v === "" ? null : v)) : +v; }); return o; });
+}
+async function loadArchiv() {
+  const k = ortKey(), jobs = [];
+  if (!ARC.tage[k]) jobs.push(fetchText(ARCHIV + `tage/${k}.csv`).then(t => { ARC.tage[k] = prepTage(parseCsv(t)); }).catch(() => {}));
+  if (!ARC.stationen) jobs.push(fetchText(ARCHIV + "stationen.json").then(t => { ARC.stationen = JSON.parse(t); }).catch(() => {}));
+  if (!ARC.bayern) jobs.push(fetchText(ARCHIV + "bayern-jahre.csv").then(t => { ARC.bayern = parseCsv(t); }).catch(() => {}));
+  jobs.push(fetchText(ARCHIV + "odl-aktuell.json").then(t => { ARC.odlAkt = JSON.parse(t); }).catch(() => {}));
+  jobs.push(fetchText(ARCHIV + "pegel-tage.csv").then(t => { ARC.pegelTage = parseCsv(t); }).catch(() => {}));
+  jobs.push(fetchText(ARCHIV + "pegel-meldestufen.json").then(t => { ARC.ms = JSON.parse(t); }).catch(() => {}));
+  await Promise.all(jobs);
+}
+// Tageswerte vorbereiten: Index nach Datum, Klimamittel 1991–2020 je Kalendertag und Monat
+function prepTage(rows) {
+  const by = new Map(rows.map(r => [r.datum, r]));
+  const ref = rows.filter(r => r.datum >= "1991-01-01" && r.datum <= "2020-12-31");
+  const years = new Set(ref.map(r => r.datum.slice(0, 4)));
+  const doy = {};   // "MM-DD" → Summen
+  for (const r of ref) { const md = r.datum.slice(5); const a = doy[md] ??= {n: 0, tmin: 0, tmax: 0, tmit: 0, nm: 0}; if (r.tmit != null && r.tmin != null && r.tmax != null) { a.n++; a.tmin += r.tmin; a.tmax += r.tmax; a.tmit += r.tmit; } }
+  const keys = Object.keys(doy).sort();
+  const norm = {};
+  keys.forEach((md, i) => {   // ±7 Tage glätten
+    let n = 0, a = {tmin: 0, tmax: 0, tmit: 0};
+    for (let j = -7; j <= 7; j++) { const d = doy[keys.at((i + j + keys.length) % keys.length)]; if (d && d.n) { n += d.n; a.tmin += d.tmin; a.tmax += d.tmax; a.tmit += d.tmit; } }
+    if (n) norm[md] = {tmin: a.tmin / n, tmax: a.tmax / n, tmit: a.tmit / n};
+  });
+  // Regen: mittlere Monatssumme und mittlere Summe bis Kalendertag (nur vollständige Jahre)
+  const yearRain = {};
+  for (const r of ref) { const y = r.datum.slice(0, 4); (yearRain[y] ??= {n: 0, miss: 0}); if (r.regen == null) yearRain[y].miss++; else yearRain[y].n++; }
+  const full = [...years].filter(y => yearRain[y] && yearRain[y].miss < 15);
+  const monRain = Array(12).fill(0), cumNorm = {};
+  for (const y of full) {
+    let cum = 0;
+    for (let d = `${y}-01-01`; d <= `${y}-12-31`; d = addDays(d, 1)) {
+      const r = by.get(d); const v = r && r.regen != null ? r.regen : 0;
+      cum += v; monRain[+d.slice(5, 7) - 1] += v;
+      const md = d.slice(5); (cumNorm[md] ??= 0); cumNorm[md] += cum;
+    }
+  }
+  const ny = full.length || 1;
+  Object.keys(cumNorm).forEach(md => cumNorm[md] /= ny);
+  const monT = Array(12).fill(0).map(() => [0, 0]);
+  for (const r of ref) if (r.tmit != null) { const m = +r.datum.slice(5, 7) - 1; monT[m][0] += r.tmit; monT[m][1]++; }
+  const yrs = [...years].sort();
+  return {rows, by, norm, monRain: monRain.map(v => v / ny), cumNorm, monT: monT.map(([s, n]) => n ? s / n : null),
+    normLabel: yrs.length >= 20 ? "1991–2020" : (yrs.length ? `${yrs[0]}–${yrs.at(-1)}` : "–"), first: rows[0]?.datum, last: rows.at(-1)?.datum};
+}
+const TAGE = () => ARC.tage[ortKey()];
+const STATION = () => ARC.stationen?.[ortKey()];
+
+/* ---------- Abweichung vom Klimamittel (Kopfbereich) ---------- */
+function klimaChip(recs, now) {
+  const T = TAGE(); if (!T) return "";
+  const k = dayKey(now), n = T.norm[k.slice(5)]; if (!n) return "";
+  const t = recs.filter(r => dayKey(new Date(r.timestamp)) === k && r.temperature != null).map(r => r.temperature);
+  if (t.length < 12) return "";
+  const d = t.reduce((a, b) => a + b, 0) / t.length - n.tmit;
+  const cls = d > 1 ? "up" : d < -1 ? "down" : "";
+  return `<span class="chip ${cls}" title="Tagesmittel heute (Messung und Vorhersage) gegenüber dem Mittel ${T.normLabel} an der DWD-Station ${esc(STATION()?.name || "")}">${sgn(d)}° ${Math.abs(d) < 0.5 ? "wie" : d > 0 ? "wärmer als" : "kälter als"} im Mittel</span>`;
+}
+
+/* ---------- Waldbrandgefahr: kanadischer Fire Weather Index (Van Wagner 1987), eigene Berechnung ---------- */
+const FWI_LE = [6.5, 7.5, 9.0, 12.8, 13.9, 13.9, 12.4, 10.9, 9.4, 8.0, 7.0, 6.0];
+const FWI_LF = [-1.6, -1.6, -1.6, 0.9, 3.8, 5.8, 6.4, 5.0, 2.4, 0.4, -1.6, -1.6];
+function fwiStep(s, T, H, W, ro, mon) {
+  H = Math.min(100, Math.max(0, H));
+  // Feinstreu (FFMC)
+  let mo = 147.2 * (101 - s.ffmc) / (59.5 + s.ffmc);
+  if (ro > 0.5) {
+    const rf = ro - 0.5;
+    let mr = mo + 42.5 * rf * Math.exp(-100 / (251 - mo)) * (1 - Math.exp(-6.93 / rf));
+    if (mo > 150) mr += 0.0015 * (mo - 150) ** 2 * Math.sqrt(rf);
+    mo = Math.min(250, mr);
+  }
+  const ed = 0.942 * H ** 0.679 + 11 * Math.exp((H - 100) / 10) + 0.18 * (21.1 - T) * (1 - Math.exp(-0.115 * H));
+  let m;
+  if (mo > ed) {
+    const ko = 0.424 * (1 - (H / 100) ** 1.7) + 0.0694 * Math.sqrt(W) * (1 - (H / 100) ** 8);
+    m = ed + (mo - ed) * 10 ** (-(ko * 0.581 * Math.exp(0.0365 * T)));
+  } else {
+    const ew = 0.618 * H ** 0.753 + 10 * Math.exp((H - 100) / 10) + 0.18 * (21.1 - T) * (1 - Math.exp(-0.115 * H));
+    if (mo < ew) {
+      const k1 = 0.424 * (1 - ((100 - H) / 100) ** 1.7) + 0.0694 * Math.sqrt(W) * (1 - ((100 - H) / 100) ** 8);
+      m = ew - (ew - mo) * 10 ** (-(k1 * 0.581 * Math.exp(0.0365 * T)));
+    } else m = mo;
+  }
+  s.ffmc = Math.min(101, Math.max(0, 59.5 * (250 - m) / (147.2 + m)));
+  // Humusauflage (DMC)
+  if (ro > 1.5) {
+    const re = 0.92 * ro - 1.27, mo2 = 20 + Math.exp(5.6348 - s.dmc / 43.43);
+    const b = s.dmc <= 33 ? 100 / (0.5 + 0.3 * s.dmc) : s.dmc <= 65 ? 14 - 1.3 * Math.log(s.dmc) : 6.2 * Math.log(s.dmc) - 17.2;
+    const mr = mo2 + 1000 * re / (48.77 + b * re);
+    s.dmc = Math.max(0, 244.72 - 43.43 * Math.log(mr - 20));
+  }
+  if (T > -1.1) s.dmc += 1.894 * (T + 1.1) * (100 - H) * FWI_LE[mon] * 1e-6 * 100;
+  // tiefere Schicht (DC)
+  if (ro > 2.8) {
+    const rd = 0.83 * ro - 1.27, Qo = 800 * Math.exp(-s.dc / 400), Qr = Qo + 3.937 * rd;
+    s.dc = Math.max(0, 400 * Math.log(800 / Qr));
+  }
+  if (T > -2.8) s.dc += 0.5 * Math.max(0, 0.36 * (T + 2.8) + FWI_LF[mon]);
+  // Ausbreitung (ISI), Brennstoffmenge (BUI), Index (FWI)
+  const fm = 147.2 * (101 - s.ffmc) / (59.5 + s.ffmc);
+  const isi = 0.208 * Math.exp(0.05039 * W) * 91.9 * Math.exp(-0.1386 * fm) * (1 + fm ** 5.31 / 4.93e7);
+  const bui = s.dmc <= 0.4 * s.dc ? 0.8 * s.dmc * s.dc / (s.dmc + 0.4 * s.dc) : s.dmc - (1 - 0.8 * s.dc / (s.dmc + 0.4 * s.dc)) * (0.92 + (0.0114 * s.dmc) ** 1.7);
+  const bb = Math.max(0, bui) <= 80 ? 0.1 * isi * (0.626 * Math.max(0, bui) ** 0.809 + 2) : 0.1 * isi * (1000 / (25 + 108.64 * Math.exp(-0.023 * bui)));
+  const fwi = bb > 1 ? Math.exp(2.72 * (0.434 * Math.log(bb)) ** 0.647) : bb;
+  return {...s, isi, bui, fwi};
+}
+function sigFeuer() {
+  const now = new Date(), mon = now.getMonth();
+  if (mon <= 1 || mon === 10 || mon === 11) return null;   // November bis Februar ausgeblendet
+  const T = TAGE();
+  if (!T || !LAST) return {key:"fire", title:"Waldbrand", state:"na", short:"keine Daten", detail:"Für die Berechnung fehlen die Tageswerte der letzten Wochen."};
+  const today = dayKey(now);
+  let s = {ffmc: 85, dmc: 6, dc: 15}, dry = 0;
+  for (let d = addDays(today, -60); d < today; d = addDays(d, 1)) {
+    const r = T.by.get(d); if (!r || r.tmax == null) continue;
+    const rh = Math.max(10, (r.feuchte ?? 75) - 12), w = (r.wind ?? 8) * 1.2, ro = r.regen ?? 0;   // Mittagswerte grob aus Tageswerten
+    s = fwiStep(s, r.tmax, rh, w, ro, +d.slice(5, 7) - 1);
+    dry = ro < 1 ? dry + 1 : 0;
+  }
+  const noon = LAST.recs.find(r => dayKey(new Date(r.timestamp)) === today && hourOf(new Date(r.timestamp)) === 13) || LAST.recs.find(r => dayKey(new Date(r.timestamp)) === today && hourOf(new Date(r.timestamp)) === 12);
+  if (noon && noon.temperature != null) {
+    const ro = RAIN?.h24 ?? 0;
+    s = fwiStep(s, noon.temperature, noon.relative_humidity ?? 60, noon.wind_speed ?? 8, ro, mon);
+    dry = ro < 1 ? dry + 1 : 0;
+  }
+  const f = s.fwi ?? 0;
+  const lvl = f < 5.2 ? 1 : f < 11.2 ? 2 : f < 21.3 ? 3 : f < 38 ? 4 : 5;
+  const word = ["", "sehr gering", "gering", "mittel", "hoch", "sehr hoch"][lvl];
+  const gras = mon >= 2 && mon <= 4 && s.ffmc >= 88 ? " Graslandfeuer: Altgras und trockene Wiesen sind leicht entzündlich." : "";
+  const detail = `Stufe ${lvl} von 5 (${word}). FWI ${nf(f)}, Feinstreu-Feuchtecode ${nf(s.ffmc, 0)}, Brennstoffindex ${nf(s.bui, 0)}. ${dry ? `Seit ${dry} Tag${dry > 1 ? "en" : ""} weniger als 1 mm Regen.` : "Zuletzt nennenswerter Regen."}${gras} Eigene Berechnung nach dem kanadischen FWI-Verfahren (Grundlage auch des DWD-Index) aus den Tageswerten der DWD-Station ${esc(STATION()?.name || "")}, Klassen nach EFFIS. Keine amtliche Warnung.`;
+  return {key:"fire", title:"Waldbrand", state: lvl >= 4 ? "on" : lvl === 3 ? "maybe" : "off", short:`Stufe ${lvl} · ${word}`, detail};
+}
+
+/* ---------- Ortsbezogene Fassungen bestehender Kacheln ---------- */
+function sigInversionOrt() {
+  const ar = STN.find(s => /Arber/.test(s.name) && s.now && s.hoehe > 1200);
+  const val = STN.filter(s => s.now && s.hoehe != null && s.hoehe < 700 && s.dist != null).sort((a, b) => a.dist - b.dist)[0];
+  if (!ar || !val) return {key:"inv", title:"Inversion", state:"na", short:"keine Daten", detail:"Für den Vergleich fehlen gerade Messwerte vom Arber oder aus dem Tal am Ort."};
+  const diff = ar.now.t - val.now.t, dh = ar.hoehe - val.hoehe, normal = -0.0065 * dh;
+  const foggy = (CUR?.icon === "fog") || (CUR?.relative_humidity >= 97);
+  const txt = `Tal am Ort: ${esc(val.name)} ${f1(val.now.t)} °C (${Math.round(val.hoehe)} m, ${Math.round(val.dist)} km). Gipfel: Großer Arber ${f1(ar.now.t)} °C (${Math.round(ar.hoehe)} m). Normal wäre es oben rund ${f1(-normal)} Grad kälter.`;
+  if (diff > 0) return {key:"inv", title:"Inversion", state:"on", short: foggy ? "Über dem Nebel!" : `oben ${f1(diff)}° wärmer`,
+    detail:`Oben ist es wärmer als im Tal: eine echte Inversion. ${foggy ? "Im Tal liegt Nebel, auf den Gipfeln scheint vermutlich die Sonne." : "Typisch für ruhiges Hochdruckwetter, oft mit Nebel oder Hochnebel in den Tälern."} ${txt}`};
+  if (diff > normal + 3) return {key:"inv", title:"Inversion", state:"maybe", short:"schwach ausgeprägt", detail:`Oben ist es weniger kalt als üblich, die Luft ist stabil geschichtet. ${txt}`};
+  return {key:"inv", title:"Inversion", state:"off", short:"normale Schichtung", detail:`Keine Inversion: Mit der Höhe wird es wie üblich kälter. ${txt}`};
+}
+function sigFernsicht() {
+  const st = STN.filter(s => s.vis != null && s.dist != null).sort((a, b) => a.dist - b.dist)[0];
+  const now = new Date(), sun = sunTimes(now, ORT.lat, ORT.lon), day = now > sun.rise && now < sun.set;
+  const gipfel = ortKey() === "arber";
+  if (!st) return {key:"alp", title:"Fernsicht", state:"na", short:"keine Sichtdaten", detail:"Keine Station in der Nähe meldet gerade die Sichtweite."};
+  const kmv = st.vis / 1000, rh = st.rh;
+  const base = `Sichtweite an der Station ${esc(st.name)} (${Math.round(st.dist)} km entfernt): ${Math.round(kmv)} km${rh != null ? `, Luftfeuchte ${Math.round(rh)} %` : ""}. ${gipfel ? "Vom Arber sind die Alpen rund 150 km entfernt; sichtbar werden sie bei sehr klarer, trockener Luft." : "Die Alpen sieht man nur von den Gipfeln aus, etwa vom Arber, bei sehr klarer Luft."} Schätzung aus Messwerten.`;
+  let state = "off", short = "diesig";
+  if (kmv >= 60 && (rh == null || rh < 75)) { state = "on"; short = gipfel ? "Alpenblick möglich" : "sehr klare Luft"; }
+  else if (kmv >= 35) { state = "maybe"; short = "gute Fernsicht"; }
+  else if (kmv >= 10) short = "mäßige Sicht";
+  else if (kmv < 1) short = "Nebel";
+  if (!day) { state = state === "on" ? "maybe" : "off"; short = state === "maybe" ? "klar, morgen früh schauen" : "nachts"; }
+  return {key:"alp", title: gipfel ? "Alpenblick" : "Fernsicht", state, short, detail: base};
+}
+function sigUVOrt() {
+  const u = EXTRA?.uv; const city = cfg().uv;
+  const fc = u?.all?.[city] || (city === "Großer Arber" ? u?.arber : null) || u?.forecast;
+  if (!fc) return {key:"uv", title:"UV-Index", state:"na", short:"keine Daten", detail:""};
+  const v = fc.today, w = fc.tomorrow;
+  const lvl = x => x >= 8 ? "sehr hoch" : x >= 6 ? "hoch" : x >= 3 ? "mittel" : "niedrig";
+  return {key:"uv", title:"UV-Index", state: v >= 6 ? "on" : v >= 3 ? "maybe" : "off", short:`${v} · ${lvl(v)}`,
+    detail:`Heute ${v} (${lvl(v)}), morgen ${w ?? "–"}. DWD-Vorhersage für ${esc(u?.all?.[city] ? city : (u?.city || ""))}, den nächstgelegenen UV-Messort. Ab 3 ist Sonnenschutz sinnvoll, ab 6 unbedingt.`};
+}
+function sigPollenOrt() {
+  const all = EXTRA?.pollen?.all || {};
+  const rk = Object.keys(all).find(k => cfg().pollen.test(k));
+  const p = rk ? all[rk] : EXTRA?.pollen?.pollen, region = rk || EXTRA?.pollen?.region || "";
+  if (!p) return {key:"pol", title:"Pollen", state:"na", short:"keine Daten", detail:""};
+  const list = Object.entries(p).map(([n, v]) => ({n: POLLEN_NAME[n] || n, t: POLLEN_N[v.today] ?? 0, m: POLLEN_N[v.tomorrow] ?? 0})).sort((a, b) => b.t - a.t);
+  const act = list.filter(x => x.t >= .5), top = act[0];
+  const tomorrow = list.filter(x => x.m >= .5).map(x => `${x.n} ${POLLEN_T(x.m)}`).join(", ");
+  if (!top) return {key:"pol", title:"Pollen", state:"off", short:"kein Pollenflug", detail:`Heute keine Belastung in der DWD-Region ${esc(region)}.${tomorrow ? " Morgen: " + tomorrow + "." : ""}`};
+  return {key:"pol", title:"Pollen", state: top.t >= 2 ? "on" : "maybe", short:`${top.n} ${POLLEN_T(top.t)}`,
+    detail:`Heute: ${act.map(x => `${x.n} ${POLLEN_T(x.t)}`).join(", ")}.${tomorrow ? " Morgen: " + tomorrow + "." : ""} DWD-Region ${esc(region)}.`};
+}
+function sigSchneeOrt() {
+  const T = TAGE(), st = STATION(), now = Date.now();
+  const last = T ? [...T.rows].reverse().find(r => r.schnee != null) : null;
+  const fc = (LAST?.recs || []).filter(r => Date.parse(r.timestamp) > now && Date.parse(r.timestamp) < now + 48 * 36e5);
+  const neu = fc.filter(r => r.precipitation > 0 && (r.condition === "snow" || (r.temperature != null && r.temperature <= 0.5))).reduce((a, r) => a + r.precipitation, 0);
+  const cm = last ? last.schnee : null, m = new Date().getMonth() + 1, winter = m >= 11 || m <= 4;
+  if (!cm && neu < 0.5 && !winter) return null;
+  const datum = last ? `${last.datum.slice(8)}.${last.datum.slice(5, 7)}.` : null;
+  const detail = `${cm != null ? `Schneehöhe an der DWD-Station ${esc(kurz(st?.regen?.name || st?.name || ""))} (${Math.round(st?.regen?.hoehe || st?.hoehe || 0)} m): ${Math.round(cm)} cm, Messung vom ${datum}.` : "Keine Schneehöhe gemeldet."} Neuschnee am Ort in den nächsten 48 Stunden laut Vorhersage: etwa ${Math.round(neu)} cm (grob 1 cm je mm Niederschlag).`;
+  if (neu >= 5) return {key:"snow", title:"Schnee", state:"on", short:`+${Math.round(neu)} cm Neuschnee`, detail};
+  if (cm >= 20) return {key:"snow", title:"Schnee", state:"on", short:`${Math.round(cm)} cm Schnee`, detail};
+  if (cm > 0 || neu >= 0.5) return {key:"snow", title:"Schnee", state:"maybe", short: cm > 0 ? `${Math.round(cm)} cm` : "etwas Neuschnee", detail};
+  return {key:"snow", title:"Schnee", state:"off", short:"kein Schnee", detail};
+}
+
+/* ---------- Warnungen: zuerst der gewählte Ort, dann die Umgebung ---------- */
+async function loadWarningsOrt() {
+  const um = Object.entries(ORTE).filter(([k]) => k !== ORT.key).sort((a, b) => km(ORT.lat, ORT.lon, a[1].lat, a[1].lon) - km(ORT.lat, ORT.lon, b[1].lat, b[1].lon)).slice(0, 5);
+  const pts = [[ORT.name, ORT.lat, ORT.lon], ...um.map(([, o]) => [o.name, o.lat, o.lon])];
+  const res = await Promise.allSettled(pts.map(p => getJSON("/alerts", {lat: p[1], lon: p[2]})));
+  if (res.every(r => r.status === "rejected")) throw new Error("DWD-Warnungen nicht erreichbar");
+  const hier = new Map(), umg = new Map();
+  res.forEach((r, i) => {
+    if (r.status !== "fulfilled") return;
+    for (const a of r.value.alerts || []) {
+      const key = a.alert_id || a.id;
+      if (i === 0) hier.set(key, a);
+      else if (!hier.has(key)) { if (!umg.has(key)) umg.set(key, {...a, orte: new Set()}); umg.get(key).orte.add(pts[i][0]); }
+    }
+  });
+  for (const k of hier.keys()) umg.delete(k);
+  const order = {extreme:0, severe:1, moderate:2, minor:3}, sort = m => [...m.values()].sort((a, b) => (order[a.severity] ?? 9) - (order[b.severity] ?? 9));
+  const fmt = d => d ? `${wd(new Date(d))} ${hhmm(new Date(d))}` : "bis auf Weiteres";
+  const card = (a, extra) => `<div class="warn ${esc(a.severity)}"><b>${esc(a.headline_de || a.event_de)}</b><small>${fmt(a.onset)} – ${fmt(a.expires)}${extra ? " · " + esc(extra) : ""}</small></div>`;
+  const ok = t => `<div class="ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M7.5 12.5l3 3 6-6.5"/></svg>${t}</div>`;
+  const h = sort(hier), u = sort(umg);
+  $("warn").innerHTML = (h.length ? h.map(a => card(a)).join("") : ok(`Keine Warnungen für ${esc(ORT.name)}.`))
+    + (u.length ? `<div class="subh">In der Umgebung</div>` + u.map(a => card(a, [...a.orte].join(", "))).join("") : "");
+}
+
+/* ---------- Strahlung: Veränderung, Zustand, Einordnung ---------- */
+const fmt3 = v => v == null ? "–" : v.toLocaleString("de-DE", {minimumFractionDigits: 3, maximumFractionDigits: 3});
+function odlZustand(list) {
+  const rain = (RAIN?.h3 ?? 0) >= 0.1 || (RAIN?.h24 ?? 0) >= 1;
+  const z = list.filter(s => s.wert != null && s.mittel7).map(s => ({...s, q: s.wert / s.mittel7, hoch24: (s.stunden || []).slice(-24).every(p => p[1] > s.mittel7 * 1.3)}));
+  if (!z.length) return null;
+  const n = z[0];
+  if (z.filter(s => s.q >= 3).length && !rain) return {k:"alarm", t:"auffällig", d:"Mehr als das Dreifache des Wochenmittels ohne Regen. Meldungen des BfS und die Warn-App NINA beachten."};
+  if (z.filter(s => s.hoch24).length >= 2) return {k:"alarm", t:"auffällig", d:"Seit über 24 Stunden an mehreren Sonden erhöht. Meldungen des BfS und die Warn-App NINA beachten."};
+  if (n.q >= 1.15 && rain) return {k:"rain", t:"Regeneffekt", d:"Erhöht durch Regen: Er wäscht natürliche Radon-Folgeprodukte aus der Luft. Harmlos, klingt in wenigen Stunden ab."};
+  if (n.q >= 1.5 && z.filter(s => s.q >= 1.3).length === 1) return {k:"spike", t:"Einzelspitze", d:"Nur an einer Sonde erhöht, vermutlich eine Messstörung. Stundenwerte sind ungeprüfte Rohdaten."};
+  return {k:"ok", t:"normal", d:"Im natürlichen Bereich und nahe am Wochenmittel."};
+}
+function odlSkala(v) {
+  // logarithmische Skala 0,03 … 1000 µSv/h, Beschriftung nur in der Legende
+  const lo = Math.log10(0.03), hi = Math.log10(1000), P = x => ((Math.log10(x) - lo) / (hi - lo) * 100).toFixed(2) + "%";
+  const zones = [[0.03, 0.2, "z1"], [0.2, 0.6, "z2"], [0.6, 60, "z3"], [60, 600, "z4"], [600, 1000, "z5"]];
+  return `<div class="skala" role="img" aria-label="Aktueller Wert ${fmt3(v)} µSv/h auf einer logarithmischen Skala von 0,03 bis 1000">
+      <div class="sk-bar">${zones.map(([a, b, c]) => `<i class="${c}" style="left:${P(a)};width:calc(${P(b)} - ${P(a)})"></i>`).join("")}
+        ${v != null ? `<b class="sk-dot" style="left:${P(Math.max(0.031, v))}"></b>` : ""}</div>
+      <div class="sk-ax">${[[0.03, "0,03"], [0.1, "0,1"], [1, "1"], [10, "10"], [100, "100"], [1000, "1000"]].map(([x, t], i, a) => `<span style="left:${P(x)};transform:translateX(${i === 0 ? "0" : i === a.length - 1 ? "-100%" : "-50%"})">${t}</span>`).join("")}</div>
+    </div>
+    <div class="sk-leg">
+      <span><i class="z1"></i>natürlich 0,05–0,2</span>
+      <span><i class="z2"></i>kurz nach Regen bis ≈ 0,6</span>
+      <span><i class="z4"></i>Aufenthalt in Gebäuden ab ≈ 60</span>
+      <span><i class="z5"></i>Evakuierung ab ≈ 600</span>
+    </div>
+    <div class="note">Werte in µSv/h. Grenzwert für die Bevölkerung: 1 mSv pro Jahr aus künstlichen Quellen (Strahlenschutzgesetz), dauerhaft etwa 0,11 µSv/h zusätzlich. Notfall-Dosiswerte (NDWV): Gebäude ab 10 mSv, Evakuierung ab 100 mSv in 7 Tagen; die µSv/h-Werte sind eine grobe Umrechnung bei Daueraufenthalt im Freien.</div>`;
+}
+
+/* Verlauf je Sonde: Zeile antippen, Diagramm klappt darunter auf */
+const ODLV = {open: null, range: "7", sonden: {}};
+function odlEinordnung() {}   // Einordnung steckt jetzt im aufgeklappten Bereich
+function odlOpen(kenn, keep) {
+  document.querySelectorAll(".odl-vl").forEach(x => x.remove());
+  document.querySelectorAll(".odx").forEach(r => r.setAttribute("aria-expanded", "false"));
+  if (!keep && ODLV.open === kenn) { ODLV.open = null; odlEinordnung(); return; }
+  const row = [...document.querySelectorAll(".odx")].find(r => r.dataset.kenn === kenn), s = ODLV.sonden[kenn];
+  if (!row || !s) { ODLV.open = null; odlEinordnung(); return; }
+  ODLV.open = kenn; row.setAttribute("aria-expanded", "true"); odlEinordnung();
+  const box = document.createElement("div"); box.className = "odl-vl";
+  box.innerHTML = `<div class="vl-body"></div>` + (s.wert != null ? `<div class="vl-skala"><div class="subh">Einordnung: ${fmt3(s.wert)} µSv/h</div>${odlSkala(s.wert)}</div>` : "");
+  row.after(box); odlVerlauf(box.querySelector(".vl-body"), s);
+}
+async function odlVerlauf(box, s) {
+  const seg = `<div class="seg">${[["7", "7 Tage"], ["30", "30 Tage"], ["365", "1 Jahr"]].map(([k, t]) => `<button type="button" data-r="${k}" aria-pressed="${ODLV.range === k}">${t}</button>`).join("")}</div>`;
+  const cz = String(s.kenn).startsWith("CZ_");
+  const seit = cz && s.seit ? `<div class="note">Eigene Aufzeichnung seit ${dShort(s.seit)}${s.seit.slice(0, 4)}, der Verlauf füllt sich Tag für Tag.</div>` : "";
+  const range = ODLV.range;
+  if (range === "7") {
+    const pts = (s.stunden || []).filter(x => x[1] != null).map(([t, v]) => ({t: new Date(t + "Z"), v}));
+    if (pts.length < 3) { box.innerHTML = seg + '<div class="note">Noch zu wenige Stundenwerte für einen Verlauf.</div>' + seit; return; }
+    const vals = pts.map(p => p.v), mn = Math.min(...vals), mx = Math.max(...vals), mean = vals.reduce((a, b) => a + b, 0) / vals.length;
+    const tag = d => new Intl.DateTimeFormat("de-DE", {timeZone: TZ, weekday: "short", day: "numeric", month: "numeric"}).format(d);
+    box.innerHTML = seg + `<p class="rb-sum">Mittel ${fmt3(mean)} · Spanne ${fmt3(mn)} – ${fmt3(mx)} µSv/h</p><div class="rbc"></div>
+      <div class="note">Stundenwerte. Kurze Spitzen kommen fast immer von Regen, der natürliche Radon-Folgeprodukte aus der Luft auswäscht; sie klingen nach wenigen Stunden ab. Grüner Bereich = natürlich (0,05–0,2).</div>` + seit;
+    const lo = Math.min(0.05, mn) * 0.9, hi = Math.max(0.2, mx) * 1.08, n = pts.length;
+    drawChart(box.querySelector(".rbc"), {n, h: 160, aria: `Stundenwerte ${s.name}, letzte 7 Tage`, yMin: lo, yMax: hi, yFmt: v => nf(v, 2),
+      xLabel: i => { const k = n - 1 - i; return k === 0 ? "jetzt" : (k % 48 === 0 && i > 8 ? tag(pts[i].t).replace(/\.$/, "") : null); },
+      layers: [{type: "area", lo: pts.map(() => 0.05), hi: pts.map(() => 0.2), color: "#86d7a0", opacity: .1},
+               {type: "line", vals, color: "#86d7a0", width: 1.6}],
+      tip: i => `<b>${tag(pts[i].t)} ${hhmm(pts[i].t)}</b><span class="tt" style="color:#86d7a0">${fmt3(vals[i])} µSv/h</span>`});
+    return;
+  }
+  if (!ARC.odlTage[s.kenn]) { box.innerHTML = seg + '<div class="load">Lade Tageswerte …</div>'; try { ARC.odlTage[s.kenn] = parseCsv(await fetchText(ARCHIV + `odl/${s.kenn}.csv`)); } catch { ARC.odlTage[s.kenn] = []; } }
+  if (ODLV.open !== s.kenn || ODLV.range !== range || !box.isConnected) return;
+  const D = ARC.odlTage[s.kenn], today = dayKey(new Date()), dates = [];
+  for (let i = +range; i >= 1; i--) dates.push(addDays(today, -i));
+  const m = new Map(D.map(r => [r.datum, r.usvh])), vals = dates.map(d => m.get(d) ?? null), ok = vals.filter(v => v != null);
+  if (ok.length < 2) { box.innerHTML = seg + '<div class="note">Für diesen Zeitraum liegen noch zu wenige Tageswerte im Archiv.</div>' + seit; return; }
+  const T = TAGE(), rainD = dates.map(d => { const r = T?.by.get(d); return r && r.regen >= 2 ? r.regen : null; });
+  const mean = ok.reduce((a, b) => a + b, 0) / ok.length;
+  box.innerHTML = seg + `<p class="rb-sum">Mittel ${fmt3(mean)} · Spanne ${fmt3(Math.min(...ok))} – ${fmt3(Math.max(...ok))} µSv/h</p><div class="rbc"></div>
+    <div class="legend"><span><i style="background:#86d7a0"></i>Tagesmittel</span><span><i style="background:#86d7a0;opacity:.25"></i>natürlich 0,05–0,2</span>${cz ? "" : '<span><i style="background:#6fb7ff"></i>Regentag am Ort ab 2 mm</span>'}</div>` + seit;
+  const lo = Math.min(0.05, ...ok) * 0.9, hi = Math.max(0.2, ...ok) * 1.08;
+  drawChart(box.querySelector(".rbc"), {n: dates.length, h: 160, aria: `Tagesmittel ${s.name}`, yMin: lo, yMax: hi, yFmt: v => nf(v, 2),
+    xLabel: i => (i % Math.ceil(dates.length / 6) === 0) ? dShort(dates[i]) : null,
+    layers: [{type: "area", lo: dates.map(() => 0.05), hi: dates.map(() => 0.2), color: "#86d7a0", opacity: .1},
+             ...(cz ? [] : [{type: "bar", vals: rainD.map(v => v ? lo + (hi - lo) * 0.06 : null), color: "#6fb7ff", w: .5}]),
+             {type: "line", vals, color: "#86d7a0", width: 2}],
+    tip: i => `<b>${dShort(dates[i])}</b><span class="tt" style="color:#86d7a0">${vals[i] != null ? fmt3(vals[i]) + " µSv/h" : "kein Wert"}</span>${rainD[i] && !cz ? `<span>${nf(rainD[i])} mm Regen</span>` : ""}`});
+}
+function initODLV() {
+  const card = $("odl").closest(".card");
+  card.addEventListener("click", e => {
+    const r = e.target.closest(".odl-vl .seg button[data-r]");
+    if (r) { ODLV.range = r.dataset.r; const box = r.closest(".odl-vl").querySelector(".vl-body"); odlVerlauf(box, ODLV.sonden[ODLV.open]); return; }
+    if (e.target.closest(".odl-vl")) return;
+    const row = e.target.closest(".odx"); if (row) odlOpen(row.dataset.kenn);
+  });
+  card.addEventListener("keydown", e => { const row = e.target.closest(".odx"); if (row && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); odlOpen(row.dataset.kenn); } });
+}
+
+async function loadODLOrt(force) {
+  const list = ARC.odlAkt?.orte?.[ortKey()];
+  if (!list || !list.length) return loadODL(force);       // Rückfall: direkt beim BfS
+  const near = list.filter(s => s.wert != null);
+  const z = odlZustand(near);
+  const vmax = Math.max(0.2, ...near.map(s => s.wert));
+  const row = s => {
+    const d = s.mittel7 ? s.wert - s.mittel7 : null, p = s.mittel7 ? (s.wert / s.mittel7 - 1) * 100 : null;
+    const h24 = (s.stunden || []).at(-25)?.[1], t24 = h24 != null ? s.wert - h24 : null;
+    return `<div class="od od2 odx" role="button" tabindex="0" data-kenn="${esc(s.kenn)}" aria-expanded="false"><div class="nm"><b>${esc(s.name)}</b><small>${Math.round(s.km)} km · Wochenmittel ${fmt3(s.mittel7)}${t24 != null ? ` · 24 h ${t24 >= 0 ? "+" : "−"}${fmt3(Math.abs(t24))}` : ""}</small></div>
+      <span class="ov">${fmt3(s.wert)}${p != null ? `<em class="${p > 15 ? "up" : p < -15 ? "dn" : ""}">${p >= 0 ? "+" : "−"}${Math.abs(Math.round(p))} %</em>` : ""}</span></div>`;
+  };
+  $("odl").innerHTML = (z ? `<div class="odl-z ${z.k}"><b>${z.t}</b> ${z.d}</div>` : "")
+    + `<div class="unit odl-head">µSv/h, Stundenwert bis ${hhmm(new Date(near[0].ende))} Uhr · % = Abweichung vom Wochenmittel · antippen für Verlauf</div>`
+    + near.map(row).join("");
+  ODLV.erste = near[0].kenn;
+  $("odl-spark").innerHTML = "";
+  ODLV.sonden = {}; near.forEach(s => ODLV.sonden[s.kenn] = s); odlEinordnung();
+  const cz = ARC.odlAkt?.cz?.[ortKey()];
+  if (cz && cz.length) {
+    cz.forEach(s => ODLV.sonden[s.kenn] = s); odlEinordnung();
+    $("odl-cz").innerHTML = '<div class="subh"><span class="flag">CZ</span>Tschechien <small>EURDEP · eigene Aufzeichnung</small></div>' + cz.map(s => `<div class="od od2 odx" role="button" tabindex="0" data-kenn="${esc(s.kenn)}" aria-expanded="false">
+      <div class="nm"><b>${esc(s.name)}</b><small>${Math.round(s.km)} km${s.ende ? " · " + hhmm(new Date(s.ende)) + " Uhr" : ""}${s.mittel7 ? " · Wochenmittel " + fmt3(s.mittel7) : ""}</small></div>
+      <span class="ov">${fmt3(s.wert)}</span></div>`).join("");
+  } else loadCZ().catch(() => { $("odl-cz").innerHTML = '<div class="note">Tschechische Werte gerade nicht abrufbar.</div>'; });
+  if (ODLV.open && ODLV.sonden[ODLV.open]) odlOpen(ODLV.open, true); else ODLV.open = null;
+}
+
+/* ---------- Gewässer: Pegel zum Ort + Regen am Ort ---------- */
+function regenBlock() {
+  if (!RAIN?.ok) return "";
+  return `<div class="rain3"><span><small>Regen 24 h</small><b>${nf(RAIN.h24)} mm</b></span><span><small>Regen 3 Tage</small><b>${nf(RAIN.h72)} mm</b></span><span><small>gemessen</small><b class="st">${esc(RAIN.station || "–")}</b></span></div>`;
+}
+
+/* ---------- Diagramm-Baukasten mit Nachfahren ---------- */
+function drawChart(el, o) {
+  const W = Math.max(280, Math.round(el.clientWidth || 600)), H = o.h || 190, L = 34, R = 10, T = 14, B = 26, n = o.n;
+  const vals = [];
+  for (const ly of o.layers) for (const k of ["vals", "lo", "hi"]) if (ly[k]) vals.push(...ly[k].filter(v => v != null));
+  let lo = o.yMin ?? Math.min(0, ...vals), hi = o.yMax ?? Math.max(...vals, lo + 1);
+  if (o.yMin == null && Math.min(...vals) > 0 && o.fromZero === false) lo = Math.min(...vals);
+  const pad = (hi - lo) * 0.08; if (o.yMax == null) hi += pad; if (o.yMin == null && lo < 0) lo -= pad;
+  const sw = (W - L - R) / n, X = i => L + sw * (i + 0.5), Y = v => T + (hi - v) / (hi - lo || 1) * (H - T - B);
+  const step = (() => { const r = (hi - lo) / 4, p = 10 ** Math.floor(Math.log10(r || 1)); return [1, 2, 2.5, 5, 10].map(m => m * p).find(s => s >= r) || r; })();
+  let g = "";
+  for (let v = Math.ceil(lo / step) * step; v <= hi + 1e-9; v += step) g += `<line x1="${L}" x2="${W - R}" y1="${Y(v).toFixed(1)}" y2="${Y(v).toFixed(1)}" stroke="${Math.abs(v) < 1e-9 ? "rgba(140,196,255,.45)" : "rgba(150,180,230,.1)"}"/><text x="${L - 5}" y="${(Y(v) + 3.5).toFixed(1)}" text-anchor="end">${(o.yFmt || (x => nf(x, step < 1 ? 1 : 0)))(Math.abs(v) < 1e-9 ? 0 : v)}</text>`;
+  let ax = "";
+  let lastX = -1e9;
+  for (let i = 0; i < n; i++) { const t = o.xLabel(i); if (!t || X(i) - lastX < t.length * 6.2 + 6) continue; lastX = X(i); ax += `<text x="${X(i).toFixed(1)}" y="${H - 8}" text-anchor="middle">${t}</text>`; }
+  let body = "";
+  for (const ly of o.layers) {
+    if (ly.type === "area") { // Band zwischen lo und hi
+      const top = [], bot = [];
+      for (let i = 0; i < n; i++) if (ly.lo[i] != null && ly.hi[i] != null) { top.push(`${X(i).toFixed(1)},${Y(ly.hi[i]).toFixed(1)}`); bot.unshift(`${X(i).toFixed(1)},${Y(ly.lo[i]).toFixed(1)}`); }
+      if (top.length > 1) body += `<polygon points="${top.concat(bot).join(" ")}" fill="${ly.color}" opacity="${ly.opacity ?? .18}"/>`;
+    } else if (ly.type === "bar") {
+      const bw = Math.max(1.5, sw * (ly.w ?? 0.62)), off = (ly.off ?? 0) * sw;
+      for (let i = 0; i < n; i++) { const v = ly.vals[i]; if (v == null) continue; const y0 = Y(Math.max(lo, 0)), y1 = Y(v); body += `<rect x="${(X(i) - bw / 2 + off).toFixed(1)}" y="${Math.min(y0, y1).toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(1, Math.abs(y1 - y0)).toFixed(1)}" rx="1.5" fill="${typeof ly.color === "function" ? ly.color(v, i) : ly.color}" opacity="${ly.opacity ?? 1}"/>`; }
+    } else if (ly.type === "range") {
+      const bw = Math.max(2, sw * (ly.w ?? 0.55));
+      for (let i = 0; i < n; i++) { const a = ly.lo[i], b = ly.hi[i]; if (a == null || b == null) continue; body += `<rect x="${(X(i) - bw / 2).toFixed(1)}" y="${Y(b).toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(1.5, Y(a) - Y(b)).toFixed(1)}" rx="${(bw / 2).toFixed(1)}" fill="${typeof ly.color === "function" ? ly.color(a, b, i) : ly.color}"/>`; }
+    } else if (ly.type === "line") {
+      let d = "", pen = false;
+      for (let i = 0; i < n; i++) { const v = ly.vals[i]; if (v == null) { pen = false; continue; } d += `${pen ? "L" : "M"}${X(i).toFixed(1)},${Y(v).toFixed(1)}`; pen = true; }
+      body += `<path d="${d}" fill="none" stroke="${ly.color}" stroke-width="${ly.width ?? 2}" ${ly.dash ? `stroke-dasharray="${ly.dash}"` : ""} stroke-linejoin="round" stroke-linecap="round"/>`;
+      if (ly.dots) for (let i = 0; i < n; i++) if (ly.vals[i] != null) body += `<circle cx="${X(i).toFixed(1)}" cy="${Y(ly.vals[i]).toFixed(1)}" r="3" fill="${ly.color}"/>`;
+    } else if (ly.type === "hline") {
+      body += `<line x1="${L}" x2="${W - R}" y1="${Y(ly.v).toFixed(1)}" y2="${Y(ly.v).toFixed(1)}" stroke="${ly.color}" stroke-dasharray="4 4"/><text x="${W - R - 2}" y="${(Y(ly.v) - 4).toFixed(1)}" text-anchor="end" style="fill:${ly.color}">${ly.label}</text>`;
+    }
+  }
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(o.aria || "Diagramm")}">${g}${ax}${body}
+    <rect class="hl" id="${el.id}-hl" x="0" y="${T}" width="${sw.toFixed(1)}" height="${H - T - B}" fill="rgba(238,243,251,.08)" visibility="hidden"/></svg><div class="tip" hidden></div>`;
+  const svg = el.querySelector("svg"), tip = el.querySelector(".tip"), hl = svg.querySelector(".hl");
+  let hideT = 0;
+  const show = ev => {
+    const r = svg.getBoundingClientRect(), sx = (ev.clientX - r.left) * W / r.width;
+    const i = Math.max(0, Math.min(n - 1, Math.floor((sx - L) / sw)));
+    hl.setAttribute("x", (L + i * sw).toFixed(1)); hl.setAttribute("visibility", "visible");
+    tip.innerHTML = o.tip(i); tip.hidden = false;
+    const px = X(i) / W * r.width, tw = tip.offsetWidth;
+    tip.style.left = Math.max(0, Math.min(r.width - tw, px - tw / 2)) + "px"; tip.style.top = "0px";
+    clearTimeout(hideT);
+  };
+  const hide = () => { hl.setAttribute("visibility", "hidden"); tip.hidden = true; };
+  svg.addEventListener("pointerdown", show);
+  svg.addEventListener("pointermove", ev => { if (ev.pointerType === "mouse" || ev.buttons || ev.pressure > 0) show(ev); });
+  svg.addEventListener("pointerleave", ev => { if (ev.pointerType === "mouse") hide(); });
+  svg.addEventListener("pointerup", ev => { if (ev.pointerType !== "mouse") { clearTimeout(hideT); hideT = setTimeout(hide, 3000); } });
+  svg.addEventListener("pointercancel", hide);
+}
+
+/* ---------- Rückblick ---------- */
+const RB = {tab: "wetter", range: {wetter: "30", regen: "tage"}};
+const RB_RANGES = {
+  wetter: [["30", "30 Tage"], ["365", "1 Jahr"]],
+  regen: [["tage", "Tage"], ["wochen", "Wochen"], ["monate", "Monate"], ["jahr", "Jahr"]]
+};
+function rbDays(T, n) {   // die letzten n Tage bis gestern (Archiv) + heute aus den Messungen
+  const today = dayKey(new Date()), out = [];
+  for (let i = n - 1; i >= 0; i--) {
+    const d = addDays(today, -i), r = T.by.get(d);
+    out.push(r ? {...r} : {datum: d});
+  }
+  const t = out.at(-1);
+  if (LAST && !T.by.get(today)) {   // heute: aus Messungen und Vorhersage bis jetzt
+    const now = Date.now(), recs = LAST.recs.filter(r => dayKey(new Date(r.timestamp)) === today && Date.parse(r.timestamp) <= now && r.temperature != null);
+    if (recs.length) { t.tmin = Math.min(...recs.map(r => r.temperature)); t.tmax = Math.max(...recs.map(r => r.temperature)); t.heute = true; }
+    if (RAIN?.ok) t.regen = RAIN.today;
+  }
+  return out;
+}
+const dShort = d => `${+d.slice(8)}.${+d.slice(5, 7)}.`;
+function renderRueckblick() {
+  const box = $("rb-body"), T = TAGE();
+  $("rb-range").innerHTML = RB_RANGES[RB.tab].map(([k, t]) => `<button type="button" aria-pressed="${RB.range[RB.tab] === k}" data-r="${k}">${t}</button>`).join("");
+  document.querySelectorAll("#rb-tabs button").forEach(b => b.setAttribute("aria-selected", b.dataset.t === RB.tab));
+  const st = STATION();
+  let src = st ? `Temperatur: DWD-Station ${esc(st.name)} (${Math.round(st.hoehe)} m, ${nf(st.km, 0)} km vom Ort)` : "";
+  if (st?.regen) src += `. Niederschlag: DWD-Station ${esc(kurz(st.regen.name))} (${nf(st.regen.km, 0)} km)`;
+  try {
+    if (RB.tab === "wetter") return rbWetter(box, T, src);
+    if (RB.tab === "regen") return rbRegen(box, T, src);
+  } catch (e) { box.innerHTML = `<div class="err">Rückblick gerade nicht darstellbar (${esc(e.message)}).</div>`; }
+}
+function rbWetter(box, T, src) {
+  if (!T) { box.innerHTML = '<div class="load">Archiv wird geladen oder ist noch im Aufbau …</div>'; return; }
+  const r = RB.range.wetter;
+  let html = "";
+  if (r === "30") {
+    const days = rbDays(T, 30), nm = days.map(d => T.norm[d.datum.slice(5)] || {});
+    const anom = days.filter(d => d.tmax != null && d.tmin != null && T.norm[d.datum.slice(5)]).map(d => (d.tmax + d.tmin) / 2 - (T.norm[d.datum.slice(5)].tmax + T.norm[d.datum.slice(5)].tmin) / 2);
+    const a = anom.length ? anom.reduce((x, y) => x + y, 0) / anom.length : null;
+    const frost = days.filter(d => d.tmin != null && d.tmin < 0).length;
+    html += `<p class="rb-sum">Letzte 30 Tage: <b>${a == null ? "–" : sgn(a) + " °C"}</b> gegenüber dem Mittel ${T.normLabel} · ${frost} Frosttag${frost === 1 ? "" : "e"}</p><div class="rbc" id="rbc1"></div>
+      <div class="legend"><span><i style="background:linear-gradient(90deg,var(--cold),var(--warm))"></i>Tiefst- bis Höchstwert</span><span><i style="background:rgba(238,243,251,.25)"></i>normal ${T.normLabel}</span></div>`;
+    box.innerHTML = html + rbRekord(T) + streifen() + `<div class="note">${src}. Heute: Messung bis jetzt.</div>`;
+    drawChart($("rbc1"), {n: days.length, h: 200, aria: "Tageswerte der letzten 30 Tage gegenüber dem Mittel",
+      xLabel: i => (i % 7 === 2) ? dShort(days[i].datum) : null, yFmt: v => nf(v, 0) + "°",
+      layers: [{type: "area", lo: nm.map(x => x.tmin ?? null), hi: nm.map(x => x.tmax ?? null), color: "#eef3fb", opacity: .14},
+               {type: "range", lo: days.map(d => d.tmin ?? null), hi: days.map(d => d.tmax ?? null), color: (a, b) => tcol((a + b) / 2)}],
+      tip: i => { const d = days[i], n = nm[i]; return `<b>${wd(new Date(d.datum + "T12:00:00Z"))} ${dShort(d.datum)}${d.heute ? " (bis jetzt)" : ""}</b><span class="tt" style="color:${tcol(d.tmax)}">${nf(d.tmin)}° / ${nf(d.tmax)}°</span><span>normal ${nf(n.tmin)}° / ${nf(n.tmax)}°</span>${d.regen != null ? `<span>${nf(d.regen)} mm Regen</span>` : ""}`; }});
+  } else {
+    // 12 Monate: Abweichung des Monatsmittels vom Klimamittel
+    const today = dayKey(new Date()), mons = [];
+    for (let k = 11; k >= 0; k--) {
+      const dt = new Date(Date.UTC(+today.slice(0, 4), +today.slice(5, 7) - 1 - k, 1)), y = dt.getUTCFullYear(), m = dt.getUTCMonth();
+      const pre = `${y}-${String(m + 1).padStart(2, "0")}`, rs = T.rows.filter(r => r.datum.startsWith(pre) && r.tmit != null);
+      const mean = rs.length >= 10 ? rs.reduce((a, r) => a + r.tmit, 0) / rs.length : null;
+      mons.push({y, m, mean, n: rs.length, norm: T.monT[m], anom: mean != null && T.monT[m] != null ? mean - T.monT[m] : null});
+    }
+    const ok = mons.filter(x => x.anom != null), a = ok.length ? ok.reduce((s, x) => s + x.anom, 0) / ok.length : null;
+    box.innerHTML = `<p class="rb-sum">Letzte 12 Monate: <b>${a == null ? "–" : sgn(a) + " °C"}</b> gegenüber dem Mittel ${T.normLabel}</p><div class="rbc" id="rbc1"></div>
+      <div class="legend"><span><i style="background:var(--warm)"></i>wärmer</span><span><i style="background:var(--cold)"></i>kälter als normal</span></div>` + rbRekord(T) + streifen() + `<div class="note">${src}.</div>`;
+    drawChart($("rbc1"), {n: 12, h: 190, aria: "Monatsmittel der letzten 12 Monate als Abweichung vom Klimamittel", xLabel: i => MONATE[mons[i].m], yFmt: v => sgn(v, 0) + "°",
+      layers: [{type: "bar", vals: mons.map(x => x.anom), color: v => v >= 0 ? "#ffa36b" : "#6fb7ff", w: .62}],
+      tip: i => { const x = mons[i]; return `<b>${MONATE[x.m]} ${x.y}</b><span class="tt" style="color:${x.anom >= 0 ? "var(--warm)" : "var(--cold)"}">${x.anom == null ? "–" : sgn(x.anom) + " °C"}</span><span>Mittel ${nf(x.mean)} °C, normal ${nf(x.norm)} °C</span>${x.n < 28 ? `<span>${x.n} Tage</span>` : ""}`; }});
+  }
+}
+function rbRekord(T) {
+  const y = addDays(dayKey(new Date()), -1), r = T.by.get(y);
+  if (!r || r.tmax == null) return "";
+  const md = y.slice(5), same = T.rows.filter(x => x.datum.slice(5) === md && x.datum < y);
+  if (same.length < 15) return "";
+  const hi = same.filter(x => x.tmax != null && x.tmax >= r.tmax), lo = same.filter(x => x.tmin != null && x.tmin <= r.tmin);
+  const yrs = same.length + 1, since = same[0].datum.slice(0, 4);
+  const lastHi = hi.length ? hi.at(-1).datum.slice(0, 4) : null, lastLo = lo.length ? lo.at(-1).datum.slice(0, 4) : null;
+  let t = "";
+  if (!hi.length) t = `Gestern mit ${nf(r.tmax)} °C der wärmste ${dShort(y)} seit Beginn der Reihe (${since}).`;
+  else if (hi.length <= 2) t = `Gestern mit ${nf(r.tmax)} °C der wärmste ${dShort(y)} seit ${lastHi}.`;
+  else if (r.tmin != null && !lo.length) t = `Letzte Nacht mit ${nf(r.tmin)} °C die kälteste zum ${dShort(y)} seit Beginn der Reihe (${since}).`;
+  else if (r.tmin != null && lo.length <= 2) t = `Letzte Nacht mit ${nf(r.tmin)} °C die kälteste zum ${dShort(y)} seit ${lastLo}.`;
+  else { const rank = same.filter(x => x.tmax != null && x.tmax > r.tmax).length + 1; t = `Gestern ${nf(r.tmax)} °C: Platz ${rank} von ${yrs} Jahren für den ${dShort(y)}.`; }
+  return `<p class="rb-rec">${t.replace(/\.\.$/, ".").replace(/\.\. /g, ". ")}</p>`;
+}
+function streifen() {
+  const B = ARC.bayern; if (!B || !B.length) return "";
+  const ref = B.filter(r => r.jahr >= 1971 && r.jahr <= 2000), m = ref.reduce((a, r) => a + r.tmit, 0) / (ref.length || 1);
+  const sd = Math.sqrt(ref.reduce((a, r) => a + (r.tmit - m) ** 2, 0) / (ref.length || 1)) || 1;
+  const col = v => { const z = Math.max(-2.6, Math.min(2.6, (v - m) / sd)) / 2.6; return z < 0 ? `rgb(${Math.round(240 + z * 200)},${Math.round(244 + z * 130)},${Math.round(250 + z * 50)})` : `rgb(${Math.round(250 - z * 60)},${Math.round(240 - z * 200)},${Math.round(232 - z * 200)})`; };
+  const w = 100 / B.length;
+  return `<div class="stripes" role="img" aria-label="Wärmestreifen Bayern ${B[0].jahr} bis ${B.at(-1).jahr}">${B.map((r, i) => `<i style="left:${(i * w).toFixed(3)}%;width:${(w + 0.05).toFixed(3)}%;background:${col(r.tmit)}" title="${r.jahr}: ${nf(r.tmit)} °C"></i>`).join("")}</div>
+    <div class="stripes-l"><span>${B[0].jahr}</span><span>Wärmestreifen Bayern, Jahresmittel (DWD), blau kälter, rot wärmer als 1971–2000</span><span>${B.at(-1).jahr}</span></div>`;
+}
+function rbRegen(box, T, src) {
+  if (!T) { box.innerHTML = '<div class="load">Archiv wird geladen oder ist noch im Aufbau …</div>'; return; }
+  const r = RB.range.regen, today = dayKey(new Date());
+  const rain = d => { if (d === today && RAIN?.ok && !T.by.get(d)) return RAIN.today; const x = T.by.get(d); return x && x.regen != null ? x.regen : null; };
+  const sumR = (a, b) => { let s = 0, n = 0; for (let d = a; d <= b; d = addDays(d, 1)) { const v = rain(d); if (v != null) { s += v; n++; } } return n ? s : null; };
+  const vj = d => `${+d.slice(0, 4) - 1}${d.slice(4)}`;
+  let bins = [], title = "";
+  if (r === "tage") {
+    for (let i = 13; i >= 0; i--) { const d = addDays(today, -i); bins.push({lab: dShort(d), tl: `${wd(new Date(d + "T12:00:00Z"))} ${dShort(d)}`, v: rain(d), p: rain(vj(d))}); }
+    title = "letzte 14 Tage";
+  } else if (r === "wochen") {
+    for (let i = 11; i >= 0; i--) { const b = addDays(today, -i * 7), a = addDays(b, -6); bins.push({lab: dShort(a), tl: `${dShort(a)} – ${dShort(b)}`, v: sumR(a, b), p: sumR(vj(a), vj(b))}); }
+    title = "letzte 12 Wochen";
+  } else if (r === "monate") {
+    for (let k = 11; k >= 0; k--) {
+      const dt = new Date(Date.UTC(+today.slice(0, 4), +today.slice(5, 7) - 1 - k, 1)), y = dt.getUTCFullYear(), m = dt.getUTCMonth();
+      const a = `${y}-${String(m + 1).padStart(2, "0")}-01`, e = addDays(new Date(Date.UTC(y, m + 1, 1)).toISOString().slice(0, 10), -1), b = e > today ? today : e;
+      bins.push({lab: MONATE[m], tl: `${MONATE[m]} ${y}${b < e ? " (bis heute)" : ""}`, v: sumR(a, b), p: sumR(vj(a), vj(b)), n: T.monRain[m] * (b < e ? (+b.slice(8)) / (+e.slice(8)) : 1)});
+    }
+    title = "letzte 12 Monate";
+  }
+  const dry = (() => { let n = 0; for (let d = today; n < 400; d = addDays(d, -1)) { const v = rain(d); if (v == null || v >= 1) break; n++; } return n; })();
+  const dryTxt = dry >= 3 ? ` · seit ${dry} Tagen weniger als 1 mm am Tag` : "";
+  if (r === "jahr") {
+    const y = today.slice(0, 4), start = `${y}-01-01`, n = Math.round((Date.parse(today) - Date.parse(start)) / 864e5) + 1;
+    const cur = [], prev = [], norm = []; let c = 0, p = 0;
+    for (let i = 0; i < 366; i++) {
+      const d = addDays(start, i); if (d.slice(0, 4) !== y) break;
+      const pv = rain(vj(d)); p += pv ?? 0; prev.push(p);
+      norm.push(T.cumNorm[d.slice(5)] ?? null);
+      if (i < n) { const v = rain(d); c += v ?? 0; cur.push(c); } else cur.push(null);
+    }
+    const nn = norm[n - 1], pp = prev[n - 1];
+    box.innerHTML = `<p class="rb-sum">${y} bis heute: <b>${nf(c, 0)} mm</b> · Vorjahr bis ${dShort(today)}: ${nf(pp, 0)} mm · normal ${nf(nn, 0)} mm (${nn ? Math.round(c / nn * 100) : "–"} %)${dryTxt}</p><div class="rbc" id="rbc1"></div>
+      <div class="legend"><span><i style="background:#6fb7ff"></i>${y}</span><span><i style="background:#a99cf0"></i>${+y - 1}</span><span><i style="background:rgba(238,243,251,.5)"></i>normal ${T.normLabel}</span></div><div class="note">Aufsummierter Niederschlag seit 1. Januar. ${src}.</div>`;
+    drawChart($("rbc1"), {n: cur.length, h: 200, aria: "Aufsummierter Niederschlag dieses Jahr, im Vorjahr und normal", yFmt: v => nf(v, 0),
+      xLabel: i => { const d = addDays(start, i); return d.slice(8) === "01" && (+d.slice(5, 7) - 1) % 2 === 0 ? MONATE[+d.slice(5, 7) - 1] : null; },
+      layers: [{type: "line", vals: norm, color: "rgba(238,243,251,.5)", dash: "4 4", width: 1.5}, {type: "line", vals: prev, color: "#a99cf0", width: 1.6}, {type: "line", vals: cur, color: "#6fb7ff", width: 2.4}],
+      tip: i => { const d = addDays(start, i); return `<b>bis ${dShort(d)}</b>${cur[i] != null ? `<span class="tt" style="color:#6fb7ff">${nf(cur[i], 0)} mm</span>` : ""}<span>Vorjahr ${nf(prev[i], 0)} mm</span><span>normal ${nf(norm[i], 0)} mm</span>`; }});
+    return;
+  }
+  const sv = bins.reduce((a, b) => a + (b.v ?? 0), 0), sp = bins.reduce((a, b) => a + (b.p ?? 0), 0), sn = bins.some(b => b.n != null) ? bins.reduce((a, b) => a + (b.n ?? 0), 0) : null;
+  box.innerHTML = `<p class="rb-sum">Summe ${title}: <b>${nf(sv, 0)} mm</b> · Vorjahr gleicher Zeitraum: ${nf(sp, 0)} mm${sn != null ? ` · normal ${nf(sn, 0)} mm` : ""}${dryTxt}</p><div class="rbc" id="rbc1"></div>
+    <div class="legend"><span><i style="background:#6fb7ff"></i>gemessen</span><span><i style="background:#a99cf0;opacity:.6"></i>Vorjahr</span>${sn != null ? `<span><i style="background:rgba(238,243,251,.5)"></i>normal</span>` : ""}</div><div class="note">${src}. Heute: Messung bis jetzt (Bright Sky).</div>`;
+  const layers = [{type: "bar", vals: bins.map(b => b.p), color: "#a99cf0", opacity: .45, w: .34, off: .17}, {type: "bar", vals: bins.map(b => b.v), color: "#6fb7ff", w: .34, off: -.17}];
+  if (sn != null) layers.push({type: "line", vals: bins.map(b => b.n), color: "rgba(238,243,251,.55)", dash: "3 4", width: 1.5});
+  drawChart($("rbc1"), {n: bins.length, h: 190, aria: `Niederschlag ${title} mit Vorjahr`, yFmt: v => nf(v, 0), yMin: 0,
+    xLabel: i => (bins.length <= 12 || i % 2 === 0) ? bins[i].lab : null, layers,
+    tip: i => { const b = bins[i]; return `<b>${b.tl}</b><span class="tt" style="color:#6fb7ff">${b.v == null ? "–" : nf(b.v) + " mm"}</span><span>Vorjahr ${b.p == null ? "–" : nf(b.p) + " mm"}</span>${b.n != null ? `<span>normal ${nf(b.n, 0)} mm</span>` : ""}`; }});
+}
+function initRueckblick() {
+  initODLV(); initPGV();
+  $("rb-tabs").addEventListener("click", e => { const b = e.target.closest("button[data-t]"); if (b) { RB.tab = b.dataset.t; renderRueckblick(); } });
+  $("rb-range").addEventListener("click", e => { const b = e.target.closest("button[data-r]"); if (b) { RB.range[RB.tab] = b.dataset.r; renderRueckblick(); } });
+}
+
 let SIGS = [], SIG_OPEN = null, SIG_ALL = false;
 function renderSignals() {
   const order = {on:0, maybe:1, off:2, na:3};
   const safe = f => { try { return f(); } catch { return null; } };
-  SIGS = [sigInversion, sigAlpen, sigRadl, sigFrost, sigPV, sigSterne, sigUV, sigPollen, sigBio, sigAurora, sigSchnee].map(safe).filter(Boolean)
+  SIGS = [sigInversionOrt, sigFernsicht, sigRadl, sigFrost, sigFeuer, sigPV, sigSterne, sigUVOrt, sigPollenOrt, sigBio, sigAurora, sigSchneeOrt].map(safe).filter(Boolean)
     .map((s, i) => ({...s, i})).sort((a, b) => order[a.state] - order[b.state] || a.i - b.i);
   const shown = SIG_ALL ? SIGS : SIGS.slice(0, 6);
   $("sig").innerHTML = shown.map(s => `<button type="button" class="sg ${s.state}" data-k="${s.key}" aria-expanded="${SIG_OPEN === s.key}" aria-controls="sig-detail">
@@ -1386,8 +2174,11 @@ let busy = false, lastRun = Date.now(), forceODL = false;
 async function refresh() {
   if (busy) return; busy = true; lastRun = Date.now();
   $("reload").classList.add("spin");
-  await Promise.all([run(loadForecast, ["cur","chart","hours","days"]), run(loadWarnings, ["warn"]), run(loadStations, ["cold","min12"]),
-    run(loadRadar, ["rad-sum"]), run(loadPegel, ["pegel"]), loadExtra(), loadArber(), run(() => loadODL(forceODL), ["odl"])]);
+  await Promise.all([run(loadForecast, ["cur","chart","hours","days"]), run(loadWarningsOrt, ["warn"]), run(loadStations, ["cold","min12"]),
+    run(loadRadar, ["rad-sum"]), loadExtra(), loadArchiv()]);
+  await Promise.all([run(loadPegel, ["pegel"]), run(() => loadODLOrt(forceODL), ["odl"])]);
+  try { if (LAST) $("klima-chip").innerHTML = klimaChip(LAST.recs, LAST.now); } catch {}
+  try { renderRueckblick(); } catch (e) { $("rb-body").innerHTML = '<div class="err">Rückblick gerade nicht verfügbar.</div>'; }
   forceODL = false;
   try { renderSignals(); } catch (e) { $("sig").innerHTML = '<div class="err">Extras gerade nicht verfügbar.</div>'; }
   const n = new Date();
@@ -1405,7 +2196,8 @@ function initOrt() {
     ORT = {key: sel.value, ...ORTE[sel.value]};
     for (const id of ["chart","days","cold"]) $(id).innerHTML = '<div class="load">Lade …</div>';
     $("hours").innerHTML = ""; $("min12").innerHTML = "";
-    $("odl").innerHTML = '<div class="load">Lade …</div>'; $("odl-spark").innerHTML = ""; $("odl-cz").innerHTML = ""; forceODL = true;
+    $("odl").innerHTML = '<div class="load">Lade …</div>'; $("odl-spark").innerHTML = ""; $("odl-cz").innerHTML = ""; $("odl-skala").innerHTML = ""; ODLV.open = null; forceODL = true;
+    $("rb-body").innerHTML = '<div class="load">Lade Archiv …</div>'; $("pegel").innerHTML = '<div class="load">Lade …</div>';
     refresh();
   });
 }
@@ -1496,12 +2288,13 @@ $("sig").addEventListener("click", e => {
   if (e.target.closest(".sg-more")) { SIG_ALL = !SIG_ALL; renderSignals(); return; }
   const b = e.target.closest(".sg"); if (b) showSig(SIG_OPEN === b.dataset.k ? null : b.dataset.k);
 });
-if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => {});
 $("rad-slider").addEventListener("input", e => { togglePlay(false); showFrame(+e.target.value); });
 document.addEventListener("visibilitychange", () => { if (!document.hidden && Date.now() - lastRun > REFRESH) refresh(); });
-initRidge(); initStars(); initOrt(); initTabs();
+initRidge(); initStars(); initOrt(); initTabs(); initRueckblick();
+try { localStorage.removeItem("bayerwald-ha"); } catch {}   // früher gespeicherten Home-Assistant-Zugang entfernen
 refresh();
 setInterval(() => { if (!document.hidden) refresh(); }, REFRESH);
+if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => {});
 </script>
 </body>
 </html>
