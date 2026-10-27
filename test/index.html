@@ -1794,13 +1794,18 @@ function odlSkala(v) {
 
 /* Verlauf je Sonde: Zeile antippen, Diagramm klappt darunter auf */
 const ODLV = {open: null, range: "7", sonden: {}};
+function odlEinordnung() {   // Skala folgt der aufgeklappten Sonde, sonst der nächsten
+  const s = ODLV.sonden[ODLV.open] || ODLV.sonden[ODLV.erste]; if (!s || s.wert == null) { $("odl-skala").innerHTML = ""; return; }
+  const zusatz = ODLV.open ? "aufgeklappte Sonde" : "nächste Sonde";
+  $("odl-skala").innerHTML = `<div class="subh">Einordnung: ${esc(s.name)} ${fmt3(s.wert)} µSv/h <small>${zusatz}</small></div>` + odlSkala(s.wert);
+}
 function odlOpen(kenn, keep) {
   document.querySelectorAll(".odl-vl").forEach(x => x.remove());
   document.querySelectorAll(".odx").forEach(r => r.setAttribute("aria-expanded", "false"));
-  if (!keep && ODLV.open === kenn) { ODLV.open = null; return; }
+  if (!keep && ODLV.open === kenn) { ODLV.open = null; odlEinordnung(); return; }
   const row = [...document.querySelectorAll(".odx")].find(r => r.dataset.kenn === kenn), s = ODLV.sonden[kenn];
-  if (!row || !s) { ODLV.open = null; return; }
-  ODLV.open = kenn; row.setAttribute("aria-expanded", "true");
+  if (!row || !s) { ODLV.open = null; odlEinordnung(); return; }
+  ODLV.open = kenn; row.setAttribute("aria-expanded", "true"); odlEinordnung();
   const box = document.createElement("div"); box.className = "odl-vl";
   row.after(box); odlVerlauf(box, s);
 }
@@ -1867,12 +1872,12 @@ async function loadODLOrt(force) {
   };
   $("odl").innerHTML = (z ? `<div class="odl-z ${z.k}"><b>${z.t}</b> ${z.d}</div>` : "") + near.map(row).join("")
     + `<div class="unit">Stundenwerte in µSv/h bis ${hhmm(new Date(near[0].ende))} Uhr · Prozent = Abweichung vom 7-Tage-Mittel der Sonde</div>`;
-  $("odl-skala").innerHTML = `<div class="subh">Einordnung: ${esc(near[0].name)} ${fmt3(near[0].wert)} µSv/h <small>nächste Sonde</small></div>` + odlSkala(near[0].wert);
+  ODLV.erste = near[0].kenn;
   $("odl-spark").innerHTML = "";
-  ODLV.sonden = {}; near.forEach(s => ODLV.sonden[s.kenn] = s);
+  ODLV.sonden = {}; near.forEach(s => ODLV.sonden[s.kenn] = s); odlEinordnung();
   const cz = ARC.odlAkt?.cz?.[ortKey()];
   if (cz && cz.length) {
-    cz.forEach(s => ODLV.sonden[s.kenn] = s);
+    cz.forEach(s => ODLV.sonden[s.kenn] = s); odlEinordnung();
     $("odl-cz").innerHTML = '<div class="subh"><span class="flag">CZ</span>Tschechien <small>EURDEP · eigene Aufzeichnung</small></div>' + cz.map(s => `<div class="od od2 odx" role="button" tabindex="0" data-kenn="${esc(s.kenn)}" aria-expanded="false">
       <div class="nm"><b>${esc(s.name)}</b><small>${Math.round(s.km)} km${s.ende ? " · " + hhmm(new Date(s.ende)) + " Uhr" : ""}${s.mittel7 ? " · Wochenmittel " + fmt3(s.mittel7) : ""}</small></div>
       <span class="ov">${fmt3(s.wert)}</span></div>`).join("");
