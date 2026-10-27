@@ -45,6 +45,10 @@ button,select{font:inherit;color:inherit}
 .hero[data-sky="dusk"]{--sky1:#1d2450;--sky2:#7a4a6e;--sky3:#e08a5c}
 .hero[data-sky="night"]{--sky1:#060b1c;--sky2:#101d40;--sky3:#22325e}
 .hero[data-sky="cloudy-night"]{--sky1:#10172a;--sky2:#1d2840;--sky3:#2f3b55}
+.hero[data-sky="night"][data-moon="1"]{--sky1:#0a1430;--sky2:#172a56;--sky3:#2e4474}
+.hero[data-sky="night"][data-moon="2"]{--sky1:#0e1b3c;--sky2:#203868;--sky3:#3d5888}
+.hero[data-moon="1"] .stars i{opacity:.75}.hero[data-moon="2"] .stars i:nth-child(3n),.hero[data-moon="2"] .stars i:nth-child(3n+1){display:none}
+.hero[data-moon="1"] .clouds,.hero[data-moon="2"] .clouds{--ch:rgba(222,230,248,.7)}
 .stars{position:absolute;inset:0;z-index:-2;opacity:0;transition:opacity 1s}
 .hero[data-sky="night"] .stars{opacity:var(--st,1)}
 .stars i{position:absolute;width:2px;height:2px;border-radius:50%;background:#fff}
@@ -564,7 +568,7 @@ async function loadForecast() {
   ]);
   LAST = {recs: wx.weather, now};
   calcRain(wx.weather, wx.sources, cur.weather, now);
-  renderCurrent(cur, wx.weather, now);
+  renderCurrent(cur, wx.weather, now, wx.sources);
   renderChart(wx.weather, now);
   renderTiles(wx.weather, now);
   renderDays(wx.weather, now, cur.weather?.temperature);
@@ -594,8 +598,29 @@ function pressTrend(w, recs, now) {
   const tip = d <= -3.5 ? "Wetterverschlechterung, Wind möglich" : d <= -1.5 ? "eher unbeständiger" : d >= 1.5 ? "Wetterbesserung wahrscheinlich" : "";
   return `<em class="pt3 ${cls}" title="${tip}">${arrow} ${d > 0 ? "+" : ""}${f1(d)} hPa in 3 h · ${word}</em>`;
 }
-function renderCurrent(cur, recs, now) {
-  const w = cur.weather, src = cur.sources?.find(s => s.id === w.source_id) || cur.sources?.[0];
+/* Bewölkung für den Ort: Viele kleine Stationen (z. B. Weiding) messen keine Wolken; Bright Sky nimmt dann
+   den Wert einer anderen, oft weit entfernten Station. Liegt die mehr als 15 km weg, gilt die DWD-Vorhersage
+   (MOSMIX) für genau diesen Ort und diese Stunde. */
+function cloudLocal(cur, recs, now, wxSources) {
+  const w = cur.weather, id = w.fallback_source_ids?.cloud_cover ?? w.source_id;
+  const st = cur.sources?.find(s => s.id === id), km = st?.distance != null ? st.distance / 1000 : null;
+  if (w.cloud_cover != null && km != null && km <= 15) return {cc: w.cloud_cover, txt: null};
+  const fc = new Set((wxSources || []).filter(s => s.observation_type === "forecast").map(s => s.id));
+  const f = recs.find(r => fc.has(r.source_id) && Date.parse(r.timestamp) >= now - 30 * 6e4 && r.cloud_cover != null);
+  if (f) return {cc: f.cloud_cover, txt: `Bewölkung: DWD-Vorhersage für ${ORT.name}${w.cloud_cover != null && st ? ` (Station ${kurz(st.station_name)}, ${Math.round(km)} km: ${Math.round(w.cloud_cover)} %)` : ""}`};
+  return {cc: w.cloud_cover, txt: st && km > 15 ? `Bewölkung von Station ${kurz(st.station_name)}, ${Math.round(km)} km` : null};
+}
+function iconFor(icon, cc, night) {   // Symbol an die Bewölkung des Ortes anpassen (Niederschlag, Nebel bleiben)
+  if (!/^(clear|partly-cloudy|cloudy)/.test(icon || "") || cc == null) return icon;
+  if (cc < 30) return night ? "clear-night" : "clear-day";
+  if (cc < 80) return night ? "partly-cloudy-night" : "partly-cloudy-day";
+  return "cloudy";
+}
+function renderCurrent(cur, recs, now, wxSources) {
+  const src0 = cur.sources?.find(s => s.id === cur.weather.source_id) || cur.sources?.[0];
+  const cl = cloudLocal(cur, recs, now, wxSources), sun0 = sunTimes(now, ORT.lat, ORT.lon);
+  const w = {...cur.weather, cloud_cover: cl.cc, icon: iconFor(cur.weather.icon, cl.cc, now < sun0.rise || now > sun0.set)};
+  cur = {...cur, weather: w}; const src = src0;
   CUR = w;
   const sun = sunTimes(now, ORT.lat, ORT.lon);
   MOON = moonInfo(now);
@@ -603,8 +628,13 @@ function renderCurrent(cur, recs, now) {
   // Sterne nur so hell, wie die Wolken es zulassen: klar = voll, wolkig = vereinzelt
   $("stars").style.setProperty("--st", w.cloud_cover == null || w.cloud_cover < 30 ? 1 : w.cloud_cover < 50 ? .45 : .2);
   renderClouds(w);
+  // heller Mond über dem Horizont: Himmel etwas heller, weniger Sterne, Wolken silbern angeleuchtet
+  const moonlit = (now < sun.rise || now > sun.set) && MOON && MOON.fraction > 0.4 && moonAlt(now, ORT.lat, ORT.lon) > 0.08;   // Bogenmaß, ≈ 5°
+  $("hero").dataset.moon = moonlit ? (MOON.fraction > 0.8 ? "2" : "1") : "0";
   const dist = src?.distance != null ? ` · ${Math.round(src.distance / 1000)} km entfernt` : "";
   $("cur-src").textContent = `Messstation ${kurz(src?.station_name) || ORT.name}${dist} · ${hhmm(new Date(w.timestamp))} Uhr`;
+  $("cur-src").title = cl.txt || "";
+  if (cl.txt && /Vorhersage/.test(cl.txt)) $("cur-src").textContent += " · Wolken lt. DWD-Vorhersage";
   const past = recs.filter(r => new Date(r.timestamp) <= new Date(now - 2.5 * 36e5) && r.temperature != null).pop();
   let trend = `<span class="chip"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8h11M9 4l4 4-4 4"/></svg>gleichbleibend</span>`;
   if (past && w.temperature != null) {
