@@ -84,7 +84,7 @@ button,select{font:inherit;color:inherit}
 /* ---------- Inhalt ---------- */
 main{max-width:1200px;margin:-92px auto 0;position:relative;display:grid;gap:16px;grid-template-columns:minmax(0,1fr);
   padding-block:0 20px;padding-left:max(14px,env(safe-area-inset-left,0px));padding-right:max(14px,env(safe-area-inset-right,0px))}
-@media (min-width:900px){main{grid-template-columns:minmax(0,1.45fr) minmax(0,1fr)}.wide{grid-column:1}.side{grid-column:2;grid-row:1 / span 5}}
+@media (min-width:900px){main{grid-template-columns:minmax(0,1.45fr) minmax(0,1fr)}.wide{grid-column:1}.side{grid-column:2;grid-row:1 / span 6}}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:16px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
   box-shadow:0 18px 40px -24px rgba(0,0,0,.6);min-width:0}
 .side{display:flex;flex-direction:column;gap:16px;min-width:0}
@@ -107,6 +107,47 @@ h2 small{font:500 .72rem var(--f-body);letter-spacing:.04em;text-transform:none;
 .sg[aria-expanded="true"]{outline:2px solid var(--accent);outline-offset:1px}
 .sig-detail{margin-top:10px;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.05);font-size:.88rem;line-height:1.5;color:var(--fg)}
 .sig-detail b{color:var(--accent);margin-right:4px}
+
+/* Zuhause (Home Assistant) */
+.ha-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.ha-head h2{margin-bottom:12px}
+.ha-tools{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.ha-live{font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;display:inline-flex;align-items:center;gap:5px}
+.ha-live.on{color:var(--ok)}.ha-live.off{color:var(--mu)}
+.ha-live.on::before,.ha-live.off::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+@media (prefers-reduced-motion:no-preference){.ha-live.on::before{animation:pulse 2s ease-in-out infinite}@keyframes pulse{50%{opacity:.3}}}
+.ha-tools .icon-btn{width:30px;height:30px;border-color:var(--line);background:rgba(255,255,255,.05)}
+.ha-empty{display:flex;flex-direction:column;align-items:flex-start;gap:10px;color:var(--mu);font-size:.9rem}
+.ha-empty p{margin:0;max-width:52ch}
+.btn{border:0;border-radius:999px;padding:9px 16px;font-weight:600;background:var(--accent);color:var(--ink);cursor:pointer}
+.btn.ghost{background:transparent;color:var(--accent);border:1px solid var(--line)}
+.btn.warn{background:transparent;color:#ff8a8a;border:1px solid color-mix(in srgb,#ff8a8a 40%,transparent)}
+.flow{display:block;width:100%;max-width:440px;margin:0 auto;height:auto;overflow:visible}
+.flow .hv{font:700 15px var(--f-disp);fill:var(--fg);letter-spacing:.02em}
+.flow .hl{font:500 9.5px var(--f-body);fill:var(--mu)}
+.fl{fill:none;stroke-linecap:round}
+.fl.in,.fl.out{stroke-dasharray:3 9}
+@media (prefers-reduced-motion:no-preference){.fl.in{animation:flow 1s linear infinite}.fl.out{animation:flow 1s linear infinite reverse}@keyframes flow{to{stroke-dashoffset:-12}}}
+.ha-chips{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-top:10px}
+.ha-chips span{padding:8px 12px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.035)}
+.ha-chips small{display:block;font-size:.64rem;letter-spacing:.12em;text-transform:uppercase;color:var(--mu)}
+.ha-chips b{font:700 1.1rem var(--f-disp);letter-spacing:.02em}
+dialog.ha-dlg{width:min(560px,calc(100vw - 24px));max-height:calc(100dvh - 40px);overflow:auto;border:1px solid var(--line);border-radius:20px;
+  background:var(--panel-solid);color:var(--fg);padding:18px}
+dialog.ha-dlg::backdrop{background:rgba(4,8,18,.7);backdrop-filter:blur(3px)}
+.ha-dlg h2{margin-bottom:6px}.ha-dlg h3{font:700 .95rem var(--f-body);margin:18px 0 4px}
+.ha-dlg p,.ha-dlg li{font-size:.85rem;color:var(--mu);line-height:1.5}
+.ha-dlg ol{padding-left:1.2em;margin:6px 0 12px}
+.ha-dlg code{font-size:.8rem;color:var(--fg);background:rgba(255,255,255,.07);padding:1px 4px;border-radius:4px}
+.fld{display:flex;flex-direction:column;gap:4px;margin:10px 0}
+.fld span,.mf span{font-size:.75rem;font-weight:600;color:var(--mu)}
+.fld input,.fld textarea,.mf select{width:100%;padding:9px 10px;border-radius:10px;border:1px solid var(--line);background:var(--ink);color:var(--fg);font:inherit;font-size:.9rem}
+.fld textarea{min-height:70px;resize:vertical;font-family:ui-monospace,Menlo,monospace;font-size:.75rem}
+.mf{display:flex;flex-direction:column;gap:3px;margin:8px 0}
+.chk{display:flex;gap:8px;align-items:center;font-size:.85rem;margin:6px 0}
+.ha-msg{min-height:1.3em;font-size:.85rem;color:var(--amber);margin:6px 0}.ha-msg.good{color:var(--ok)}
+.ha-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.hint{font-size:.78rem;color:var(--mu);margin:0}
 
 /* Diagramm */
 .chart{position:relative;width:100%;height:210px}
@@ -240,6 +281,13 @@ footer a{color:var(--accent)}
   </section>
 
   <section class="card wide">
+    <div class="ha-head"><h2>Zuhause <small>Home Assistant</small></h2>
+      <div class="ha-tools"><span class="ha-live" id="ha-live"></span>
+        <button type="button" class="icon-btn" id="ha-gear" aria-label="Home Assistant einstellen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button></div></div>
+    <div id="ha"><div class="load">…</div></div>
+  </section>
+
+  <section class="card wide">
     <h2>Nächste 36 Stunden</h2>
     <div class="chart" id="chart"><div class="load">Lade Vorhersage …</div></div>
     <div class="legend"><span><i style="background:linear-gradient(90deg,var(--cold),var(--warm))"></i>Temperatur °C</span><span><i style="background:var(--cold);opacity:.55"></i>Regen mm/h</span></div>
@@ -296,6 +344,30 @@ footer a{color:var(--accent)}
 </main>
 
 <footer>Daten: Deutscher Wetterdienst (DWD Open Data) über <a href="https://brightsky.dev" target="_blank" rel="noopener">Bright Sky</a>, tschechische Stationen über den internationalen SYNOP-Austausch. Live abgefragt, alle 10 Minuten aktualisiert. Keine amtliche Warnung, maßgeblich ist <a href="https://www.dwd.de/warnungen" target="_blank" rel="noopener">dwd.de</a>.</footer>
+
+<dialog class="ha-dlg" id="ha-dlg" aria-labelledby="ha-dlg-t">
+  <h2 id="ha-dlg-t">Home Assistant verbinden</h2>
+  <p>Der Zugang wird nur in diesem Browser auf diesem Gerät gespeichert, nicht auf GitHub.</p>
+  <h3>So bekommst du die Daten</h3>
+  <ol>
+    <li><b>Adresse:</b> die Adresse, unter der dein Home Assistant von unterwegs erreichbar ist, z. B. <code>https://xyz.ui.nabu.casa</code>. Eine http-Adresse aus dem Heimnetz funktioniert hier nicht.</li>
+    <li><b>Zugangsschlüssel:</b> in Home Assistant unten links auf dein Profil, Reiter „Sicherheit“, ganz unten „Langlebige Zugangstoken“ → „Token erstellen“, Name z. B. „Wetterseite“. Am besten mit einem eigenen Benutzer ohne Admin-Rechte.</li>
+  </ol>
+  <label class="fld"><span>Adresse</span><input id="ha-url" type="url" inputmode="url" autocomplete="off" placeholder="https://xyz.ui.nabu.casa"></label>
+  <label class="fld"><span>Langlebiger Zugangsschlüssel</span><textarea id="ha-token" autocomplete="off" spellcheck="false" placeholder="eyJhbGciOi…"></textarea></label>
+  <div class="ha-row"><button type="button" class="btn" id="ha-test">Verbinden und Sensoren suchen</button></div>
+  <div class="ha-msg" id="ha-msg" role="status"></div>
+  <div id="ha-map"></div>
+  <h3>Vorzeichen</h3>
+  <p class="hint">Nur nötig, falls Bezug und Einspeisung oder Laden und Entladen vertauscht angezeigt werden.</p>
+  <label class="chk"><input type="checkbox" id="ha-inv-grid"> Netz umkehren</label>
+  <label class="chk"><input type="checkbox" id="ha-inv-bat"> Batterie umkehren</label>
+  <div class="ha-row">
+    <button type="button" class="btn" id="ha-save">Speichern</button>
+    <button type="button" class="btn ghost" id="ha-close">Abbrechen</button>
+    <button type="button" class="btn warn" id="ha-forget">Zugang löschen</button>
+  </div>
+</dialog>
 
 <script>
 "use strict";
@@ -1087,6 +1159,231 @@ function showSig(k) {
   if (s) $("sig-detail").innerHTML = `<b>${s.title}</b> ${s.detail}`;
 }
 
+
+/* ---------- Zuhause: Home Assistant (WebSocket-API, Zugang nur lokal im Browser gespeichert) ---------- */
+const HA_KEY = "bayerwald-ha";
+const HA_ROLES = [
+  {k:"solar",   label:"Solar-Leistung",        kind:"power",  pre:["sensor.solar_gesamt"], rx:/solar|pv|photovolt/},
+  {k:"house",   label:"Hausverbrauch",          kind:"power",  rx:/house|haus|home_power|verbrauch|consumption/},
+  {k:"grid",    label:"Netz (Bezug/Einspeisung)", kind:"power", rx:/grid|netz/},
+  {k:"bat",     label:"Batterie-Leistung",      kind:"power",  rx:/batter|akku/},
+  {k:"soc",     label:"Batterie-Ladestand",     kind:"pct",    rx:/s10e.*(soc|state_of_charge|batter)|battery_soc|batterie.*(soc|stand)/},
+  {k:"wb",      label:"Wallbox-Leistung",       kind:"power",  rx:/wallbox|go_?e|charge_?power|ladeleistung|evcc.*charg/},
+  {k:"carsoc",  label:"Auto-Ladestand",         kind:"pct",    rx:/bmw|x1|vehicle.*soc|evcc.*soc|car.*soc|fahrzeug/},
+  {k:"carkm",   label:"Auto-Reichweite",        kind:"km",     rx:/range|reichweite/},
+  {k:"today",   label:"Solar heute",            kind:"energy", pre:["sensor.solar_gesamt_heute"], rx:/solar.*(heute|today)|pv.*(heute|today)/},
+  {k:"heat",    label:"Heizung (Temperatur)",   kind:"temp",   rx:/eta|kessel|puffer|boiler|heizung/},
+];
+const HA = {cfg:null, ws:null, st:{}, ok:false, msgId:10, retry:0, t:null, raf:0, err:""};
+
+function haLoad() { try { HA.cfg = JSON.parse(localStorage.getItem(HA_KEY) || "null"); } catch { HA.cfg = null; } }
+function haSave() { try { localStorage.setItem(HA_KEY, JSON.stringify(HA.cfg)); } catch {} }
+function haOrigin(u) { try { return new URL(/^https?:\/\//.test(u) ? u : "https://" + u).origin; } catch { return null; } }
+
+function haKind(s) {
+  const u = String(s?.attributes?.unit_of_measurement || "");
+  if (/^k?W$/.test(u)) return "power";
+  if (/^[kM]?Wh$/.test(u)) return "energy";
+  if (u === "%") return "pct";
+  if (u === "km") return "km";
+  if (/°C/.test(u)) return "temp";
+  return null;
+}
+function haNum(id, kind) {
+  const s = HA.st[id]; if (!s) return null;
+  const v = parseFloat(s.state); if (isNaN(v)) return null;
+  const u = s.attributes?.unit_of_measurement;
+  if (kind === "power") return u === "W" ? v / 1000 : v;          // immer kW
+  if (kind === "energy") return u === "Wh" ? v / 1000 : u === "MWh" ? v * 1000 : v;
+  return v;
+}
+function haGuess(states) {
+  const map = {};
+  for (const r of HA_ROLES) {
+    let best = null, bs = 0;
+    for (const s of states) {
+      if (!s.entity_id.startsWith("sensor.") || haKind(s) !== r.kind) continue;
+      const hay = (s.entity_id + " " + (s.attributes?.friendly_name || "")).toLowerCase();
+      let sc = (r.pre || []).includes(s.entity_id) ? 100 : 0;
+      if (r.rx.test(hay)) sc += 10;
+      if (/s10e|e3dc|evcc/.test(hay)) sc += 2;
+      if (/today|heute|daily|total|gesamt_heute|_max|_min/.test(hay) && r.kind === "power") sc -= 8;
+      if (sc > bs) { bs = sc; best = s.entity_id; }
+    }
+    map[r.k] = bs >= 10 ? best : "";
+  }
+  return map;
+}
+
+/* Verbindung */
+function haConnect() {
+  clearTimeout(HA.t);
+  if (HA.ws) { try { HA.ws.onclose = null; HA.ws.close(); } catch {} }
+  HA.ok = false;
+  if (!HA.cfg?.url || !HA.cfg?.token) { haRender(); return; }
+  let ws;
+  try { ws = new WebSocket(HA.cfg.url.replace(/^http/, "ws") + "/api/websocket"); }
+  catch (e) { HA.err = "Adresse ungültig."; haRender(); return; }
+  HA.ws = ws;
+  ws.onmessage = ev => {
+    const m = JSON.parse(ev.data);
+    if (m.type === "auth_required") ws.send(JSON.stringify({type:"auth", access_token:HA.cfg.token}));
+    else if (m.type === "auth_invalid") { HA.err = "Der Zugangsschlüssel wird nicht akzeptiert."; HA.cfg.bad = true; ws.close(); }
+    else if (m.type === "auth_ok") {
+      HA.err = ""; HA.retry = 0;
+      ws.send(JSON.stringify({id:1, type:"get_states"}));
+      ws.send(JSON.stringify({id:2, type:"subscribe_events", event_type:"state_changed"}));
+    }
+    else if (m.type === "result" && m.id === 1 && m.success) {
+      HA.st = {}; for (const s of m.result) HA.st[s.entity_id] = s;
+      HA.ok = true;
+      if (!HA.cfg.map) { HA.cfg.map = haGuess(m.result); haSave(); }
+      haRender(); if (HA.onStates) { HA.onStates(m.result); HA.onStates = null; }
+    }
+    else if (m.type === "event" && m.event?.data?.new_state) {
+      const s = m.event.data.new_state;
+      HA.st[s.entity_id] = s;
+      if (Object.values(HA.cfg.map || {}).includes(s.entity_id)) haSchedule();
+    }
+  };
+  ws.onerror = () => { HA.err = HA.err || "Home Assistant nicht erreichbar."; };
+  ws.onclose = () => {
+    HA.ok = false; haRender();
+    if (HA.cfg?.bad) return;
+    HA.retry = Math.min(HA.retry + 1, 6);
+    if (!document.hidden) HA.t = setTimeout(haConnect, 2000 * 2 ** HA.retry);
+  };
+}
+function haSchedule() { if (!HA.raf) HA.raf = requestAnimationFrame(() => { HA.raf = 0; haRender(); }); }
+
+/* Darstellung */
+const kw = v => v == null ? "–" : (Math.abs(v) < 10 ? v.toLocaleString("de-DE",{minimumFractionDigits:1,maximumFractionDigits:1}) : Math.round(v).toLocaleString("de-DE")) + " kW";
+function haRender() {
+  const box = $("ha"); if (!box) return;
+  const live = $("ha-live");
+  if (!HA.cfg?.url || !HA.cfg?.token) {
+    live.className = "ha-live"; live.textContent = "";
+    box.innerHTML = `<div class="ha-empty"><p>Verbinde dein Home Assistant, dann siehst du hier live Solar, Batterie, Netz und Wallbox. Der Zugang bleibt nur auf diesem Gerät gespeichert.</p>
+      <button type="button" class="btn" id="ha-setup">Home Assistant verbinden</button></div>`;
+    return;
+  }
+  live.className = "ha-live " + (HA.ok ? "on" : "off");
+  live.textContent = HA.ok ? "live" : "getrennt";
+  if (!HA.ok && !Object.keys(HA.st).length) {
+    box.innerHTML = `<div class="ha-empty"><p>${HA.err ? esc(HA.err) : "Verbinde …"}</p>${HA.err ? '<button type="button" class="btn" id="ha-setup">Einstellungen prüfen</button>' : ""}</div>`;
+    return;
+  }
+  const m = HA.cfg.map || {}, g = (k, kind) => m[k] ? haNum(m[k], kind) : null;
+  const solar = g("solar", "power"), house = g("house", "power"), soc = g("soc", "pct"), wb = g("wb", "power");
+  let grid = g("grid", "power"), bat = g("bat", "power");
+  if (grid != null && HA.cfg.invGrid) grid = -grid;     // + = Bezug
+  if (bat != null && HA.cfg.invBat) bat = -bat;         // + = Laden
+  const today = g("today", "energy"), carsoc = g("carsoc", "pct"), carkm = g("carkm", "km"), heat = g("heat", "temp");
+  const th = 0.03;
+  const line = (id, v, dirToHouse, col) => {
+    const a = v == null ? 0 : Math.abs(v);
+    const w = a < th ? 1.2 : Math.min(6, 1.8 + a * 0.7);
+    const cls = a < th ? "idle" : dirToHouse ? "in" : "out";
+    return `<path class="fl ${cls}" id="${id}" d="${HA_PATH[id]}" stroke="${a < th ? "var(--line)" : col}" stroke-width="${w.toFixed(1)}"/>`;
+  };
+  const node = (x, y, col, icon, val, lab, ring) => `
+    <g transform="translate(${x},${y})">
+      <circle r="37" fill="var(--panel-solid)" stroke="${col}" stroke-width="2"/>
+      ${ring != null ? `<circle r="37" fill="none" stroke="${col}" stroke-width="5" stroke-linecap="round" stroke-dasharray="${(ring / 100 * 232.5).toFixed(1)} 300" transform="rotate(-90)" opacity=".85"/>` : ""}
+      <g transform="translate(-8,-29) scale(.68)" fill="none" stroke="${col}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${icon}</g>
+      <text class="hv" y="7" text-anchor="middle">${val}</text>
+      <text class="hl" y="22" text-anchor="middle">${lab}</text>
+    </g>`;
+  const ico = {
+    sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M5 19l1.5-1.5M17.5 6.5L19 5"/>',
+    home:'<path d="M3 11l9-7 9 7v9H3z"/><path d="M10 20v-6h4v6"/>',
+    bat:'<rect x="3" y="7" width="16" height="10" rx="2"/><path d="M21 10v4"/>',
+    grid:'<path d="M12 2l-4 20M12 2l4 20M7 8h10M6 14h12"/>',
+    car:'<path d="M3 16v-4l2-5h14l2 5v4z"/><circle cx="7.5" cy="16.5" r="1.5"/><circle cx="16.5" cy="16.5" r="1.5"/>'
+  };
+  const gridLab = grid == null ? "Netz" : grid > th ? "Bezug" : grid < -th ? "Einspeisung" : "Netz";
+  const batLab = bat == null ? "Batterie" : bat > th ? "lädt" : bat < -th ? "entlädt" : "Batterie";
+  const aut = house > 0.05 && grid != null ? Math.max(0, Math.min(100, Math.round((1 - Math.max(0, grid) / house) * 100))) : null;
+  box.innerHTML = `
+    <svg class="flow" viewBox="0 0 340 284" role="img" aria-label="Energiefluss zuhause">
+      ${line("p-sol", solar, true, "var(--amber)")}
+      ${line("p-bat", bat, bat != null && bat < 0, "var(--ok)")}
+      ${line("p-grd", grid, grid != null && grid > 0, "var(--accent)")}
+      ${line("p-wb", wb, false, "#c59cff")}
+      ${node(170, 42, "var(--amber)", ico.sun, kw(solar), "Solar")}
+      ${node(48, 142, "var(--ok)", ico.bat, soc != null ? Math.round(soc) + " %" : kw(bat), soc != null && bat != null && Math.abs(bat) >= th ? batLab + " " + kw(Math.abs(bat)).replace(" kW", "") : batLab, soc)}
+      ${node(170, 142, "var(--fg)", ico.home, kw(house), "Haus")}
+      ${node(292, 142, "var(--accent)", ico.grid, kw(grid == null ? null : Math.abs(grid)), gridLab)}
+      ${node(170, 242, "#c59cff", ico.car, kw(wb), "Wallbox")}
+    </svg>
+    <div class="ha-chips">
+      ${today != null ? `<span><small>Solar heute</small><b>${today.toLocaleString("de-DE",{maximumFractionDigits:1})} kWh</b></span>` : ""}
+      ${aut != null ? `<span><small>Autarkie jetzt</small><b>${aut} %</b></span>` : ""}
+      ${carsoc != null ? `<span><small>Auto</small><b>${Math.round(carsoc)} %${carkm != null ? " · " + Math.round(carkm) + " km" : ""}</b></span>` : ""}
+      ${heat != null ? `<span><small>Heizung</small><b>${f1(heat)} °C</b></span>` : ""}
+    </div>`;
+}
+const HA_PATH = {"p-sol":"M170 81 L170 103", "p-bat":"M87 142 L131 142", "p-grd":"M253 142 L209 142", "p-wb":"M170 181 L170 203"};
+
+/* Einstellungen */
+function haOpen() {
+  const c = HA.cfg || {};
+  $("ha-url").value = c.url || ""; $("ha-token").value = c.token ? "••••••••" : "";
+  $("ha-msg").textContent = ""; $("ha-map").innerHTML = c.map && Object.keys(HA.st).length ? haMapForm() : "";
+  $("ha-inv-grid").checked = !!c.invGrid; $("ha-inv-bat").checked = !!c.invBat;
+  $("ha-dlg").showModal();
+}
+function haMapForm() {
+  const states = Object.values(HA.st);
+  return `<h3>Welche Sensoren?</h3><p class="hint">Vorschläge sind automatisch erkannt. Passe sie an, falls nötig.</p>` + HA_ROLES.map(r => {
+    const opts = states.filter(s => s.entity_id.startsWith("sensor.") && haKind(s) === r.kind)
+      .sort((a, b) => a.entity_id.localeCompare(b.entity_id));
+    const cur = HA.cfg.map?.[r.k] || "";
+    return `<label class="mf"><span>${r.label}</span><select data-role="${r.k}" id="ha-role-${r.k}">
+      <option value="">– nicht anzeigen –</option>
+      ${opts.map(s => `<option value="${esc(s.entity_id)}" ${s.entity_id === cur ? "selected" : ""}>${esc(s.attributes?.friendly_name || s.entity_id)} (${esc(s.state)} ${esc(s.attributes?.unit_of_measurement || "")})</option>`).join("")}
+    </select></label>`;
+  }).join("");
+}
+function haTest() {
+  const url = haOrigin($("ha-url").value.trim());
+  const tokIn = $("ha-token").value.trim();
+  const token = tokIn && !/^•+$/.test(tokIn) ? tokIn : HA.cfg?.token;
+  if (!url) { $("ha-msg").textContent = "Bitte die Adresse deines Home Assistant eintragen, z. B. https://xyz.ui.nabu.casa"; return; }
+  if (location.protocol === "https:" && url.startsWith("http:")) { $("ha-msg").textContent = "Die Adresse muss mit https:// beginnen. Eine http-Adresse im Heimnetz blockiert der Browser auf einer https-Seite."; return; }
+  if (!token) { $("ha-msg").textContent = "Bitte den langlebigen Zugangsschlüssel einfügen."; return; }
+  const prev = HA.cfg?.url;
+  HA.cfg = {...(HA.cfg || {}), url, token, bad:false};
+  if (prev !== url) HA.cfg.map = null;
+  $("ha-msg").textContent = "Verbinde …";
+  $("ha-msg").className = "ha-msg";
+  HA.onStates = () => { $("ha-msg").className = "ha-msg good"; $("ha-msg").textContent = `Verbunden. ${Object.keys(HA.st).length} Entitäten gefunden.`; $("ha-map").innerHTML = haMapForm(); };
+  HA.err = "";
+  haConnect();
+  setTimeout(() => { if (!HA.ok) $("ha-msg").textContent = HA.err || "Keine Antwort. Ist die Adresse von außen erreichbar?"; }, 8000);
+}
+function haStore() {
+  if (!HA.cfg) { $("ha-dlg").close(); return; }
+  document.querySelectorAll("#ha-map select[data-role]").forEach(s => { (HA.cfg.map ??= {})[s.dataset.role] = s.value; });
+  HA.cfg.invGrid = $("ha-inv-grid").checked; HA.cfg.invBat = $("ha-inv-bat").checked;
+  haSave(); $("ha-dlg").close(); haRender();
+}
+function haForget() {
+  try { localStorage.removeItem(HA_KEY); } catch {}
+  if (HA.ws) { HA.ws.onclose = null; try { HA.ws.close(); } catch {} }
+  HA.cfg = null; HA.st = {}; HA.ok = false; $("ha-dlg").close(); haRender();
+}
+function haInit() {
+  haLoad(); haRender(); haConnect();
+  $("ha").addEventListener("click", e => { if (e.target.closest("#ha-setup")) haOpen(); });
+  $("ha-gear").addEventListener("click", haOpen);
+  $("ha-test").addEventListener("click", haTest);
+  $("ha-save").addEventListener("click", haStore);
+  $("ha-forget").addEventListener("click", haForget);
+  $("ha-close").addEventListener("click", () => $("ha-dlg").close());
+  document.addEventListener("visibilitychange", () => { if (!document.hidden && HA.cfg?.token && !HA.ok && !HA.cfg.bad) { HA.retry = 0; haConnect(); } });
+}
+
 function stTable(rows, f) {
   if (!rows.length) return '<div class="err">Keine Stationsdaten verfügbar.</div>';
   return rows.map((r, i) => `<div class="st">
@@ -1177,7 +1474,7 @@ $("rad-play").addEventListener("click", () => togglePlay());
 $("sig").addEventListener("click", e => { const b = e.target.closest(".sg"); if (b) showSig(SIG_OPEN === b.dataset.k ? null : b.dataset.k); });
 $("rad-slider").addEventListener("input", e => { togglePlay(false); showFrame(+e.target.value); });
 document.addEventListener("visibilitychange", () => { if (!document.hidden && Date.now() - lastRun > REFRESH) refresh(); });
-initStars(); initOrt(); initTabs();
+initStars(); initOrt(); initTabs(); haInit();
 refresh();
 setInterval(() => { if (!document.hidden) refresh(); }, REFRESH);
 </script>
