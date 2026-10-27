@@ -258,6 +258,7 @@ h2 small{font:500 .72rem var(--f-body);letter-spacing:.04em;text-transform:none;
 .unit,.note{font-size:.72rem;color:var(--mu);margin-top:6px}
 .sp-h{display:flex;justify-content:space-between;gap:8px;font-size:.74rem;color:var(--mu);margin-top:14px}
 .sp-h span{white-space:nowrap}
+.rb-link{margin-top:12px;background:none;border:1px solid var(--line);border-radius:12px;color:var(--accent);font:600 .82rem var(--f-body);padding:9px 12px;width:100%;cursor:pointer}
 #odl-spark svg{display:block;width:100%;height:70px;margin-top:4px}
 #odl-spark text{font:500 10px var(--f-body);fill:var(--mu)}
 
@@ -1705,8 +1706,7 @@ async function loadODLOrt(force) {
   $("odl").innerHTML = (z ? `<div class="odl-z ${z.k}"><b>${z.t}</b> ${z.d}</div>` : "") + near.map(row).join("")
     + `<div class="unit">Stundenwerte in µSv/h bis ${hhmm(new Date(near[0].ende))} Uhr · Prozent = Abweichung vom 7-Tage-Mittel der Sonde</div>`;
   $("odl-skala").innerHTML = `<div class="subh">Einordnung: ${esc(near[0].name)} ${fmt3(near[0].wert)} µSv/h <small>nächste Sonde</small></div>` + odlSkala(near[0].wert);
-  const pts = (near[0].stunden || []).map(([t, v]) => ({t: new Date(t + "Z"), v}));
-  $("odl-spark").innerHTML = pts.length > 5 ? spark(pts, near[0].name) : "";
+  $("odl-spark").innerHTML = `<button type="button" class="rb-link" data-go="odl">Verlauf von ${esc(near[0].name)} im Rückblick ansehen</button>`;
   loadCZ().catch(() => { $("odl-cz").innerHTML = '<div class="note">Tschechische Werte gerade nicht abrufbar.</div>'; });
 }
 
@@ -1774,12 +1774,12 @@ function drawChart(el, o) {
 }
 
 /* ---------- Rückblick ---------- */
-const RB = {tab: "wetter", range: {wetter: "30", regen: "tage", pegel: "30", odl: "30"}};
+const RB = {tab: "wetter", range: {wetter: "30", regen: "tage", pegel: "30", odl: "7"}};
 const RB_RANGES = {
   wetter: [["30", "30 Tage"], ["365", "1 Jahr"]],
   regen: [["tage", "Tage"], ["wochen", "Wochen"], ["monate", "Monate"], ["jahr", "Jahr"]],
   pegel: [["30", "30 Tage"], ["365", "1 Jahr"]],
-  odl: [["30", "30 Tage"], ["365", "1 Jahr"]]
+  odl: [["7", "7 Tage"], ["30", "30 Tage"], ["365", "1 Jahr"]]
 };
 function rbDays(T, n) {   // die letzten n Tage bis gestern (Archiv) + heute aus den Messungen
   const today = dayKey(new Date()), out = [];
@@ -1943,6 +1943,7 @@ function rbPegel(box) {
 async function rbOdl(box, T) {
   const s = ARC.odlAkt?.orte?.[ortKey()]?.[0];
   if (!s) { box.innerHTML = '<div class="load">Strahlungsarchiv wird aufgebaut …</div>'; return; }
+  if (RB.range.odl === "7") return rbOdlStunden(box, s);
   if (!ARC.odlTage[s.kenn]) { box.innerHTML = '<div class="load">Lade Tageswerte …</div>'; try { ARC.odlTage[s.kenn] = parseCsv(await fetchText(ARCHIV + `odl/${s.kenn}.csv`)); } catch { ARC.odlTage[s.kenn] = []; } }
   const D = ARC.odlTage[s.kenn]; if (RB.tab !== "odl") return;
   if (!D.length) { box.innerHTML = '<div class="note">Für diese Sonde liegen noch keine Tageswerte im Archiv.</div>'; return; }
@@ -1961,7 +1962,23 @@ async function rbOdl(box, T) {
              {type: "line", vals, color: "#86d7a0", width: 2}],
     tip: i => `<b>${dShort(dates[i])}</b><span class="tt" style="color:#86d7a0">${fmt3(vals[i])} µSv/h</span>${rainD[i] ? `<span>${nf(rainD[i])} mm Regen</span>` : ""}`});
 }
+function rbOdlStunden(box, s) {   // letzte 7 Tage als Stundenwerte
+  const pts = (s.stunden || []).filter(x => x[1] != null).map(([t, v]) => ({t: new Date(t + "Z"), v}));
+  if (pts.length < 6) { box.innerHTML = '<div class="note">Für diese Sonde liegen gerade keine Stundenwerte vor.</div>'; return; }
+  const vals = pts.map(p => p.v), mn = Math.min(...vals), mx = Math.max(...vals), mean = vals.reduce((a, b) => a + b, 0) / vals.length;
+  const tag = d => new Intl.DateTimeFormat("de-DE", {timeZone: TZ, weekday: "short", day: "numeric", month: "numeric"}).format(d);
+  box.innerHTML = `<p class="rb-sum">${esc(s.name)}: jetzt ${fmt3(vals.at(-1))} µSv/h · Mittel ${fmt3(mean)} · Spanne ${fmt3(mn)} – ${fmt3(mx)}</p><div class="rbc" id="rbc1"></div>
+    <div class="legend"><span><i style="background:#86d7a0"></i>Stundenwert</span><span><i style="background:#86d7a0;opacity:.25"></i>natürlicher Bereich 0,05–0,2</span></div><div class="note">BfS-Stundenwerte der nächsten Sonde. Kurze Spitzen kommen fast immer von Regen, der natürliche Radon-Folgeprodukte aus der Luft auswäscht; sie klingen nach wenigen Stunden ab.</div>`;
+  const lo = Math.min(0.05, mn) * 0.9, hi = Math.max(0.2, mx) * 1.08;
+  drawChart($("rbc1"), {n: pts.length, h: 180, aria: "Stundenwerte der Ortsdosisleistung, letzte 7 Tage", yMin: lo, yMax: hi, yFmt: v => nf(v, 2),
+    xLabel: i => { const k = pts.length - 1 - i; return k === 0 ? "jetzt" : (k % 48 === 0 && i > 8 ? tag(new Date(pts[i].t)).replace(/\.$/, "") : null); },
+    layers: [{type: "area", lo: pts.map(() => 0.05), hi: pts.map(() => 0.2), color: "#86d7a0", opacity: .1},
+             {type: "line", vals, color: "#86d7a0", width: 1.6}],
+    tip: i => `<b>${tag(pts[i].t)} ${hhmm(pts[i].t)}</b><span class="tt" style="color:#86d7a0">${fmt3(vals[i])} µSv/h</span>`});
+}
 function initRueckblick() {
+  document.addEventListener("click", e => { const b = e.target.closest(".rb-link"); if (!b) return;
+    RB.tab = b.dataset.go; renderRueckblick(); $("rueckblick").scrollIntoView({behavior: "smooth", block: "start"}); });
   $("rb-tabs").addEventListener("click", e => { const b = e.target.closest("button[data-t]"); if (b) { RB.tab = b.dataset.t; renderRueckblick(); } });
   $("rb-range").addEventListener("click", e => { const b = e.target.closest("button[data-r]"); if (b) { RB.range[RB.tab] = b.dataset.r; renderRueckblick(); } });
 }
