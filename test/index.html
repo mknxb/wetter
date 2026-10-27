@@ -146,6 +146,18 @@ h2 small{font:500 .72rem var(--f-body);letter-spacing:.04em;text-transform:none;
 .rain3 small{display:block;font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--mu)}
 .rain3 b{font:700 1.05rem var(--f-disp);color:var(--cold)}.rain3 b.st{font:600 .78rem var(--f-body);color:var(--fg);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
+.od.od2{grid-template-columns:minmax(0,1fr) auto}
+.odl-z{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.skala{margin-top:14px}
+.sk-bar{position:relative;height:12px;border-radius:99px;overflow:hidden;background:rgba(255,255,255,.06)}
+.sk-bar i{position:absolute;top:0;bottom:0}
+.sk-dot{position:absolute;top:50%;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;background:#fff;border:3px solid var(--ink);box-shadow:0 0 0 2px rgba(134,215,160,.6)}
+.sk-bar{overflow:visible}
+.sk-ax{position:relative;height:1.2em;font-size:.66rem;color:var(--mu);margin-top:5px}.sk-ax span{position:absolute;top:0;white-space:nowrap}
+.sk-leg{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:4px 12px;margin-top:10px;font-size:.74rem;color:var(--mu)}
+.sk-leg i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.z1{background:rgba(134,215,160,.75)}.z2{background:rgba(134,215,160,.35)}.z3{background:rgba(242,205,75,.35)}.z4{background:rgba(245,138,44,.6)}.z5{background:rgba(239,75,85,.75)}
+
 /* Diagramm */
 .chart{position:relative;width:100%;height:210px}
 .chart svg{touch-action:pan-y;cursor:crosshair;-webkit-user-select:none;user-select:none}
@@ -977,13 +989,18 @@ async function loadCZ() {
   let fc;
   try { fc = await bfs({typeName:"opendata:eurdep_latestValue", bbox:box}); } catch { fc = null; }
   if (!fc || !fc.features?.length) fc = await bfs({typeName:"opendata:eurdep_latestValue"});
-  const cz = (fc.features || []).map(eurdepRow)
-    .filter(s => s.cc === "CZ" && s.v != null && !isNaN(s.v) && s.d < 90).sort((a, b) => a.d - b.d).slice(0, 4);
+  const seen = new Map();
+  for (const s of (fc.features || []).map(eurdepRow)) {
+    if (s.cc !== "CZ" || s.v == null || isNaN(s.v) || s.d >= 90) continue;
+    const k = s.name + "|" + (s.lat ?? "").toString().slice(0, 6);
+    const o = seen.get(k);
+    if (!o || Date.parse(s.end || 0) > Date.parse(o.end || 0)) seen.set(k, s);
+  }
+  const cz = [...seen.values()].sort((a, b) => a.d - b.d).slice(0, 4);
   if (!cz.length) { $("odl-cz").innerHTML = '<div class="note">Für Tschechien kamen gerade keine Werte.</div>'; return; }
   const vmax = Math.max(0.2, ...cz.map(s => s.v));
-  $("odl-cz").innerHTML = '<div class="subh"><span class="flag">CZ</span>Tschechien <small>EURDEP</small></div>' + cz.map(s => `<div class="od">
+  $("odl-cz").innerHTML = '<div class="subh"><span class="flag">CZ</span>Tschechien <small>EURDEP</small></div>' + cz.map(s => `<div class="od od2">
       <div class="nm"><b>${esc(s.name)}</b><small>${Math.round(s.d)} km${s.end ? " · " + hhmm(new Date(s.end)) + " Uhr" : ""}</small></div>
-      <div class="ob"><i style="width:${(s.v / vmax * 100).toFixed(0)}%"></i></div>
       <span class="ov">${s.v.toLocaleString("de-DE",{minimumFractionDigits:3,maximumFractionDigits:3})}</span>
     </div>`).join("");
 }
@@ -1652,17 +1669,23 @@ function odlZustand(list) {
   return {k:"ok", t:"normal", d:"Im natürlichen Bereich und nahe am Wochenmittel."};
 }
 function odlSkala(v) {
-  // logarithmische Skala 0,03 … 1000 µSv/h
-  const W = 340, L = 8, R = 8, lo = Math.log10(0.03), hi = Math.log10(1000), X = x => L + (Math.log10(x) - lo) / (hi - lo) * (W - L - R);
-  const zone = (a, b, c, o) => `<rect x="${X(a).toFixed(1)}" y="14" width="${(X(b) - X(a)).toFixed(1)}" height="10" fill="${c}" opacity="${o}"/>`;
-  const mark = (x, t, up) => `<line x1="${X(x).toFixed(1)}" x2="${X(x).toFixed(1)}" y1="${up ? 8 : 14}" y2="${up ? 24 : 30}" stroke="var(--mu)" stroke-width="1"/><text x="${X(x).toFixed(1)}" y="${up ? 6 : 40}" text-anchor="middle">${t}</text>`;
-  return `<svg class="odl-skala" viewBox="0 0 ${W} 58" role="img" aria-label="Einordnung des aktuellen Werts auf einer logarithmischen Skala">
-    ${zone(0.03, 0.2, "#86d7a0", .55)}${zone(0.2, 0.6, "#86d7a0", .25)}${zone(0.6, 60, "#f2cd4b", .28)}${zone(60, 600, "#f58a2c", .45)}${zone(600, 1000, "#ef4b55", .55)}
-    ${mark(0.2, "natürlich bis 0,2", false)}${mark(60, "Gebäude ≈ 60", true)}${mark(600, "Evakuierung ≈ 600", true).replace('text-anchor="middle">Evakuierung', 'text-anchor="end">Evakuierung').replace(/x="([\d.]+)" y="6" text-anchor="end"/, (m, x) => `x="${(+x + 8).toFixed(1)}" y="6" text-anchor="end"`)}
-    ${v != null ? `<circle cx="${X(Math.max(0.031, v)).toFixed(1)}" cy="19" r="6" fill="#fff" stroke="#0c1426" stroke-width="2"/>` : ""}
-    <text x="${L}" y="54">0,03 µSv/h</text><text x="${W - R}" y="54" text-anchor="end">1000</text></svg>
-    <div class="note">Natürlich sind in Deutschland etwa 0,05–0,2 µSv/h, nach Regen kurz bis etwa das Dreifache. Grenzwert für die Bevölkerung: 1 mSv pro Jahr aus künstlichen Quellen (Strahlenschutzgesetz), dauerhaft rund 0,11 µSv/h zusätzlich. Notfall-Dosiswerte (NDWV): Aufenthalt in Gebäuden ab 10 mSv in 7 Tagen, Evakuierung ab 100 mSv in 7 Tagen. Die µSv/h-Angaben sind eine grobe Umrechnung bei Daueraufenthalt im Freien; die Notfallwerte schließen auch das Einatmen ein.</div>`;
+  // logarithmische Skala 0,03 … 1000 µSv/h, Beschriftung nur in der Legende
+  const lo = Math.log10(0.03), hi = Math.log10(1000), P = x => ((Math.log10(x) - lo) / (hi - lo) * 100).toFixed(2) + "%";
+  const zones = [[0.03, 0.2, "z1"], [0.2, 0.6, "z2"], [0.6, 60, "z3"], [60, 600, "z4"], [600, 1000, "z5"]];
+  return `<div class="skala" role="img" aria-label="Aktueller Wert ${fmt3(v)} µSv/h auf einer logarithmischen Skala von 0,03 bis 1000">
+      <div class="sk-bar">${zones.map(([a, b, c]) => `<i class="${c}" style="left:${P(a)};width:calc(${P(b)} - ${P(a)})"></i>`).join("")}
+        ${v != null ? `<b class="sk-dot" style="left:${P(Math.max(0.031, v))}"></b>` : ""}</div>
+      <div class="sk-ax">${[[0.03, "0,03"], [0.1, "0,1"], [1, "1"], [10, "10"], [100, "100"], [1000, "1000"]].map(([x, t], i, a) => `<span style="left:${P(x)};transform:translateX(${i === 0 ? "0" : i === a.length - 1 ? "-100%" : "-50%"})">${t}</span>`).join("")}</div>
+    </div>
+    <div class="sk-leg">
+      <span><i class="z1"></i>natürlich 0,05–0,2</span>
+      <span><i class="z2"></i>kurz nach Regen bis ≈ 0,6</span>
+      <span><i class="z4"></i>Aufenthalt in Gebäuden ab ≈ 60</span>
+      <span><i class="z5"></i>Evakuierung ab ≈ 600</span>
+    </div>
+    <div class="note">Werte in µSv/h. Grenzwert für die Bevölkerung: 1 mSv pro Jahr aus künstlichen Quellen (Strahlenschutzgesetz), dauerhaft etwa 0,11 µSv/h zusätzlich. Notfall-Dosiswerte (NDWV): Gebäude ab 10 mSv, Evakuierung ab 100 mSv in 7 Tagen; die µSv/h-Werte sind eine grobe Umrechnung bei Daueraufenthalt im Freien.</div>`;
 }
+
 async function loadODLOrt(force) {
   const list = ARC.odlAkt?.orte?.[ortKey()];
   if (!list || !list.length) return loadODL(force);       // Rückfall: direkt beim BfS
@@ -1672,12 +1695,11 @@ async function loadODLOrt(force) {
   const row = s => {
     const d = s.mittel7 ? s.wert - s.mittel7 : null, p = s.mittel7 ? (s.wert / s.mittel7 - 1) * 100 : null;
     const h24 = (s.stunden || []).at(-25)?.[1], t24 = h24 != null ? s.wert - h24 : null;
-    return `<div class="od"><div class="nm"><b>${esc(s.name)}</b><small>${Math.round(s.km)} km · Wochenmittel ${fmt3(s.mittel7)}${t24 != null ? ` · 24 h ${t24 >= 0 ? "+" : "−"}${fmt3(Math.abs(t24))}` : ""}</small></div>
-      <div class="ob"><i style="width:${(s.wert / vmax * 100).toFixed(0)}%"></i></div>
+    return `<div class="od od2"><div class="nm"><b>${esc(s.name)}</b><small>${Math.round(s.km)} km · Wochenmittel ${fmt3(s.mittel7)}${t24 != null ? ` · 24 h ${t24 >= 0 ? "+" : "−"}${fmt3(Math.abs(t24))}` : ""}</small></div>
       <span class="ov">${fmt3(s.wert)}${p != null ? `<em class="${p > 15 ? "up" : p < -15 ? "dn" : ""}">${p >= 0 ? "+" : "−"}${Math.abs(Math.round(p))} %</em>` : ""}</span></div>`;
   };
   $("odl").innerHTML = (z ? `<div class="odl-z ${z.k}"><b>${z.t}</b> ${z.d}</div>` : "") + near.map(row).join("")
-    + `<div class="unit">µSv/h, Stundenwert bis ${hhmm(new Date(near[0].ende))} Uhr, Abweichung zum 7-Tage-Mittel der Sonde</div>` + odlSkala(near[0].wert);
+    + `<div class="unit">Stundenwerte in µSv/h bis ${hhmm(new Date(near[0].ende))} Uhr · Prozent = Abweichung vom 7-Tage-Mittel der Sonde</div>` + odlSkala(near[0].wert);
   const pts = (near[0].stunden || []).map(([t, v]) => ({t: new Date(t + "Z"), v}));
   $("odl-spark").innerHTML = pts.length > 5 ? spark(pts, near[0].name) : "";
   loadCZ().catch(() => { $("odl-cz").innerHTML = '<div class="note">Tschechische Werte gerade nicht abrufbar.</div>'; });
