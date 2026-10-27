@@ -151,7 +151,7 @@ h2 small{font:500 .72rem var(--f-body);letter-spacing:.04em;text-transform:none;
 .odx::after{content:"";width:7px;height:7px;border-right:2px solid var(--mu);border-bottom:2px solid var(--mu);transform:rotate(45deg);justify-self:center;transition:transform .2s;margin-top:-4px}
 .odx[aria-expanded="true"]::after{transform:rotate(-135deg);margin-top:4px;border-color:var(--accent)}
 .odx:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.odl-vl{padding:4px 0 12px}.odl-vl .seg{margin:4px 0 8px}
+.odl-vl{padding:4px 0 12px}.vl-skala{margin-top:14px;padding-top:10px;border-top:1px dashed var(--line)}.odl-vl .seg{margin:4px 0 8px}
 .odl-z{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
 .skala{margin-top:8px}
 .odl-sk{margin-top:16px;padding-top:12px;border-top:1px solid var(--line)}
@@ -1794,11 +1794,7 @@ function odlSkala(v) {
 
 /* Verlauf je Sonde: Zeile antippen, Diagramm klappt darunter auf */
 const ODLV = {open: null, range: "7", sonden: {}};
-function odlEinordnung() {   // Skala folgt der aufgeklappten Sonde, sonst der nächsten
-  const s = ODLV.sonden[ODLV.open] || ODLV.sonden[ODLV.erste]; if (!s || s.wert == null) { $("odl-skala").innerHTML = ""; return; }
-  const zusatz = ODLV.open ? "aufgeklappte Sonde" : "nächste Sonde";
-  $("odl-skala").innerHTML = `<div class="subh">Einordnung: ${esc(s.name)} ${fmt3(s.wert)} µSv/h <small>${zusatz}</small></div>` + odlSkala(s.wert);
-}
+function odlEinordnung() {}   // Einordnung steckt jetzt im aufgeklappten Bereich
 function odlOpen(kenn, keep) {
   document.querySelectorAll(".odl-vl").forEach(x => x.remove());
   document.querySelectorAll(".odx").forEach(r => r.setAttribute("aria-expanded", "false"));
@@ -1807,7 +1803,8 @@ function odlOpen(kenn, keep) {
   if (!row || !s) { ODLV.open = null; odlEinordnung(); return; }
   ODLV.open = kenn; row.setAttribute("aria-expanded", "true"); odlEinordnung();
   const box = document.createElement("div"); box.className = "odl-vl";
-  row.after(box); odlVerlauf(box, s);
+  box.innerHTML = `<div class="vl-body"></div>` + (s.wert != null ? `<div class="vl-skala"><div class="subh">Einordnung: ${fmt3(s.wert)} µSv/h</div>${odlSkala(s.wert)}</div>` : "");
+  row.after(box); odlVerlauf(box.querySelector(".vl-body"), s);
 }
 async function odlVerlauf(box, s) {
   const seg = `<div class="seg">${[["7", "7 Tage"], ["30", "30 Tage"], ["365", "1 Jahr"]].map(([k, t]) => `<button type="button" data-r="${k}" aria-pressed="${ODLV.range === k}">${t}</button>`).join("")}</div>`;
@@ -1851,7 +1848,7 @@ function initODLV() {
   const card = $("odl").closest(".card");
   card.addEventListener("click", e => {
     const r = e.target.closest(".odl-vl .seg button[data-r]");
-    if (r) { ODLV.range = r.dataset.r; const box = r.closest(".odl-vl"); odlVerlauf(box, ODLV.sonden[ODLV.open]); return; }
+    if (r) { ODLV.range = r.dataset.r; const box = r.closest(".odl-vl").querySelector(".vl-body"); odlVerlauf(box, ODLV.sonden[ODLV.open]); return; }
     if (e.target.closest(".odl-vl")) return;
     const row = e.target.closest(".odx"); if (row) odlOpen(row.dataset.kenn);
   });
@@ -1871,7 +1868,7 @@ async function loadODLOrt(force) {
       <span class="ov">${fmt3(s.wert)}${p != null ? `<em class="${p > 15 ? "up" : p < -15 ? "dn" : ""}">${p >= 0 ? "+" : "−"}${Math.abs(Math.round(p))} %</em>` : ""}</span></div>`;
   };
   $("odl").innerHTML = (z ? `<div class="odl-z ${z.k}"><b>${z.t}</b> ${z.d}</div>` : "") + near.map(row).join("")
-    + `<div class="unit">Stundenwerte in µSv/h bis ${hhmm(new Date(near[0].ende))} Uhr · Prozent = Abweichung vom 7-Tage-Mittel der Sonde</div>`;
+    + `<div class="unit">Stundenwerte in µSv/h bis ${hhmm(new Date(near[0].ende))} Uhr · Prozent = Abweichung vom 7-Tage-Mittel der Sonde · Sonde antippen für Verlauf und Einordnung</div>`;
   ODLV.erste = near[0].kenn;
   $("odl-spark").innerHTML = "";
   ODLV.sonden = {}; near.forEach(s => ODLV.sonden[s.kenn] = s); odlEinordnung();
