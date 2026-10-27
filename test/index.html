@@ -106,6 +106,7 @@ h2 small{font:500 .72rem var(--f-body);letter-spacing:.04em;text-transform:none;
 .sg.maybe{border-color:color-mix(in srgb,var(--accent) 40%,transparent);color:var(--accent)}
 .sg[aria-expanded="true"]{outline:2px solid var(--accent);outline-offset:1px}
 .stat em{display:block;font-style:normal;font-size:.72rem;color:rgba(255,255,255,.72);margin-top:2px}
+.stat em.pt3.up{color:#bfe0ff}.stat em.pt3.dn{color:#ffd29a}.stat em.pt3.warn{color:#ffb4a0;font-weight:600}
 .stat .moon{width:20px;height:20px;flex:none}
 .sg-more{grid-column:1 / -1;border:1px dashed var(--line);border-radius:14px;background:none;color:var(--accent);font-weight:600;font-size:.82rem;padding:9px;cursor:pointer}
 .sig-detail{margin-top:10px;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.05);font-size:.88rem;line-height:1.5;color:var(--fg)}
@@ -154,6 +155,10 @@ dialog.ha-dlg::backdrop{background:rgba(4,8,18,.7);backdrop-filter:blur(3px)}
 
 /* Diagramm */
 .chart{position:relative;width:100%;height:210px}
+.chart svg{touch-action:pan-y;cursor:crosshair;-webkit-user-select:none;user-select:none}
+.chart .tip{position:absolute;z-index:2;pointer-events:none;display:flex;flex-direction:column;gap:1px;padding:7px 10px;border-radius:10px;
+  background:rgba(8,14,30,.92);border:1px solid var(--line);font-size:.74rem;color:var(--mu);white-space:nowrap;box-shadow:0 8px 20px -10px rgba(0,0,0,.7)}
+.chart .tip b{color:var(--fg);font-size:.78rem}.chart .tip .tt{font:700 1.15rem var(--f-disp);letter-spacing:.02em}
 .chart svg{display:block;width:100%;height:100%;overflow:visible}
 .chart text{font:500 11px var(--f-body);fill:var(--mu)}
 .chart .tv{font:700 13px var(--f-disp);fill:var(--fg);letter-spacing:.02em}
@@ -293,7 +298,7 @@ footer a{color:var(--accent)}
   <section class="card wide">
     <h2>Nächste 36 Stunden</h2>
     <div class="chart" id="chart"><div class="load">Lade Vorhersage …</div></div>
-    <div class="legend"><span><i style="background:linear-gradient(90deg,var(--cold),var(--warm))"></i>Temperatur °C</span><span><i style="background:var(--cold);opacity:.55"></i>Regen mm/h</span></div>
+    <div class="legend"><span><i style="background:linear-gradient(90deg,var(--cold),var(--warm))"></i>Temperatur °C</span><span><i style="background:var(--cold);opacity:.55"></i>Regen mm/h</span><span>Tipp: mit dem Finger über die Kurve fahren</span></div>
     <div class="tiles" id="hours"></div>
   </section>
 
@@ -549,6 +554,20 @@ function skyFor(icon, now, sun) {
   return night ? "night" : "day";
 }
 
+// Luftdrucktendenz über 3 Stunden, Einteilung wie im Wetterdienst üblich
+function pressTrend(w, recs, now) {
+  if (w.pressure_msl == null) return "";
+  const t3 = now.getTime() - 3 * 36e5;
+  const past = recs.filter(r => r.pressure_msl != null && Math.abs(Date.parse(r.timestamp) - t3) <= 50 * 6e4)
+    .sort((a, b) => Math.abs(Date.parse(a.timestamp) - t3) - Math.abs(Date.parse(b.timestamp) - t3))[0];
+  if (!past) return "";
+  const d = w.pressure_msl - past.pressure_msl, a = Math.abs(d);
+  const word = a < 0.5 ? "gleichbleibend" : a < 1.5 ? (d > 0 ? "leicht steigend" : "leicht fallend") : a < 3.5 ? (d > 0 ? "steigend" : "fallend") : (d > 0 ? "stark steigend" : "stark fallend");
+  const cls = a < 0.5 ? "" : d > 0 ? "up" : a >= 3.5 ? "warn" : "dn";
+  const arrow = a < 0.5 ? "→" : d > 0 ? "▲" : "▼";
+  const tip = d <= -3.5 ? "Wetterverschlechterung, Wind möglich" : d <= -1.5 ? "eher unbeständiger" : d >= 1.5 ? "Wetterbesserung wahrscheinlich" : "";
+  return `<em class="pt3 ${cls}" title="${tip}">${arrow} ${d > 0 ? "+" : ""}${f1(d)} hPa in 3 h · ${word}</em>`;
+}
 function renderCurrent(cur, recs, now) {
   const w = cur.weather, src = cur.sources?.find(s => s.id === w.source_id) || cur.sources?.[0];
   CUR = w;
@@ -577,9 +596,9 @@ function renderCurrent(cur, recs, now) {
       <div class="stat"><small>Wind</small><b>${arrow}${f0(wind)} <span>km/h ${dir(wdir)}</span></b></div>
       <div class="stat"><small>Böen</small><b>${f0(gust)} <span>km/h</span></b></div>
       <div class="stat"><small>Feuchte</small><b>${f0(w.relative_humidity)} <span>%</span></b></div>
-      <div class="stat"><small>Luftdruck</small><b>${f0(w.pressure_msl)} <span>hPa</span></b></div>
+      <div class="stat"><small>Luftdruck</small><b>${f0(w.pressure_msl)} <span>hPa</span></b>${pressTrend(w, recs, now)}</div>
       <div class="stat"><small>Sonne</small><b>${hhmm(sun.rise)} <span>bis</span> ${hhmm(sun.set)}</b></div>
-      <div class="stat"><small>Mond</small><b>${moonIcon(MOON.phase)}${Math.round(MOON.fraction * 100)} <span>% ${MOON.name}</span></b><em>Aufgang ${MOON.rise ? hhmm(MOON.rise) : "–"} · Untergang ${MOON.set ? hhmm(MOON.set) : "–"}</em></div>
+      <div class="stat"><small>Mond</small><b>${moonIcon(MOON.phase)}${Math.round(MOON.fraction * 100)} <span>%</span></b><em>${MOON.name}</em><em>↑ ${MOON.rise ? hhmm(MOON.rise) : "–"} · ↓ ${MOON.set ? hhmm(MOON.set) : "–"}</em></div>
     </div>`;
 }
 
@@ -650,7 +669,39 @@ function renderChart(recs, now) {
     ${mark(iMax, true)}${iMin !== iMax ? mark(iMin, false) : ""}
     <circle cx="${P[0][0]}" cy="${P[0][1]}" r="5" fill="#fff" stroke="#0c1426" stroke-width="2"/>
     <text x="${P[0][0] + 8}" y="${T - 8}" fill="#fff" style="fill:#eef3fb;font-weight:600">jetzt</text>
-  </svg>`;
+    <g class="scrub" id="scrub" visibility="hidden">
+      <line id="scrub-l" y1="${T}" y2="${H - B}" stroke="rgba(238,243,251,.55)" stroke-width="1"/>
+      <circle id="scrub-c" r="5.5" fill="#fff" stroke="#0c1426" stroke-width="2"/>
+    </g>
+  </svg><div class="tip" id="chart-tip" hidden></div>`;
+  // Mit Finger oder Maus über die Kurve fahren
+  const svg = box.querySelector("svg"), tip = $("chart-tip"), sg = $("scrub");
+  let hideT = 0;
+  const show = ev => {
+    const r = svg.getBoundingClientRect();
+    const sx = (ev.clientX - r.left) * W / r.width;
+    let best = 0, bd = 1e9;
+    P.forEach((p, i) => { const dd = Math.abs(p[0] - sx); if (dd < bd) { bd = dd; best = i; } });
+    const p = pts[best], [X, Y] = P[best];
+    $("scrub-l").setAttribute("x1", X); $("scrub-l").setAttribute("x2", X);
+    $("scrub-c").setAttribute("cx", X); $("scrub-c").setAttribute("cy", Y); $("scrub-c").setAttribute("fill", tcol(p.temperature));
+    sg.setAttribute("visibility", "visible");
+    const day = dayKey(p._t) === dayKey(new Date()) ? "heute" : wd(p._t);
+    tip.innerHTML = `<b>${day} ${hhmm(p._t)} Uhr</b><span class="tt" style="color:${tcol(p.temperature)}">${f1(p.temperature)} °C</span>`
+      + `<span>${p.precipitation > 0.04 ? f1(p.precipitation) + " mm Regen" : "trocken"}${p.precipitation_probability != null ? " · " + p.precipitation_probability + " %" : ""}</span>`
+      + `<span>Wind ${dir(p.wind_direction)} ${f0(p.wind_speed)} km/h${p.wind_gust_speed != null ? ", Böen " + f0(p.wind_gust_speed) : ""}</span>`;
+    tip.hidden = false;
+    const px = X / W * r.width, tw = tip.offsetWidth;
+    tip.style.left = Math.max(0, Math.min(r.width - tw, px - tw / 2)) + "px";
+    tip.style.top = Math.max(0, Y / H * r.height - tip.offsetHeight - 14) + "px";
+    clearTimeout(hideT);
+  };
+  const hide = () => { sg.setAttribute("visibility", "hidden"); tip.hidden = true; };
+  svg.addEventListener("pointerdown", show);
+  svg.addEventListener("pointermove", ev => { if (ev.pointerType === "mouse" || ev.buttons || ev.pressure > 0) show(ev); });
+  svg.addEventListener("pointerleave", ev => { if (ev.pointerType === "mouse") hide(); });
+  svg.addEventListener("pointerup", ev => { if (ev.pointerType !== "mouse") { clearTimeout(hideT); hideT = setTimeout(hide, 3000); } });
+  svg.addEventListener("pointercancel", hide);
 }
 
 /* ---------- 3-Stunden-Kacheln ---------- */
