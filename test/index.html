@@ -48,8 +48,11 @@ button,select{font:inherit;color:inherit}
 .hero[data-sky="night"] .stars{opacity:1}
 .stars i{position:absolute;width:2px;height:2px;border-radius:50%;background:#fff}
 @media (prefers-reduced-motion:no-preference){.stars i{animation:tw 3.5s ease-in-out infinite alternate}@keyframes tw{from{opacity:.25}to{opacity:1}}}
-.ridge{position:absolute;left:0;right:0;bottom:0;width:100%;height:120px;z-index:-1;display:block}
-.hero-in{max-width:1200px;margin:0 auto;padding-block:calc(14px + env(safe-area-inset-top,0px)) 150px;
+.ridge{position:absolute;left:0;right:0;bottom:0;width:100%;height:clamp(300px,28vw,360px);z-index:-1;display:block}
+.ridge .mist{opacity:.55;transition:opacity 1s}
+.hero[data-sky="fog"] .ridge .mist,.hero[data-sky="cloudy-day"] .ridge .mist{opacity:1}
+.hero[data-sky="night"] .ridge .mist,.hero[data-sky="cloudy-night"] .ridge .mist{opacity:.2}
+.hero-in{max-width:1200px;margin:0 auto;padding-block:calc(14px + env(safe-area-inset-top,0px)) clamp(250px,25vw,320px);
   padding-left:max(18px,env(safe-area-inset-left,0px));padding-right:max(18px,env(safe-area-inset-right,0px))}
 .topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
 .brand{font:700 .8rem/1 var(--f-body);letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.75)}
@@ -74,15 +77,15 @@ button,select{font:inherit;color:inherit}
   background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.18)}
 .chip svg{width:14px;height:14px}
 .chip.up{color:#ffd29a}.chip.down{color:#bfe0ff}
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(138px,1fr));gap:8px;margin-top:22px;max-width:760px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(138px,1fr));gap:8px;margin-top:22px;max-width:940px}
 .stat{background:rgba(6,12,28,.28);border:1px solid rgba(255,255,255,.14);border-radius:14px;padding:9px 12px;backdrop-filter:blur(8px)}
 .stat small{display:block;font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.66)}
-.stat b{font:700 1.35rem/1.15 var(--f-disp);letter-spacing:.02em;display:flex;align-items:center;gap:6px}
+.stat b{font:700 1.3rem/1.15 var(--f-disp);letter-spacing:.02em;display:flex;flex-wrap:wrap;align-items:center;gap:2px 6px}
 .stat b span{font:500 .8rem var(--f-body);color:rgba(255,255,255,.75)}
 .stat .arrow{width:18px;height:18px;transition:transform .8s}
 
 /* ---------- Inhalt ---------- */
-main{max-width:1200px;margin:-92px auto 0;position:relative;display:grid;gap:16px;grid-template-columns:minmax(0,1fr);
+main{max-width:1200px;margin:-72px auto 0;position:relative;display:grid;gap:16px;grid-template-columns:minmax(0,1fr);
   padding-block:0 20px;padding-left:max(14px,env(safe-area-inset-left,0px));padding-right:max(14px,env(safe-area-inset-right,0px))}
 @media (min-width:900px){main{grid-template-columns:minmax(0,1.45fr) minmax(0,1fr)}.wide{grid-column:1}.side{grid-column:2;grid-row:1 / span 6}}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:16px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
@@ -263,11 +266,7 @@ footer a{color:var(--accent)}
 <body>
 <header class="hero" id="hero" data-sky="night">
   <div class="stars" id="stars"></div>
-  <svg class="ridge" viewBox="0 0 1200 120" preserveAspectRatio="none" aria-hidden="true">
-    <path d="M0 70 L90 52 L170 60 L260 34 L330 46 L420 22 L470 30 L540 14 L610 28 L700 40 L780 26 L860 44 L950 30 L1040 48 L1120 38 L1200 50 V120 H0Z" fill="#0c1426" opacity=".35"/>
-    <path d="M0 88 L70 76 L150 84 L230 62 L310 72 L400 58 L480 70 L560 50 L650 66 L720 60 L800 74 L880 58 L980 72 L1060 64 L1140 78 L1200 70 V120 H0Z" fill="#0c1426" opacity=".6"/>
-    <path d="M0 104 L60 98 L120 102 L200 90 L280 98 L360 92 L440 100 L520 88 L600 96 L690 90 L770 100 L850 94 L940 102 L1020 94 L1100 100 L1200 96 V120 H0Z" fill="#0c1426"/>
-  </svg>
+  <svg class="ridge" id="ridge" viewBox="0 0 1200 360" preserveAspectRatio="xMidYMax slice" aria-hidden="true"></svg>
   <div class="hero-in">
     <div class="topbar">
       <span class="brand"><span class="testbadge">Testseite</span> Bayerischer Wald · Böhmerwald</span>
@@ -1710,6 +1709,59 @@ function initTabs() {
   $("tab-now").addEventListener("click", () => set("now"));
   $("tab-min").addEventListener("click", () => set("min"));
 }
+
+/* ---------- Bergsilhouette Bayerischer Wald: weiche Rücken, Dunst, Fichtenwald, Großer Arber mit Radarkuppeln ---------- */
+function initRidge() {
+  const W = 1200, H = 360, step = 6;
+  let seed = 20260;
+  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const ridge = (base, amp, waves, bump) => {
+    const ph = waves.map(() => rnd() * Math.PI * 2), pts = [];
+    for (let x = -24; x <= W + 24; x += step) {
+      let y = base;
+      waves.forEach(([per, a], i) => { y -= amp * a * Math.sin(2 * Math.PI * x / per + ph.at(i)); });
+      if (bump) y -= bump.h * Math.exp(-(((x - bump.x) / bump.w) ** 2));
+      pts.push([x, y]);
+    }
+    return pts;
+  };
+  const yAt = (pts, x) => { const i = Math.max(0, Math.min(pts.length - 2, Math.floor((x + 24) / step))), [x0, y0] = pts.at(i), [x1, y1] = pts.at(i + 1); return y0 + (y1 - y0) * (x - x0) / (x1 - x0); };
+  const area = pts => {
+    let d = `M${pts[0][0]} ${H}L${pts[0][0]} ${pts[0][1].toFixed(1)}`;
+    for (let i = 1; i < pts.length; i++) { const [x0, y0] = pts.at(i - 1), [x1, y1] = pts.at(i); d += `Q${x0} ${y0.toFixed(1)} ${((x0 + x1) / 2).toFixed(1)} ${((y0 + y1) / 2).toFixed(1)}`; }
+    return d + `L${pts.at(-1)[0]} ${H}Z`;
+  };
+  const tree = (x, yb, h) => {  // Fichte: drei Etagen, leicht unregelmäßig
+    const w = h * (0.36 + rnd() * 0.08), f = v => v.toFixed(1);
+    return `M${f(x - w / 2)} ${f(yb)}L${f(x - w * 0.16)} ${f(yb - h * 0.36)}L${f(x - w * 0.36)} ${f(yb - h * 0.34)}L${f(x - w * 0.1)} ${f(yb - h * 0.66)}L${f(x - w * 0.24)} ${f(yb - h * 0.64)}L${f(x)} ${f(yb - h)}L${f(x + w * 0.24)} ${f(yb - h * 0.64)}L${f(x + w * 0.1)} ${f(yb - h * 0.66)}L${f(x + w * 0.36)} ${f(yb - h * 0.34)}L${f(x + w * 0.16)} ${f(yb - h * 0.36)}L${f(x + w / 2)} ${f(yb)}Z`;
+  };
+  const forest = (pts, minH, maxH, gapMin, gapMax, dens = 1) => {
+    let d = "";
+    for (let x = -10; x < W + 10; x += gapMin + rnd() * (gapMax - gapMin)) {
+      if (rnd() > dens) continue;                         // Lichtungen
+      d += tree(x, yAt(pts, x) + 3, minH + rnd() * (maxH - minH));
+    }
+    return d;
+  };
+  const far = ridge(176, 30, [[780, 1], [330, 0.4], [150, 0.12]]);
+  const arberX = 790;
+  const mid = ridge(222, 24, [[560, 1], [240, 0.35], [95, 0.1]], {x: arberX, w: 160, h: 84});
+  const near = ridge(272, 16, [[430, 1], [170, 0.45]]);
+  const front = ridge(322, 9, [[320, 1], [130, 0.5]]);
+  // Gipfel des Arber auf dem mittleren Rücken suchen
+  let sx = arberX, sy = 999;
+  for (let x = arberX - 80; x <= arberX + 80; x += 2) { const y = yAt(mid, x); if (y < sy) { sy = y; sx = x; } }
+  const domes = `<path d="M${sx - 30} ${sy + 2}v-16h5v16z"/><circle cx="${sx - 12}" cy="${sy - 7}" r="8"/><rect x="${sx - 14}" y="${sy - 2}" width="4" height="6"/><circle cx="${sx + 12}" cy="${sy - 6}" r="7"/><rect x="${sx + 10}" y="${sy - 1}" width="4" height="6"/>`;
+  const ink = "12,20,38";
+  $("ridge").innerHTML = `
+    <defs><linearGradient id="mist-g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".55" stop-color="#fff" stop-opacity=".16"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient></defs>
+    <path d="${area(far)}" fill="rgba(${ink},.22)"/>
+    <g fill="rgba(${ink},.42)"><path d="${area(mid)}"/>${domes}<path d="${forest(mid, 6, 11, 5, 9, 0.78)}"/></g>
+    <rect class="mist" x="0" y="225" width="${W}" height="70" fill="url(#mist-g)"/>
+    <g fill="rgba(10,24,32,.72)"><path d="${area(near)}"/><path d="${forest(near, 12, 24, 6, 11, 0.92)}"/></g>
+    <g fill="#0c1426"><path d="${area(front)}"/><path d="${forest(front, 26, 50, 9, 17, 0.97)}"/></g>`;
+}
+
 function initStars() {
   let h = "";
   for (let i = 0; i < 70; i++) {
@@ -1728,7 +1780,7 @@ $("sig").addEventListener("click", e => {
 });
 $("rad-slider").addEventListener("input", e => { togglePlay(false); showFrame(+e.target.value); });
 document.addEventListener("visibilitychange", () => { if (!document.hidden && Date.now() - lastRun > REFRESH) refresh(); });
-initStars(); initOrt(); initTabs(); haInit();
+initRidge(); initStars(); initOrt(); initTabs(); haInit();
 refresh();
 setInterval(() => { if (!document.hidden) refresh(); }, REFRESH);
 </script>
