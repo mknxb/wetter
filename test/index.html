@@ -46,7 +46,7 @@ button,select{font:inherit;color:inherit}
 .hero[data-sky="night"]{--sky1:#060b1c;--sky2:#101d40;--sky3:#22325e}
 .hero[data-sky="cloudy-night"]{--sky1:#10172a;--sky2:#1d2840;--sky3:#2f3b55}
 .stars{position:absolute;inset:0;z-index:-2;opacity:0;transition:opacity 1s}
-.hero[data-sky="night"] .stars{opacity:1}
+.hero[data-sky="night"] .stars{opacity:var(--st,1)}
 .stars i{position:absolute;width:2px;height:2px;border-radius:50%;background:#fff}
 @media (prefers-reduced-motion:no-preference){.stars i{animation:tw 3.5s ease-in-out infinite alternate}@keyframes tw{from{opacity:.25}to{opacity:1}}}
 .ridge{position:absolute;left:0;right:0;bottom:0;width:100%;height:clamp(300px,28vw,360px);z-index:-1;display:block}
@@ -554,12 +554,12 @@ async function loadForecast() {
   renderDays(wx.weather, now, cur.weather?.temperature);
 }
 
-function skyFor(icon, now, sun) {
+function skyFor(icon, now, sun, cc) {
   const night = now < sun.rise || now > sun.set;
   const nearEdge = Math.min(Math.abs(now - sun.rise), Math.abs(now - sun.set)) < 45 * 6e4;
   if (/rain|sleet|snow|hail|thunder/.test(icon || "")) return night ? "cloudy-night" : "rain";
   if (icon === "fog") return night ? "cloudy-night" : "fog";
-  if (icon === "cloudy") return night ? "cloudy-night" : "cloudy-day";
+  if (icon === "cloudy" || cc >= 70) return night ? "cloudy-night" : "cloudy-day";
   if (nearEdge) return "dusk";
   return night ? "night" : "day";
 }
@@ -583,7 +583,9 @@ function renderCurrent(cur, recs, now) {
   CUR = w;
   const sun = sunTimes(now, ORT.lat, ORT.lon);
   MOON = moonInfo(now);
-  $("hero").dataset.sky = skyFor(w.icon, now, sun);
+  $("hero").dataset.sky = skyFor(w.icon, now, sun, w.cloud_cover);
+  // Sterne nur so hell, wie die Wolken es zulassen: klar = voll, wolkig = vereinzelt
+  $("stars").style.setProperty("--st", w.cloud_cover == null || w.cloud_cover < 30 ? 1 : w.cloud_cover < 50 ? .45 : .2);
   const dist = src?.distance != null ? ` · ${Math.round(src.distance / 1000)} km entfernt` : "";
   $("cur-src").textContent = `Messstation ${kurz(src?.station_name) || ORT.name}${dist} · ${hhmm(new Date(w.timestamp))} Uhr`;
   const past = recs.filter(r => new Date(r.timestamp) <= new Date(now - 2.5 * 36e5) && r.temperature != null).pop();
