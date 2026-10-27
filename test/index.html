@@ -273,6 +273,7 @@ h2 small{font:500 .72rem var(--f-body);letter-spacing:.04em;text-transform:none;
 #odl-spark svg{display:block;width:100%;height:70px;margin-top:4px}
 #odl-spark text{font:500 10px var(--f-body);fill:var(--mu)}
 
+footer .quellen{margin:6px 0 10px;padding-left:18px;text-align:left}footer .quellen li{margin:3px 0}footer p{margin:6px 0}
 footer{max-width:1200px;margin:0 auto;color:var(--mu);font-size:.72rem;line-height:1.5;
   padding-block:4px calc(22px + env(safe-area-inset-bottom,0px));padding-left:max(18px,env(safe-area-inset-left,0px));padding-right:max(18px,env(safe-area-inset-right,0px))}
 footer a{color:var(--accent)}
@@ -363,7 +364,7 @@ footer a{color:var(--accent)}
   <section class="card full" id="rueckblick">
     <h2>Rückblick</h2>
     <div class="tabs" role="tablist" id="rb-tabs">
-      <button type="button" role="tab" data-t="wetter" aria-selected="true">Wetter</button>
+      <button type="button" role="tab" data-t="wetter" aria-selected="true">Temperatur</button>
       <button type="button" role="tab" data-t="regen" aria-selected="false">Regen</button>
     </div>
     <div class="seg" id="rb-range"></div>
@@ -371,7 +372,18 @@ footer a{color:var(--accent)}
   </section>
 </main>
 
-<footer>Daten: Deutscher Wetterdienst (DWD Open Data) über <a href="https://brightsky.dev" target="_blank" rel="noopener">Bright Sky</a>, tschechische Stationen über den internationalen SYNOP-Austausch. Live abgefragt, alle 10 Minuten aktualisiert. Keine amtliche Warnung, maßgeblich ist <a href="https://www.dwd.de/warnungen" target="_blank" rel="noopener">dwd.de</a>.</footer>
+<footer>
+  <p><b>Quellen</b></p>
+  <ul class="quellen">
+    <li>Wetter, Vorhersage, Radar, Warnungen: Deutscher Wetterdienst (DWD Open Data) über <a href="https://brightsky.dev" target="_blank" rel="noopener">Bright Sky</a>; tschechische Wetterstationen über den internationalen SYNOP-Austausch</li>
+    <li>UV-Index, Pollenflug, Biowetter, Klima-Tageswerte seit 1991, Bayern-Jahresmittel seit 1881: <a href="https://opendata.dwd.de" target="_blank" rel="noopener">DWD Open Data</a></li>
+    <li>Pegel und Speicher: <a href="https://www.hnd.bayern.de" target="_blank" rel="noopener">Hochwassernachrichtendienst Bayern</a> (LfU)</li>
+    <li>Strahlung: <a href="https://odlinfo.bfs.de" target="_blank" rel="noopener">BfS-Messnetz ODL</a>; Tschechien über den europäischen Austausch EURDEP</li>
+    <li>Polarlicht (Kp-Index): <a href="https://www.swpc.noaa.gov" target="_blank" rel="noopener">NOAA SWPC</a> · Karte: © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>-Mitwirkende</li>
+    <li>Eigene Berechnungen: Waldbrandindex (FWI), Sonne und Mond, Signale; eigenes Archiv für Pegel und Strahlung</li>
+  </ul>
+  <p>Live-Werte alle 10 Minuten, Pegel, Strahlung und Archiv alle 30 Minuten über GitHub. Keine amtliche Warnung, maßgeblich sind <a href="https://www.dwd.de/warnungen" target="_blank" rel="noopener">dwd.de</a> und <a href="https://www.hnd.bayern.de" target="_blank" rel="noopener">hnd.bayern.de</a>.</p>
+</footer>
 
 <script>
 "use strict";
