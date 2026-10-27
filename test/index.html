@@ -50,6 +50,9 @@ button,select{font:inherit;color:inherit}
 @media (prefers-reduced-motion:no-preference){.stars i{animation:tw 3.5s ease-in-out infinite alternate}@keyframes tw{from{opacity:.25}to{opacity:1}}}
 .ridge{position:absolute;left:0;right:0;bottom:0;width:100%;height:clamp(300px,28vw,360px);z-index:-1;display:block}
 .ridge .mist{opacity:.55;transition:opacity 1s}
+.ridge .radom{fill:rgba(238,242,248,.9);transition:fill 1s}
+.hero[data-sky="fog"] .ridge .radom,.hero[data-sky="rain"] .ridge .radom{fill:rgba(225,230,238,.55)}
+.hero[data-sky="night"] .ridge .radom,.hero[data-sky="cloudy-night"] .ridge .radom{fill:rgba(150,165,192,.42)}
 .hero[data-sky="fog"] .ridge .mist,.hero[data-sky="cloudy-day"] .ridge .mist{opacity:1}
 .hero[data-sky="night"] .ridge .mist,.hero[data-sky="cloudy-night"] .ridge .mist{opacity:.2}
 .hero-in{max-width:1200px;margin:0 auto;padding-block:calc(14px + env(safe-area-inset-top,0px)) clamp(250px,25vw,320px);
@@ -597,7 +600,7 @@ function renderCurrent(cur, recs, now) {
       <div class="stat"><small>Böen</small><b>${f0(gust)} <span>km/h</span></b></div>
       <div class="stat"><small>Feuchte</small><b>${f0(w.relative_humidity)} <span>%</span></b></div>
       <div class="stat"><small>Luftdruck</small><b>${f0(w.pressure_msl)} <span>hPa</span></b>${pressTrend(w, recs, now)}</div>
-      <div class="stat"><small>Sonne</small><b>${hhmm(sun.rise)} <span>bis</span> ${hhmm(sun.set)}</b></div>
+      <div class="stat"><small>Sonne</small><b>${hhmm(sun.rise)}<span>–</span>${hhmm(sun.set)}</b></div>
       <div class="stat"><small>Mond</small><b>${moonIcon(MOON.phase)}${Math.round(MOON.fraction * 100)} <span>%</span></b><em>${MOON.name}</em><em>↑ ${MOON.rise ? hhmm(MOON.rise) : "–"} · ↓ ${MOON.set ? hhmm(MOON.set) : "–"}</em></div>
     </div>`;
 }
@@ -1721,7 +1724,7 @@ function initRidge() {
     for (let x = -24; x <= W + 24; x += step) {
       let y = base;
       waves.forEach(([per, a], i) => { y -= amp * a * Math.sin(2 * Math.PI * x / per + ph.at(i)); });
-      if (bump) y -= bump.h * Math.exp(-(((x - bump.x) / bump.w) ** 2));
+      if (bump) y -= bump(x);
       pts.push([x, y]);
     }
     return pts;
@@ -1736,28 +1739,37 @@ function initRidge() {
     const w = h * (0.36 + rnd() * 0.08), f = v => v.toFixed(1);
     return `M${f(x - w / 2)} ${f(yb)}L${f(x - w * 0.16)} ${f(yb - h * 0.36)}L${f(x - w * 0.36)} ${f(yb - h * 0.34)}L${f(x - w * 0.1)} ${f(yb - h * 0.66)}L${f(x - w * 0.24)} ${f(yb - h * 0.64)}L${f(x)} ${f(yb - h)}L${f(x + w * 0.24)} ${f(yb - h * 0.64)}L${f(x + w * 0.1)} ${f(yb - h * 0.66)}L${f(x + w * 0.36)} ${f(yb - h * 0.34)}L${f(x + w * 0.16)} ${f(yb - h * 0.36)}L${f(x + w / 2)} ${f(yb)}Z`;
   };
-  const forest = (pts, minH, maxH, gapMin, gapMax, dens = 1) => {
+  const forest = (pts, minH, maxH, gapMin, gapMax, dens = 1, bare = () => false) => {
     let d = "";
     for (let x = -10; x < W + 10; x += gapMin + rnd() * (gapMax - gapMin)) {
-      if (rnd() > dens) continue;                         // Lichtungen
+      if (rnd() > dens || bare(x)) continue;              // Lichtungen, kahler Gipfel
       d += tree(x, yAt(pts, x) + 3, minH + rnd() * (maxH - minH));
     }
     return d;
   };
-  const far = ridge(176, 30, [[780, 1], [330, 0.4], [150, 0.12]]);
-  const arberX = 790;
-  const mid = ridge(222, 24, [[560, 1], [240, 0.35], [95, 0.1]], {x: arberX, w: 160, h: 84});
+  const far = ridge(176, 30, [[780, 1], [330, 0.4], [150, 0.12]], x => -60 * Math.exp(-(((x - 650) / 260) ** 2)));
+  // Großer Arber von Westen (Blaibach): breites Massiv, flaches Gipfelplateau, links die Schulter des Kleinen Arber
+  const arberX = 650;
+  const arber = x => {
+    const d = x - arberX, w = d < 0 ? 230 : 140;
+    const main = 104 * Math.exp(-(Math.abs(d / w) ** 2.4));
+    const klein = 50 * Math.exp(-(Math.abs((x - arberX + 260) / 125) ** 2));
+    return Math.max(main, klein) + 0.25 * Math.min(main, klein);
+  };
+  const mid = ridge(224, 18, [[560, 1], [240, 0.35], [95, 0.08]], arber);
   const near = ridge(272, 16, [[430, 1], [170, 0.45]]);
   const front = ridge(322, 9, [[320, 1], [130, 0.5]]);
-  // Gipfel des Arber auf dem mittleren Rücken suchen
+  // Gipfel suchen; die zwei weißen Radarkuppeln stehen auf dem östlichen Teil des Plateaus, je auf einem kurzen Turm
   let sx = arberX, sy = 999;
-  for (let x = arberX - 80; x <= arberX + 80; x += 2) { const y = yAt(mid, x); if (y < sy) { sy = y; sx = x; } }
-  const domes = `<path d="M${sx - 30} ${sy + 2}v-16h5v16z"/><circle cx="${sx - 12}" cy="${sy - 7}" r="8"/><rect x="${sx - 14}" y="${sy - 2}" width="4" height="6"/><circle cx="${sx + 12}" cy="${sy - 6}" r="7"/><rect x="${sx + 10}" y="${sy - 1}" width="4" height="6"/>`;
+  for (let x = arberX - 60; x <= arberX + 60; x += 2) { const y = yAt(mid, x); if (y < sy) { sy = y; sx = x; } }
+  const dome = (x, r) => { const b = yAt(mid, x) + 1.5, t = 4; return `<rect x="${(x - r * 0.7).toFixed(1)}" y="${(b - t).toFixed(1)}" width="${(r * 1.4).toFixed(1)}" height="${t}"/><circle cx="${x}" cy="${(b - t - r * 0.75).toFixed(1)}" r="${r}"/>`; };
+  const domes = `<g class="radom">${dome(sx + 4, 5.5)}${dome(sx + 26, 5)}<rect x="${sx + 10}" y="${(yAt(mid, sx + 15) - 2.5).toFixed(1)}" width="10" height="4"/></g>`;
+  const bareTop = x => arber(x) > 78;   // über der Waldgrenze nur Latschen und Fels
   const ink = "12,20,38";
   $("ridge").innerHTML = `
     <defs><linearGradient id="mist-g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".55" stop-color="#fff" stop-opacity=".16"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient></defs>
     <path d="${area(far)}" fill="rgba(${ink},.22)"/>
-    <g fill="rgba(${ink},.42)"><path d="${area(mid)}"/>${domes}<path d="${forest(mid, 6, 11, 5, 9, 0.78)}"/></g>
+    <g fill="rgba(${ink},.42)"><path d="${area(mid)}"/><path d="${forest(mid, 6, 11, 5, 9, 0.8, bareTop)}"/></g>${domes}
     <rect class="mist" x="0" y="225" width="${W}" height="70" fill="url(#mist-g)"/>
     <g fill="rgba(10,24,32,.72)"><path d="${area(near)}"/><path d="${forest(near, 12, 24, 6, 11, 0.92)}"/></g>
     <g fill="#0c1426"><path d="${area(front)}"/><path d="${forest(front, 26, 50, 9, 17, 0.97)}"/></g>`;
