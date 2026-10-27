@@ -49,6 +49,21 @@ button,select{font:inherit;color:inherit}
 .hero[data-sky="night"] .stars{opacity:var(--st,1)}
 .stars i{position:absolute;width:2px;height:2px;border-radius:50%;background:#fff}
 @media (prefers-reduced-motion:no-preference){.stars i{animation:tw 3.5s ease-in-out infinite alternate}@keyframes tw{from{opacity:.25}to{opacity:1}}}
+/* Wolken: Menge nach Bewölkungsgrad, Zugrichtung nach Wind */
+.clouds{position:absolute;left:0;right:0;top:0;height:62%;z-index:-2;pointer-events:none;overflow:hidden;
+  --cl:rgba(255,255,255,.62);--ch:rgba(255,255,255,.75)}
+.hero[data-sky="cloudy-day"] .clouds{--cl:rgba(150,164,184,.7);--ch:rgba(205,214,226,.6)}
+.hero[data-sky="rain"] .clouds{--cl:rgba(96,108,128,.9);--ch:rgba(140,152,170,.85)}
+.hero[data-sky="fog"] .clouds{--cl:rgba(200,207,216,.7);--ch:rgba(225,230,236,.75)}
+.hero[data-sky="dusk"] .clouds{--cl:rgba(150,110,140,.75);--ch:rgba(246,190,160,.8)}
+.hero[data-sky="night"] .clouds{--cl:rgba(80,95,128,.75);--ch:rgba(160,175,206,.5)}
+.hero[data-sky="cloudy-night"] .clouds{--cl:rgba(62,74,102,.85);--ch:rgba(120,134,166,.45)}
+.clouds .cw{position:absolute;left:0;will-change:transform;animation:cdrift var(--dur,300s) linear infinite;animation-delay:var(--del,0s)}
+.clouds.rtl .cw{animation-direction:reverse}
+.clouds svg{display:block;width:100%;height:auto;overflow:visible}
+.clouds .deck{position:absolute;inset:0 0 -20% 0;background:linear-gradient(180deg,var(--cl) 0%,var(--cl) 30%,transparent 100%);opacity:.75}
+@keyframes cdrift{from{transform:translateX(-45vw)}to{transform:translateX(110vw)}}
+@media (prefers-reduced-motion:reduce){.clouds .cw{animation-play-state:paused}}
 .ridge{position:absolute;left:0;right:0;bottom:0;width:100%;height:clamp(300px,28vw,360px);z-index:-1;display:block}
 .ridge .mist{opacity:.55;transition:opacity 1s}
 .ridge .radom{fill:rgba(238,242,248,.9);transition:fill 1s}
@@ -56,7 +71,7 @@ button,select{font:inherit;color:inherit}
 .hero[data-sky="night"] .ridge .radom,.hero[data-sky="cloudy-night"] .ridge .radom{fill:rgba(150,165,192,.42)}
 .hero[data-sky="fog"] .ridge .mist,.hero[data-sky="cloudy-day"] .ridge .mist{opacity:1}
 .hero[data-sky="night"] .ridge .mist,.hero[data-sky="cloudy-night"] .ridge .mist{opacity:.2}
-.hero-in{max-width:1200px;margin:0 auto;padding-block:calc(14px + env(safe-area-inset-top,0px)) clamp(250px,25vw,320px);
+.hero-in{text-shadow:0 1px 8px rgba(8,16,36,.28);max-width:1200px;margin:0 auto;padding-block:calc(14px + env(safe-area-inset-top,0px)) clamp(250px,25vw,320px);
   padding-left:max(18px,env(safe-area-inset-left,0px));padding-right:max(18px,env(safe-area-inset-right,0px))}
 .topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
 .brand{font:700 .8rem/1 var(--f-body);letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.75)}
@@ -283,6 +298,7 @@ footer a{color:var(--accent)}
 <body>
 <header class="hero" id="hero" data-sky="night">
   <div class="stars" id="stars"></div>
+  <div class="clouds" id="clouds" aria-hidden="true"></div>
   <svg class="ridge" id="ridge" viewBox="0 0 1200 360" preserveAspectRatio="xMidYMax slice" aria-hidden="true"></svg>
   <div class="hero-in">
     <div class="topbar">
@@ -586,6 +602,7 @@ function renderCurrent(cur, recs, now) {
   $("hero").dataset.sky = skyFor(w.icon, now, sun, w.cloud_cover);
   // Sterne nur so hell, wie die Wolken es zulassen: klar = voll, wolkig = vereinzelt
   $("stars").style.setProperty("--st", w.cloud_cover == null || w.cloud_cover < 30 ? 1 : w.cloud_cover < 50 ? .45 : .2);
+  renderClouds(w);
   const dist = src?.distance != null ? ` · ${Math.round(src.distance / 1000)} km entfernt` : "";
   $("cur-src").textContent = `Messstation ${kurz(src?.station_name) || ORT.name}${dist} · ${hhmm(new Date(w.timestamp))} Uhr`;
   const past = recs.filter(r => new Date(r.timestamp) <= new Date(now - 2.5 * 36e5) && r.temperature != null).pop();
@@ -2271,6 +2288,45 @@ function initRidge() {
     <rect class="mist" x="0" y="225" width="${W}" height="70" fill="url(#mist-g)"/>
     <g fill="rgba(10,24,32,.72)"><path d="${area(near)}"/><path d="${forest(near, 12, 24, 6, 11, 0.92)}"/></g>
     <g fill="#0c1426"><path d="${area(front)}"/><path d="${forest(front, 26, 50, 9, 17, 0.97)}"/></g>`;
+}
+
+/* Wolken im Kopf: Anzahl nach Bewölkungsgrad, Zugrichtung und Tempo nach Wind */
+let CLOUD_KEY = "";
+function cloudSvg(seed) {
+  const r = n => { seed = (seed * 9301 + 49297) % 233280; return seed / 233280 * n; };
+  const puffs = [];
+  const n = 4 + Math.floor(r(3));
+  for (let i = 0; i < n; i++) {
+    const cx = 40 + i * (220 / (n - 1)) + r(20) - 10, rad = 34 + r(26) * (1 - Math.abs(i - (n - 1) / 2) / n);
+    puffs.push([cx, 92 - rad * 0.55, rad]);
+  }
+  const base = `<ellipse cx="150" cy="96" rx="140" ry="26"/>` + puffs.map(([x, y, q]) => `<circle cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" r="${q.toFixed(0)}"/>`).join("");
+  const hi = puffs.map(([x, y, q]) => `<circle cx="${(x - q * .12).toFixed(0)}" cy="${(y - q * .18).toFixed(0)}" r="${(q * .72).toFixed(0)}"/>`).join("");
+  return `<svg viewBox="-20 -10 340 140"><defs><filter id="cb${seed | 0}" x="-20%" y="-30%" width="140%" height="160%"><feGaussianBlur stdDeviation="5"/></filter></defs>
+    <g filter="url(#cb${seed | 0})"><g fill="var(--cl)">${base}</g><g fill="var(--ch)" opacity=".55">${hi}</g></g></svg>`;
+}
+function renderClouds(w) {
+  const box = $("clouds"), cc = w.cloud_cover, icon = w.icon || "";
+  let n = cc == null ? (/cloudy|rain|snow|sleet|thunder|hail/.test(icon) ? 5 : /partly/.test(icon) ? 3 : 0)
+        : cc < 15 ? 0 : cc < 30 ? 1 : cc < 50 ? 3 : cc < 70 ? 5 : cc < 95 ? 7 : 8;
+  if (/rain|snow|sleet|thunder|hail/.test(icon)) n = Math.max(n, 7);
+  const deck = (cc != null && cc >= 95) || /rain|thunder/.test(icon);
+  const wind = w.wind_speed_10 ?? w.wind_speed ?? 10, dir = w.wind_direction_10 ?? w.wind_direction;
+  const rtl = dir != null && dir > 0 && dir < 180;            // Wind aus Osten: Wolken ziehen nach links
+  const dur = Math.round(Math.max(70, 360 / (1 + wind / 15)));
+  const key = [n, deck, rtl, Math.round(dur / 30)].join("|");
+  if (key === CLOUD_KEY) return; CLOUD_KEY = key;
+  box.classList.toggle("rtl", rtl);
+  let h = deck ? '<div class="deck"></div>' : "";
+  for (let i = 0; i < n; i++) {
+    const wpx = 34 + ((i * 37) % 30);                         // Breite in % der Kopfbreite
+    const top = 4 + ((i * 53) % 70);                           // Höhe im oberen Himmel
+    const d = Math.round(dur * (0.75 + ((i * 29) % 50) / 100));
+    const del = -Math.round(d * ((i * 0.618) % 1));             // über die Strecke verteilt
+    const op = deck ? .9 : 0.65 + ((i * 17) % 30) / 100;
+    h += `<div class="cw" style="top:${top}%;width:${wpx}%;opacity:${op.toFixed(2)};--dur:${d}s;--del:${del}s">${cloudSvg(i * 7919 + 13)}</div>`;
+  }
+  box.innerHTML = h;
 }
 
 function initStars() {
