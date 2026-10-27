@@ -8,7 +8,10 @@ Schreibt:
 - pegel/YYYY-MM.csv     stuendliche Pegelwerte aus pegel.json (eigenes Archiv)
 - pegel-tage.csv        Tagesmittel und -maximum je Pegel
 - odl/<kenn>.csv        BfS-Tagesmittel der Ortsdosisleistung je Sonde
-- odl-aktuell.json      je Ort die naechsten Sonden mit Stundenwert, 7-Tage-Stundenverlauf, 7-Tage-Mittel
+- odl-aktuell.json      je Ort die naechsten Sonden mit Stundenwert, 7-Tage-Stundenverlauf, 7-Tage-Mittel,
+                        dazu unter "cz" die naechsten tschechischen Sonden (EURDEP)
+- odl-cz/<id>.csv       eigene Mitschrift der tschechischen Stundenwerte (EURDEP liefert nur den letzten Wert)
+- odl/<id>.csv          auch fuer tschechische Sonden: Tagesmittel aus der eigenen Mitschrift
 - status.json           Zeitpunkte der letzten Laeufe, Fehler je Teil
 
 Jeder Teil ist unabhaengig; ein Fehler in einem Teil laesst die anderen weiterlaufen.
@@ -388,6 +391,12 @@ def teil_odl(status):
     for ort, liste in aktuell["orte"].items():
         for s in liste:
             s.update({k: benoetigt[s["kenn"]].get(k) for k in ("stunden", "mittel7", "fehler") if k in benoetigt[s["kenn"]]})
+    try:
+        ncz = teil_cz(aktuell, st)
+        st.pop("cz_fehler", None)
+    except Exception as e:
+        ncz = 0
+        st["cz_fehler"] = f"{type(e).__name__}: {e}"[:200]
     save_json("odl-aktuell.json", aktuell)
     # Tageswerte (lange Reihe) einmal pro Tag
     if st.get("tag") != NOW.date().isoformat():
@@ -415,7 +424,82 @@ def teil_odl(status):
             with open(p, "w", encoding="utf-8") as f:
                 f.write("datum;usvh\n" + "".join(f"{d};{v}\n" for d, v in sorted(have.items())))
         st["tag"] = NOW.date().isoformat()
-    return f"{len(sonden)} Sonden, {len(benoetigt)} im Archiv"
+    return f"{len(sonden)} Sonden, {len(benoetigt)} im Archiv, {ncz} in Tschechien"
+
+
+# ---------------------------------------------------------------- Strahlung Tschechien (EURDEP, eigene Mitschrift)
+def _num(v):
+    if isinstance(v, str):
+        v = v.replace(",", ".")
+    try:
+        return float(v)
+    except (TypeError, ValueError):
+        return None
+
+
+def eurdep_row(f):
+    p = f.get("properties") or {}
+    lon, lat = ((f.get("geometry") or {}).get("coordinates") or [None, None])[:2]
+    sid = str(p.get("id") or p.get("locality_code") or p.get("code") or f.get("id") or "")
+    cc = str(p.get("country") or p.get("country_code") or re.sub(r"^[^A-Z]*", "", sid)[:2]).upper()
+    v = _num(p.get("value", p.get("val", p.get("dose_rate", p.get("value_nsv")))))
+    unit = str(p.get("unit") or "")
+    if v is not None and (re.search("nSv", unit, re.I) or v > 5):
+        v = v / 1000
+    name = str(p.get("name") or p.get("locality_name") or p.get("site_name") or p.get("locality") or sid)
+    name = re.sub(r"\s*\(.*?\)\s*$", "", name).strip()
+    end = p.get("end_measure") or p.get("end_time") or p.get("endtime") or p.get("time") or p.get("end")
+    key = re.sub(r"[^A-Za-z0-9_-]", "", sid) or re.sub(r"[^A-Za-z0-9]", "", name)
+    return {"kenn": "CZ_" + key, "name": name, "lat": lat, "lon": lon, "wert": round(v, 4) if v is not None else None,
+            "ende": end, "cc": cc}
+
+
+def teil_cz(aktuell, st):
+    fc = bfs({"typeName": "opendata:eurdep_latestValue"})
+    feats = fc.get("features", [])
+    if feats:
+        st["cz_felder"] = sorted((feats[0].get("properties") or {}).keys())[:40]
+    sonden = {}
+    for f in feats:
+        s = eurdep_row(f)
+        if s["cc"] != "CZ" or s["wert"] is None or s["lat"] is None:
+            continue
+        if min(km(lat, lon, s["lat"], s["lon"]) for _, lat, lon in ORTE.values()) > 90:
+            continue
+        o = sonden.get(s["kenn"])
+        if not o or str(s["ende"] or "") > str(o["ende"] or ""):
+            sonden[s["kenn"]] = s
+    grenze = (NOW - timedelta(days=7)).strftime("%Y-%m-%dT%H:%M")
+    for kenn, s in sonden.items():
+        p = path("odl-cz", f"{kenn[3:]}.csv")
+        rows = {}
+        if os.path.exists(p):
+            with open(p, encoding="utf-8") as f:
+                next(f, None)
+                for l in f:
+                    t, v = l.strip().split(";")
+                    rows[t] = v
+        t = str(s["ende"] or NOW.isoformat())[:16]
+        rows[t] = f"{s['wert']:.4f}"
+        with open(p, "w", encoding="utf-8") as f:
+            f.write("zeit;usvh\n" + "".join(f"{k};{v}\n" for k, v in sorted(rows.items())))
+        stunden = [[k, float(v)] for k, v in sorted(rows.items()) if k >= grenze]
+        s["stunden"] = stunden
+        s["mittel7"] = round(sum(v for _, v in stunden) / len(stunden), 4) if stunden else None
+        s["seit"] = min(rows)[:10]
+        # Tagesmittel (nur abgeschlossene Tage, UTC) fuer die lange Reihe
+        tage = {}
+        for k, v in rows.items():
+            tage.setdefault(k[:10], []).append(float(v))
+        heute = NOW.date().isoformat()
+        with open(path("odl", f"{kenn}.csv"), "w", encoding="utf-8") as f:
+            f.write("datum;usvh\n" + "".join(f"{d};{sum(v) / len(v):.4f}\n" for d, v in sorted(tage.items()) if d < heute))
+    aktuell["cz"] = {}
+    for ort, (name, lat, lon) in ORTE.items():
+        near = sorted(sonden.values(), key=lambda s: km(lat, lon, s["lat"], s["lon"]))[:4]
+        aktuell["cz"][ort] = [dict(s, km=round(km(lat, lon, s["lat"], s["lon"]), 1)) for s in near
+                              if km(lat, lon, s["lat"], s["lon"]) < 90]
+    return len(sonden)
 
 
 def main():
