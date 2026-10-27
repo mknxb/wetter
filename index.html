@@ -46,10 +46,29 @@ button,select{font:inherit;color:inherit}
 .hero[data-sky="dusk"]{--sky1:#1d2450;--sky2:#7a4a6e;--sky3:#e08a5c}
 .hero[data-sky="night"]{--sky1:#060b1c;--sky2:#101d40;--sky3:#22325e}
 .hero[data-sky="cloudy-night"]{--sky1:#10172a;--sky2:#1d2840;--sky3:#2f3b55}
+.hero[data-sky="night"][data-moon="1"]{--sky1:#0a1430;--sky2:#172a56;--sky3:#2e4474}
+.hero[data-sky="night"][data-moon="2"]{--sky1:#0e1b3c;--sky2:#203868;--sky3:#3d5888}
+.hero[data-moon="1"] .stars i{opacity:.75}.hero[data-moon="2"] .stars i:nth-child(3n),.hero[data-moon="2"] .stars i:nth-child(3n+1){display:none}
+.hero[data-moon="1"] .clouds,.hero[data-moon="2"] .clouds{--ch:rgba(222,230,248,.7)}
 .stars{position:absolute;inset:0;z-index:-2;opacity:0;transition:opacity 1s}
-.hero[data-sky="night"] .stars{opacity:1}
+.hero[data-sky="night"] .stars{opacity:var(--st,1)}
 .stars i{position:absolute;width:2px;height:2px;border-radius:50%;background:#fff}
 @media (prefers-reduced-motion:no-preference){.stars i{animation:tw 3.5s ease-in-out infinite alternate}@keyframes tw{from{opacity:.25}to{opacity:1}}}
+/* Wolken: Menge nach Bewölkungsgrad, Zugrichtung nach Wind */
+.clouds{position:absolute;left:0;right:0;top:0;height:62%;z-index:-2;pointer-events:none;overflow:hidden;
+  --cl:rgba(255,255,255,.62);--ch:rgba(255,255,255,.75)}
+.hero[data-sky="cloudy-day"] .clouds{--cl:rgba(150,164,184,.7);--ch:rgba(205,214,226,.6)}
+.hero[data-sky="rain"] .clouds{--cl:rgba(96,108,128,.9);--ch:rgba(140,152,170,.85)}
+.hero[data-sky="fog"] .clouds{--cl:rgba(200,207,216,.7);--ch:rgba(225,230,236,.75)}
+.hero[data-sky="dusk"] .clouds{--cl:rgba(150,110,140,.75);--ch:rgba(246,190,160,.8)}
+.hero[data-sky="night"] .clouds{--cl:rgba(80,95,128,.75);--ch:rgba(160,175,206,.5)}
+.hero[data-sky="cloudy-night"] .clouds{--cl:rgba(62,74,102,.85);--ch:rgba(120,134,166,.45)}
+.clouds .cw{position:absolute;left:0;will-change:transform;animation:cdrift var(--dur,300s) linear infinite;animation-delay:var(--del,0s)}
+.clouds.rtl .cw{animation-direction:reverse}
+.clouds svg{display:block;width:100%;height:auto;overflow:visible}
+.clouds .deck{position:absolute;inset:0 0 -20% 0;background:linear-gradient(180deg,var(--cl) 0%,var(--cl) 30%,transparent 100%);opacity:.75}
+@keyframes cdrift{from{transform:translateX(-45vw)}to{transform:translateX(110vw)}}
+@media (prefers-reduced-motion:reduce){.clouds .cw{animation-play-state:paused}}
 .ridge{position:absolute;left:0;right:0;bottom:0;width:100%;height:clamp(300px,28vw,360px);z-index:-1;display:block}
 .ridge .mist{opacity:.55;transition:opacity 1s}
 .ridge .radom{fill:rgba(238,242,248,.9);transition:fill 1s}
@@ -57,7 +76,7 @@ button,select{font:inherit;color:inherit}
 .hero[data-sky="night"] .ridge .radom,.hero[data-sky="cloudy-night"] .ridge .radom{fill:rgba(150,165,192,.42)}
 .hero[data-sky="fog"] .ridge .mist,.hero[data-sky="cloudy-day"] .ridge .mist{opacity:1}
 .hero[data-sky="night"] .ridge .mist,.hero[data-sky="cloudy-night"] .ridge .mist{opacity:.2}
-.hero-in{max-width:1200px;margin:0 auto;padding-block:calc(14px + env(safe-area-inset-top,0px)) clamp(250px,25vw,320px);
+.hero-in{text-shadow:0 1px 8px rgba(8,16,36,.28);max-width:1200px;margin:0 auto;padding-block:calc(14px + env(safe-area-inset-top,0px)) clamp(250px,25vw,320px);
   padding-left:max(18px,env(safe-area-inset-left,0px));padding-right:max(18px,env(safe-area-inset-right,0px))}
 .topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
 .brand{font:700 .8rem/1 var(--f-body);letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.75)}
@@ -284,6 +303,7 @@ footer a{color:var(--accent)}
 <body>
 <header class="hero" id="hero" data-sky="night">
   <div class="stars" id="stars"></div>
+  <div class="clouds" id="clouds" aria-hidden="true"></div>
   <svg class="ridge" id="ridge" viewBox="0 0 1200 360" preserveAspectRatio="xMidYMax slice" aria-hidden="true"></svg>
   <div class="hero-in">
     <div class="topbar">
@@ -549,18 +569,18 @@ async function loadForecast() {
   ]);
   LAST = {recs: wx.weather, now};
   calcRain(wx.weather, wx.sources, cur.weather, now);
-  renderCurrent(cur, wx.weather, now);
+  renderCurrent(cur, wx.weather, now, wx.sources);
   renderChart(wx.weather, now);
   renderTiles(wx.weather, now);
   renderDays(wx.weather, now, cur.weather?.temperature);
 }
 
-function skyFor(icon, now, sun) {
+function skyFor(icon, now, sun, cc) {
   const night = now < sun.rise || now > sun.set;
   const nearEdge = Math.min(Math.abs(now - sun.rise), Math.abs(now - sun.set)) < 45 * 6e4;
   if (/rain|sleet|snow|hail|thunder/.test(icon || "")) return night ? "cloudy-night" : "rain";
   if (icon === "fog") return night ? "cloudy-night" : "fog";
-  if (icon === "cloudy") return night ? "cloudy-night" : "cloudy-day";
+  if (icon === "cloudy" || cc >= 70) return night ? "cloudy-night" : "cloudy-day";
   if (nearEdge) return "dusk";
   return night ? "night" : "day";
 }
@@ -579,14 +599,43 @@ function pressTrend(w, recs, now) {
   const tip = d <= -3.5 ? "Wetterverschlechterung, Wind möglich" : d <= -1.5 ? "eher unbeständiger" : d >= 1.5 ? "Wetterbesserung wahrscheinlich" : "";
   return `<em class="pt3 ${cls}" title="${tip}">${arrow} ${d > 0 ? "+" : ""}${f1(d)} hPa in 3 h · ${word}</em>`;
 }
-function renderCurrent(cur, recs, now) {
-  const w = cur.weather, src = cur.sources?.find(s => s.id === w.source_id) || cur.sources?.[0];
+/* Bewölkung für den Ort: Viele kleine Stationen (z. B. Weiding) messen keine Wolken; Bright Sky nimmt dann
+   den Wert einer anderen, oft weit entfernten Station. Liegt die mehr als 15 km weg, gilt die DWD-Vorhersage
+   (MOSMIX) für genau diesen Ort und diese Stunde. */
+function cloudLocal(cur, recs, now, wxSources) {
+  const w = cur.weather, id = w.fallback_source_ids?.cloud_cover ?? w.source_id;
+  const st = cur.sources?.find(s => s.id === id), km = st?.distance != null ? st.distance / 1000 : null;
+  if (w.cloud_cover != null && km != null && km <= 15) return {cc: w.cloud_cover, txt: null};
+  const fc = new Set((wxSources || []).filter(s => s.observation_type === "forecast").map(s => s.id));
+  const f = recs.find(r => fc.has(r.source_id) && Date.parse(r.timestamp) >= now - 30 * 6e4 && r.cloud_cover != null);
+  if (f) return {cc: f.cloud_cover, txt: `Bewölkung: DWD-Vorhersage für ${ORT.name}${w.cloud_cover != null && st ? ` (Station ${kurz(st.station_name)}, ${Math.round(km)} km: ${Math.round(w.cloud_cover)} %)` : ""}`};
+  return {cc: w.cloud_cover, txt: st && km > 15 ? `Bewölkung von Station ${kurz(st.station_name)}, ${Math.round(km)} km` : null};
+}
+function iconFor(icon, cc, night) {   // Symbol an die Bewölkung des Ortes anpassen (Niederschlag, Nebel bleiben)
+  if (!/^(clear|partly-cloudy|cloudy)/.test(icon || "") || cc == null) return icon;
+  if (cc < 30) return night ? "clear-night" : "clear-day";
+  if (cc < 80) return night ? "partly-cloudy-night" : "partly-cloudy-day";
+  return "cloudy";
+}
+function renderCurrent(cur, recs, now, wxSources) {
+  const src0 = cur.sources?.find(s => s.id === cur.weather.source_id) || cur.sources?.[0];
+  const cl = cloudLocal(cur, recs, now, wxSources), sun0 = sunTimes(now, ORT.lat, ORT.lon);
+  const w = {...cur.weather, cloud_cover: cl.cc, icon: iconFor(cur.weather.icon, cl.cc, now < sun0.rise || now > sun0.set)};
+  cur = {...cur, weather: w}; const src = src0;
   CUR = w;
   const sun = sunTimes(now, ORT.lat, ORT.lon);
   MOON = moonInfo(now);
-  $("hero").dataset.sky = skyFor(w.icon, now, sun);
+  $("hero").dataset.sky = skyFor(w.icon, now, sun, w.cloud_cover);
+  // Sterne nur so hell, wie die Wolken es zulassen: klar = voll, wolkig = vereinzelt
+  $("stars").style.setProperty("--st", w.cloud_cover == null || w.cloud_cover < 30 ? 1 : w.cloud_cover < 50 ? .45 : .2);
+  renderClouds(w);
+  // heller Mond über dem Horizont: Himmel etwas heller, weniger Sterne, Wolken silbern angeleuchtet
+  const moonlit = (now < sun.rise || now > sun.set) && MOON && MOON.fraction > 0.4 && moonAlt(now, ORT.lat, ORT.lon) > 0.08;   // Bogenmaß, ≈ 5°
+  $("hero").dataset.moon = moonlit ? (MOON.fraction > 0.8 ? "2" : "1") : "0";
   const dist = src?.distance != null ? ` · ${Math.round(src.distance / 1000)} km entfernt` : "";
   $("cur-src").textContent = `Messstation ${kurz(src?.station_name) || ORT.name}${dist} · ${hhmm(new Date(w.timestamp))} Uhr`;
+  $("cur-src").title = cl.txt || "";
+  if (cl.txt && /Vorhersage/.test(cl.txt)) $("cur-src").textContent += " · Wolken lt. DWD-Vorhersage";
   const past = recs.filter(r => new Date(r.timestamp) <= new Date(now - 2.5 * 36e5) && r.temperature != null).pop();
   let trend = `<span class="chip"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8h11M9 4l4 4-4 4"/></svg>gleichbleibend</span>`;
   if (past && w.temperature != null) {
@@ -2270,6 +2319,45 @@ function initRidge() {
     <rect class="mist" x="0" y="225" width="${W}" height="70" fill="url(#mist-g)"/>
     <g fill="rgba(10,24,32,.72)"><path d="${area(near)}"/><path d="${forest(near, 12, 24, 6, 11, 0.92)}"/></g>
     <g fill="#0c1426"><path d="${area(front)}"/><path d="${forest(front, 26, 50, 9, 17, 0.97)}"/></g>`;
+}
+
+/* Wolken im Kopf: Anzahl nach Bewölkungsgrad, Zugrichtung und Tempo nach Wind */
+let CLOUD_KEY = "";
+function cloudSvg(seed) {
+  const r = n => { seed = (seed * 9301 + 49297) % 233280; return seed / 233280 * n; };
+  const puffs = [];
+  const n = 4 + Math.floor(r(3));
+  for (let i = 0; i < n; i++) {
+    const cx = 40 + i * (220 / (n - 1)) + r(20) - 10, rad = 34 + r(26) * (1 - Math.abs(i - (n - 1) / 2) / n);
+    puffs.push([cx, 92 - rad * 0.55, rad]);
+  }
+  const base = `<ellipse cx="150" cy="96" rx="140" ry="26"/>` + puffs.map(([x, y, q]) => `<circle cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" r="${q.toFixed(0)}"/>`).join("");
+  const hi = puffs.map(([x, y, q]) => `<circle cx="${(x - q * .12).toFixed(0)}" cy="${(y - q * .18).toFixed(0)}" r="${(q * .72).toFixed(0)}"/>`).join("");
+  return `<svg viewBox="-20 -10 340 140"><defs><filter id="cb${seed | 0}" x="-20%" y="-30%" width="140%" height="160%"><feGaussianBlur stdDeviation="5"/></filter></defs>
+    <g filter="url(#cb${seed | 0})"><g fill="var(--cl)">${base}</g><g fill="var(--ch)" opacity=".55">${hi}</g></g></svg>`;
+}
+function renderClouds(w) {
+  const box = $("clouds"), cc = w.cloud_cover, icon = w.icon || "";
+  let n = cc == null ? (/cloudy|rain|snow|sleet|thunder|hail/.test(icon) ? 5 : /partly/.test(icon) ? 3 : 0)
+        : cc < 15 ? 0 : cc < 30 ? 1 : cc < 50 ? 3 : cc < 70 ? 5 : cc < 95 ? 7 : 8;
+  if (/rain|snow|sleet|thunder|hail/.test(icon)) n = Math.max(n, 7);
+  const deck = (cc != null && cc >= 95) || /rain|thunder/.test(icon);
+  const wind = w.wind_speed_10 ?? w.wind_speed ?? 10, dir = w.wind_direction_10 ?? w.wind_direction;
+  const rtl = dir != null && dir > 0 && dir < 180;            // Wind aus Osten: Wolken ziehen nach links
+  const dur = Math.round(Math.max(70, 360 / (1 + wind / 15)));
+  const key = [n, deck, rtl, Math.round(dur / 30)].join("|");
+  if (key === CLOUD_KEY) return; CLOUD_KEY = key;
+  box.classList.toggle("rtl", rtl);
+  let h = deck ? '<div class="deck"></div>' : "";
+  for (let i = 0; i < n; i++) {
+    const wpx = 34 + ((i * 37) % 30);                         // Breite in % der Kopfbreite
+    const top = 4 + ((i * 53) % 70);                           // Höhe im oberen Himmel
+    const d = Math.round(dur * (0.75 + ((i * 29) % 50) / 100));
+    const del = -Math.round(d * ((i * 0.618) % 1));             // über die Strecke verteilt
+    const op = deck ? .9 : 0.65 + ((i * 17) % 30) / 100;
+    h += `<div class="cw" style="top:${top}%;width:${wpx}%;opacity:${op.toFixed(2)};--dur:${d}s;--del:${del}s">${cloudSvg(i * 7919 + 13)}</div>`;
+  }
+  box.innerHTML = h;
 }
 
 function initStars() {
