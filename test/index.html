@@ -417,6 +417,8 @@ const ORTE = {
   blaibach:  {name:"Blaibach",       lat:49.1636, lon:12.8086},
   koetzting: {name:"Bad Kötzting",   lat:49.1767, lon:12.8547},
   cham:      {name:"Cham",           lat:49.2183, lon:12.6650},
+  walderbach:{name:"Walderbach",     lat:49.1830, lon:12.3830},
+  bruck:     {name:"Bruck i.d.OPf.", lat:49.2464, lon:12.3064},
   furth:     {name:"Furth im Wald",  lat:49.3097, lon:12.8400},
   arber:     {name:"Großer Arber",   lat:49.1125, lon:13.1350},
   zwiesel:   {name:"Zwiesel",        lat:49.0236, lon:13.2312},
@@ -424,7 +426,7 @@ const ORTE = {
   deggendorf:{name:"Deggendorf",     lat:48.8353, lon:12.9644}
 };
 // Gebiete, für die DWD-Warnungen abgefragt werden
-const WARNPUNKTE = ["blaibach","cham","zwiesel","regen","arber","deggendorf"];
+const WARNPUNKTE = ["blaibach","cham","walderbach","zwiesel","regen","arber","deggendorf"];
 
 /* ---------- Hilfen ---------- */
 const $ = id => document.getElementById(id);
@@ -1557,6 +1559,8 @@ const ORT_CFG = {
   blaibach:   {pegel:["15228008","15202300"], uv:"Regensburg", pollen:/Bay\. ?Wald/},
   koetzting:  {pegel:["15228008","15202300"], uv:"Regensburg", pollen:/Bay\. ?Wald/},
   cham:       {pegel:["15204000","15246000"], uv:"Regensburg", pollen:/Bay\. ?Wald/},
+  walderbach: {pegel:["15205501","15207055"], uv:"Regensburg", pollen:/Bay\. ?Wald/},
+  bruck:      {pegel:["15207055","15207507"], uv:"Regensburg", pollen:/nördl\. der Donau/},
   furth:      {pegel:["15243001","15246000"], uv:"Regensburg", pollen:/Bay\. ?Wald/},
   arber:      {pegel:["15221009","15228008"], uv:"Großer Arber", pollen:/Bay\. ?Wald/},
   zwiesel:    {pegel:["15214003","15210206"], uv:"Regensburg", pollen:/Bay\. ?Wald/},
