@@ -457,12 +457,25 @@ def eurdep_row(f):
 
 
 def teil_cz(aktuell, st):
-    try:   # nur die Region abfragen, das ganze Europa-Netz ist groß und langsam
-        fc = bfs({"typeName": "opendata:eurdep_latestValue", "bbox": "48.0,11.0,50.6,14.8,urn:ogc:def:crs:EPSG::4326"})
-    except Exception:
-        fc = {}
+    # wie im Browser erprobt: WFS 1.0.0, bbox in Länge/Breite; nur die Region, das Europa-Netz ist groß
+    fc, info = {}, []
+    for q in ({"version": "1.0.0", "typeName": "opendata:eurdep_latestValue", "bbox": "11.0,48.0,14.8,50.6"},
+              {"version": "1.0.0", "typeName": "opendata:eurdep_latestValue"},
+              {"typeName": "opendata:eurdep_latestValue"}):
+        url = BFS + "?" + urllib.parse.urlencode({"service": "WFS", "version": "1.1.0", "request": "GetFeature",
+                                                   "outputFormat": "application/json", **q})
+        raw = b""
+        try:
+            raw = get_bytes(url, 90)
+            fc = json.loads(raw.decode("utf-8", "replace"))
+            if fc.get("features"):
+                break
+            info.append(f"{q.get('version', '1.1.0')}: leer")
+        except Exception as e:
+            info.append(f"{q.get('version', '1.1.0')}{' bbox' if 'bbox' in q else ''}: {type(e).__name__} {str(e)[:60]} {raw[:80]!r}"[:200])
+    st["cz_versuche"] = info
     if not fc.get("features"):
-        fc = bfs({"typeName": "opendata:eurdep_latestValue"})
+        raise RuntimeError("EURDEP ohne Daten: " + " | ".join(info))
     feats = fc.get("features", [])
     if feats:
         st["cz_felder"] = sorted((feats[0].get("properties") or {}).keys())[:40]
