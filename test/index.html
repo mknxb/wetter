@@ -84,6 +84,13 @@ button,select{font:inherit;color:inherit}
   background:rgba(255,255,255,.08);cursor:pointer;backdrop-filter:blur(6px)}
 .icon-btn svg{width:17px;height:17px}
 .icon-btn.spin svg{animation:sp 1s linear infinite}@keyframes sp{to{transform:rotate(360deg)}}
+.ortzeile{margin-top:26px;display:flex;align-items:center;gap:10px;position:relative}
+.ortzeile .place{margin-top:0}
+.star-btn{display:inline-grid;place-items:center;width:36px;height:36px;border-radius:50%;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.08);cursor:pointer;padding:0;backdrop-filter:blur(6px)}
+.star-btn svg{width:19px;height:19px;fill:none;stroke:rgba(255,255,255,.85);transition:fill .2s,stroke .2s,transform .2s}
+.star-btn[aria-pressed="true"] svg{fill:#f5c84b;stroke:#f5c84b}
+.star-btn:active svg{transform:scale(.85)}
+.star-hint{position:absolute;left:0;top:calc(100% + 6px);z-index:3;font-size:.8rem;color:#fff;background:rgba(10,18,40,.82);border:1px solid rgba(255,255,255,.18);padding:5px 10px;border-radius:999px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .3s;text-shadow:none}.star-hint.on{opacity:1}
 .place{margin-top:26px;position:relative;display:inline-flex;align-items:center;gap:6px}
 .place select{appearance:none;-webkit-appearance:none;background:transparent;border:0;padding:0 26px 0 0;cursor:pointer;
   font:800 clamp(2rem,7vw,2.8rem)/1 var(--f-disp);letter-spacing:.01em;text-transform:uppercase;field-sizing:content;max-width:100%}
@@ -310,8 +317,10 @@ footer a{color:var(--accent)}
       <span class="stand"><span id="stand">lädt …</span>
         <button class="icon-btn" id="reload" type="button" aria-label="Aktualisieren"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg></button></span>
     </div>
-    <div class="place"><label for="ortwahl" hidden>Ort</label><select id="ortwahl"></select>
+    <div class="ortzeile"><div class="place"><label for="ortwahl" hidden>Ort</label><select id="ortwahl"></select>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg></div>
+      <button type="button" class="star-btn" id="ort-star" aria-pressed="false" aria-label="Als Startort merken" title="Als Startort merken"><svg viewBox="0 0 24 24" stroke-linejoin="round" stroke-width="1.8"><path d="M12 3.2l2.6 5.6 6.1.7-4.5 4.2 1.2 6-5.4-3-5.4 3 1.2-6L3.3 9.5l6.1-.7z"/></svg></button>
+      <span class="star-hint" id="star-hint" aria-live="polite"></span></div>
     <div class="station" id="cur-src">&nbsp;</div>
     <div id="cur"><div class="now"><div class="temp">–<sup>°</sup></div></div></div>
   </div>
@@ -550,11 +559,17 @@ function tcol(t, a = 1) {
 }
 
 /* ---------- Ort ---------- */
+/* Startort: jeder Nutzer kann per Stern seinen Ort merken (nur auf diesem Gerät gespeichert) */
+const STARTKEY = "wetter-startort";
+function startOrt() { try { const k = localStorage.getItem(STARTKEY); return ORTE[k] ? k : null; } catch { return null; } }
+function setStartOrt(k) { try { k ? localStorage.setItem(STARTKEY, k) : localStorage.removeItem(STARTKEY); return true; } catch { return false; } }
 function currentOrt() {
   const p = new URLSearchParams(location.search);
   if (p.get("lat") && p.get("lon")) return {key:"custom", name:p.get("name") || "Standort", lat:+p.get("lat"), lon:+p.get("lon")};
   const k = p.get("ort");
-  return ORTE[k] ? {key:k, ...ORTE[k]} : {key:START_ORT, ...ORTE[START_ORT]};
+  if (ORTE[k]) return {key:k, ...ORTE[k]};
+  const s = startOrt() || START_ORT;
+  return {key:s, ...ORTE[s]};
 }
 let ORT = currentOrt();
 let LAST = null, CUR = null; // letzte Vorhersage, für Neuzeichnen bei Größenänderung
@@ -2243,9 +2258,30 @@ function initOrt() {
   sel.innerHTML = Object.entries(ORTE).map(([k, o]) => `<option value="${k}">${esc(o.name)}</option>`).join("")
     + (ORT.key === "custom" ? `<option value="custom">${esc(ORT.name)}</option>` : "");
   sel.value = ORT.key;
+  const star = $("ort-star"), hint = $("star-hint");
+  let hintT;
+  const showStar = () => {
+    const on = startOrt() === ORT.key || (!startOrt() && ORT.key === START_ORT);
+    star.hidden = !ORTE[ORT.key];
+    star.setAttribute("aria-pressed", on);
+    const t = on ? `${ORT.name} ist dein Startort` : `${ORTE[ORT.key]?.name || ""} als Startort merken`;
+    star.setAttribute("aria-label", t); star.title = t;
+  };
+  const say = t => { hint.textContent = t; hint.classList.add("on"); clearTimeout(hintT); hintT = setTimeout(() => hint.classList.remove("on"), 2600); };
+  star.addEventListener("click", () => {
+    const cur = startOrt() || START_ORT;
+    if (cur === ORT.key) {
+      if (ORT.key === START_ORT) { say(`${ORT.name} ist schon Startort`); return; }
+      setStartOrt(null); say(`Startort wieder ${ORTE[START_ORT].name}`);
+    } else if (setStartOrt(ORT.key === START_ORT ? null : ORT.key)) say(`Startort: ${ORT.name}`);
+    else say("Merken hier nicht möglich (privates Surfen?)");
+    showStar();
+  });
+  showStar();
   sel.addEventListener("change", () => {
     if (!ORTE[sel.value]) return;
     ORT = {key: sel.value, ...ORTE[sel.value]};
+    showStar();
     for (const id of ["chart","days","cold"]) $(id).innerHTML = '<div class="load">Lade …</div>';
     $("hours").innerHTML = ""; $("min12").innerHTML = "";
     $("odl").innerHTML = '<div class="load">Lade …</div>'; $("odl-spark").innerHTML = ""; $("odl-cz").innerHTML = ""; $("odl-skala").innerHTML = ""; ODLV.open = null; forceODL = true;
