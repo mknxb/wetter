@@ -461,7 +461,9 @@ def teil_cz(aktuell, st):
     fc, info = {}, []
     for q in ({"version": "1.0.0", "typeName": "opendata:eurdep_latestValue", "bbox": "11.0,48.0,14.8,50.6"},
               {"version": "1.0.0", "typeName": "opendata:eurdep_latestValue"},
-              {"typeName": "opendata:eurdep_latestValue"}):
+              {"typeName": "opendata:eurdep_latestValue"},
+              {"version": "2.0.0", "typeNames": "opendata:eurdep_latestValue", "count": "5000"},
+              {"typeName": "eurdep_latestValue"}):
         url = BFS + "?" + urllib.parse.urlencode({"service": "WFS", "version": "1.1.0", "request": "GetFeature",
                                                    "outputFormat": "application/json", **q})
         raw = b""
