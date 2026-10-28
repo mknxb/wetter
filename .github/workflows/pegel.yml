@@ -11,7 +11,7 @@ concurrency: pegel
 jobs:
   pegel:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -28,7 +28,7 @@ jobs:
       - name: Archiv fortschreiben
         run: python scripts/archiv.py daten-zweig
         continue-on-error: true
-        timeout-minutes: 20
+        timeout-minutes: 30
       - name: Archiv speichern
         run: |
           cd daten-zweig

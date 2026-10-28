@@ -41,7 +41,7 @@ BFS = "https://www.imis.bfs.de/ogc/opendata/ows"
 NOW = datetime.now(timezone.utc)
 
 
-def get_bytes(url, timeout=120):
+def get_bytes(url, timeout=60):
     try:
         with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=timeout) as r:
             return r.read()
@@ -275,20 +275,19 @@ def teil_bayern(status):
 # ---------------------------------------------------------------- Pegel (eigenes Archiv)
 def teil_pegel(status):
     pj = json.load(open("pegel.json", encoding="utf-8"))
-    neu = 0
+    neu, seen = 0, {}
     for s in pj.get("stations", []):
         for t, lvl in s.get("hist", []):
             ts = t[:16]
             mon = ts[:7]
             p = path("pegel", f"{mon}.csv")
             key = f"{ts};{s['id']}"
-            seen = status.setdefault("pegel_seen", {})
             if seen.get(mon) is None:
-                seen[mon] = []
+                seen[mon] = set()
                 if os.path.exists(p):
                     with open(p, encoding="utf-8") as f:
                         next(f, None)
-                        seen[mon] = [";".join(l.split(";")[:2]) for l in f]
+                        seen[mon] = {";".join(l.split(";")[:2]) for l in f}
             if key in seen[mon]:
                 continue
             new_file = not os.path.exists(p)
@@ -296,7 +295,7 @@ def teil_pegel(status):
                 if new_file:
                     f.write("zeit;id;stand_cm\n")
                 f.write(f"{key};{lvl}\n")
-            seen[mon].append(key)
+            seen[mon].add(key)
             neu += 1
     status.pop("pegel_seen", None)
     # Tageswerte neu berechnen (klein, schnell)
@@ -371,7 +370,8 @@ def teil_odl(status):
     aktuell = {"stand": NOW.isoformat(), "orte": {}}
     benoetigt = {}
     for ort, (name, lat, lon) in ORTE.items():
-        near = sorted(sonden, key=lambda s: km(lat, lon, s["lat"], s["lon"]))[:3]
+        near = [s for s in sorted(sonden, key=lambda s: km(lat, lon, s["lat"], s["lon"]))[:6]
+                if km(lat, lon, s["lat"], s["lon"]) <= 60] or sorted(sonden, key=lambda s: km(lat, lon, s["lat"], s["lon"]))[:3]
         liste = []
         for s in near:
             s2 = dict(s, km=round(km(lat, lon, s["lat"], s["lon"]), 1))
@@ -457,7 +457,12 @@ def eurdep_row(f):
 
 
 def teil_cz(aktuell, st):
-    fc = bfs({"typeName": "opendata:eurdep_latestValue"})
+    try:   # nur die Region abfragen, das ganze Europa-Netz ist groß und langsam
+        fc = bfs({"typeName": "opendata:eurdep_latestValue", "bbox": "48.0,11.0,50.6,14.8,urn:ogc:def:crs:EPSG::4326"})
+    except Exception:
+        fc = {}
+    if not fc.get("features"):
+        fc = bfs({"typeName": "opendata:eurdep_latestValue"})
     feats = fc.get("features", [])
     if feats:
         st["cz_felder"] = sorted((feats[0].get("properties") or {}).keys())[:40]
@@ -508,14 +513,18 @@ def main():
     status = load_json("status.json", {})
     status["lauf"] = NOW.isoformat()
     status["fehler"] = {}
-    for name, fn in [("tage", teil_tage), ("bayern", teil_bayern), ("pegel", teil_pegel), ("odl", teil_odl)]:
+    status.pop("pegel_seen", None)
+    # schnelle, häufige Teile zuerst; nach jedem Teil Zwischenstand sichern (falls der Lauf abgebrochen wird)
+    for name, fn in [("pegel", teil_pegel), ("odl", teil_odl), ("tage", teil_tage), ("bayern", teil_bayern)]:
+        t0 = datetime.now(timezone.utc)
         try:
             status.setdefault("ergebnis", {})[name] = fn(status)
             print(name, "ok:", status["ergebnis"][name])
         except Exception as e:
             status["fehler"][name] = f"{type(e).__name__}: {e}"[:300]
             print(name, "Fehler:", e)
-    save_json("status.json", status)
+        status.setdefault("dauer_s", {})[name] = round((datetime.now(timezone.utc) - t0).total_seconds())
+        save_json("status.json", status)
 
 
 if __name__ == "__main__":
