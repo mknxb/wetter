@@ -472,7 +472,7 @@ def teil_cz(aktuell, st):
                 break
             info.append(f"{q.get('version', '1.1.0')}: leer")
         except Exception as e:
-            info.append(f"{q.get('version', '1.1.0')}{' bbox' if 'bbox' in q else ''}: {type(e).__name__} {str(e)[:60]} {raw[:80]!r}"[:200])
+            info.append(f"{q.get('version', '1.1.0')}{' bbox' if 'bbox' in q else ''}: {type(e).__name__} {re.sub(r'\\s+', ' ', re.sub(r'<[^>]+>', ' ', raw.decode('utf-8', 'replace')))[:300] if raw else str(e)[:120]}"[:400])
     st["cz_versuche"] = info
     if not fc.get("features"):
         raise RuntimeError("EURDEP ohne Daten: " + " | ".join(info))
