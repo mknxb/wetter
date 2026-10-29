@@ -524,13 +524,46 @@ def teil_cz(aktuell, st):
     return len(sonden)
 
 
+def teil_probe(status):
+    """Einmalige Erkundung: Woher kommen tschechische Strahlungswerte noch? (Ergebnis in status.json)"""
+    pr = status.setdefault("probe", {})
+    if pr.get("tag") == NOW.date().isoformat():
+        return "heute schon erkundet"
+    out = {}
+    try:
+        cap = get_bytes(BFS + "?service=WFS&request=GetCapabilities", 60).decode("utf-8", "replace")
+        out["bfs_eurdep_layer"] = sorted(set(re.findall(r"<(?:wfs:)?Name>([^<]*eurdep[^<]*)</", cap, re.I)))
+    except Exception as e:
+        out["bfs_cap"] = str(e)[:150]
+    try:
+        page = get_bytes("https://www.suro.cz/aplikace/monras/tabulky/svz", 60).decode("utf-8", "replace")
+        scripts = re.findall(r'<script[^>]+src="([^"]+)"', page)
+        out["suro_scripts"] = scripts[:15]
+        out["suro_hinweise"] = sorted(set(re.findall(r'["\']([^"\'\s]*(?:api|json|ajax|data|svz)[^"\'\s]*)["\']', page, re.I)))[:30]
+        js = {}
+        for src in scripts[:15]:
+            if not re.search(r"monras|app|main|svz|tab", src, re.I):
+                continue
+            url = urllib.parse.urljoin("https://www.suro.cz/aplikace/monras/tabulky/svz", src)
+            try:
+                t = get_bytes(url, 60).decode("utf-8", "replace")
+                js[src] = sorted(set(re.findall(r'["\'`]([^"\'`\s]*(?:/api/|\.json|ajax|/data/|svz)[^"\'`\s]*)["\'`]', t, re.I)))[:20]
+            except Exception as e:
+                js[src] = str(e)[:100]
+        out["suro_js"] = js
+    except Exception as e:
+        out["suro"] = str(e)[:150]
+    pr.clear(); pr.update(out); pr["tag"] = NOW.date().isoformat()
+    return "erkundet"
+
+
 def main():
     status = load_json("status.json", {})
     status["lauf"] = NOW.isoformat()
     status["fehler"] = {}
     status.pop("pegel_seen", None)
     # schnelle, häufige Teile zuerst; nach jedem Teil Zwischenstand sichern (falls der Lauf abgebrochen wird)
-    for name, fn in [("pegel", teil_pegel), ("odl", teil_odl), ("tage", teil_tage), ("bayern", teil_bayern)]:
+    for name, fn in [("pegel", teil_pegel), ("odl", teil_odl), ("tage", teil_tage), ("bayern", teil_bayern), ("probe", teil_probe)]:
         t0 = datetime.now(timezone.utc)
         try:
             status.setdefault("ergebnis", {})[name] = fn(status)
