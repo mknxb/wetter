@@ -524,43 +524,41 @@ def teil_cz(aktuell, st):
     return len(sonden)
 
 
+SURO = "https://www.suro.cz/aplikace/monras/"
+
+
+def suro_svz(zhp):
+    """Aktuelle Stundenwerte des tschechischen Frühwarnnetzes (SÚRO MonRaS), so abgefragt wie die öffentliche Tabelle:
+    Seite laden (Sitzungs-Cookie, CSRF-Token), dann POST an svz.json."""
+    import http.cookiejar
+    jar = http.cookiejar.CookieJar()
+    op = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
+    with op.open(urllib.request.Request(SURO + "tabulky/svz", headers=UA), timeout=60) as r:
+        page = r.read().decode("utf-8", "replace")
+    tok = re.search(r'name="_csrf"\s+content="([^"]+)"', page) or re.search(r'content="([^"]+)"\s+name="_csrf"', page)
+    hdr = re.search(r'name="_csrf_header"\s+content="([^"]+)"', page) or re.search(r'content="([^"]+)"\s+name="_csrf_header"', page)
+    h = {**UA, "X-Requested-With": "XMLHttpRequest", "Accept": "application/json, text/javascript, */*; q=0.01",
+         "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8", "Referer": SURO + "tabulky/svz", "Origin": "https://www.suro.cz"}
+    if tok and hdr:
+        h[hdr.group(1)] = tok.group(1)
+    body = urllib.parse.urlencode({"draw": "1", "start": "0", "length": "-1", "order[0][column]": "3", "order[0][dir]": "asc",
+                                   "search[value]": "", "search[regex]": "false"}).encode()
+    with op.open(urllib.request.Request(SURO + f"tabulky/svz.json?zhp={'true' if zhp else 'false'}", data=body, headers=h), timeout=60) as r:
+        return r.read().decode("utf-8", "replace")
+
+
 def teil_probe(status):
     """Einmalige Erkundung: Woher kommen tschechische Strahlungswerte noch? (Ergebnis in status.json)"""
     pr = status.setdefault("probe", {})
-    if pr.get("tag") == NOW.date().isoformat() and pr.get("v") == 5:
+    if pr.get("tag") == NOW.date().isoformat() and pr.get("v") == 6:
         return "heute schon erkundet"
-    out = {"v": 5}
-    base = "https://www.suro.cz/aplikace/monras/"
-    def hole(url, data=None, ct=None):
-        h = {**UA, "X-Requested-With": "XMLHttpRequest", "Accept": "application/json, text/javascript, */*; q=0.01", "Referer": base + "tabulky/svz"}
-        if ct: h["Content-Type"] = ct
-        try:
-            with urllib.request.urlopen(urllib.request.Request(url, data=data, headers=h), timeout=60) as r:
-                t = r.read().decode("utf-8", "replace"); return f"OK {len(t)}: " + t[:2500]
-        except urllib.error.HTTPError as e:
-            return f"HTTP {e.code}"
-        except Exception as e:
-            return str(e)[:150]
+    out = {"v": 6}
     try:
-        main = get_bytes(base + "resources/js/main.js", 60).decode("utf-8", "replace")
-        out["svz_main_rest"] = main[1500:6000]
-        mods = sorted(set(re.findall(r"['\"]((?:app|modules?|js|monras)/[\w/.-]+)['\"]", main)))[:25]
-        out["svz_module"] = mods
-        js = {}
-        for m in mods:
-            url = base + "resources/js/" + (m if m.endswith(".js") else m + ".js")
-            try:
-                t = get_bytes(url, 60).decode("utf-8", "replace")
-            except Exception as e:
-                continue
-            hits = [t[max(0, x.start() - 500):x.end() + 700] for x in re.finditer(r"data\(['\"]ajax|ajax-table|\$\.ajax|ajax\s*:|urlWithLocale\s*=|function urlWithLocale", t)][:3]
-            if hits:
-                js[m] = hits
-        out["svz_js"] = js
+        roh = suro_svz(False)
+        out["svz_ok_len"] = len(roh)
+        out["svz_ok_anfang"] = roh[:3000]
     except Exception as e:
-        out["svz_js"] = str(e)[:150]
-    for path in ("cs/tabulky/svz.json?zhp=false", "tabulky/svz.json?zhp=false&lng=cs_CZ"):
-        out["svz_post_" + path] = hole(base + path, b"", "application/x-www-form-urlencoded; charset=UTF-8")
+        out["svz_fehler"] = f"{type(e).__name__}: {e}"[:300]
     try:
         cap = get_bytes(BFS + "?service=WFS&request=GetCapabilities", 60).decode("utf-8", "replace")
         out["bfs_eurdep_layer"] = sorted(set(re.findall(r"<(?:wfs:)?Name>([^<]*eurdep[^<]*)</", cap, re.I)))
