@@ -527,9 +527,17 @@ def teil_cz(aktuell, st):
 def teil_probe(status):
     """Einmalige Erkundung: Woher kommen tschechische Strahlungswerte noch? (Ergebnis in status.json)"""
     pr = status.setdefault("probe", {})
-    if pr.get("tag") == NOW.date().isoformat():
+    if pr.get("tag") == NOW.date().isoformat() and pr.get("v") == 2:
         return "heute schon erkundet"
-    out = {}
+    out = {"v": 2}
+    for z in ("false", "true"):
+        try:
+            raw = get_bytes(f"https://www.suro.cz/aplikace/monras/tabulky/svz.json?zhp={z}", 60).decode("utf-8", "replace")
+            out[f"svz_{z}_len"] = len(raw)
+            out[f"svz_{z}_anfang"] = raw[:2500]
+            out[f"svz_{z}_namen"] = sorted(set(re.findall(r"P[řr]imda|Chur[áa][ňn]ov|Plze[ňn][^\"]{0,20}|Kocelovice|Klatovy|Doma[žz]lice|Susice|Sušice|Tachov|Vimperk|Prachatice|Strakonice|[ČC]esk[ée] Bud[ěe]jovice[^\"]{0,15}|Temel[íi]n[^\"]{0,15}", raw)))
+        except Exception as e:
+            out[f"svz_{z}"] = str(e)[:150]
     try:
         cap = get_bytes(BFS + "?service=WFS&request=GetCapabilities", 60).decode("utf-8", "replace")
         out["bfs_eurdep_layer"] = sorted(set(re.findall(r"<(?:wfs:)?Name>([^<]*eurdep[^<]*)</", cap, re.I)))
@@ -553,6 +561,7 @@ def teil_probe(status):
         out["suro_js"] = js
     except Exception as e:
         out["suro"] = str(e)[:150]
+    out.update({k: v for k, v in pr.items() if k.startswith(("bfs", "suro"))})
     pr.clear(); pr.update(out); pr["tag"] = NOW.date().isoformat()
     return "erkundet"
 
