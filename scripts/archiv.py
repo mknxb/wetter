@@ -358,7 +358,17 @@ def bfs(params):
 
 def teil_odl(status):
     st = status.setdefault("odl", {})
-    latest = bfs({"typeName": "opendata:odlinfo_odl_1h_latest"})
+    try:
+        latest = bfs({"typeName": "opendata:odlinfo_odl_1h_latest"})
+    except Exception as e:
+        # BfS gerade nicht lesbar: deutschen Stand behalten, Tschechien trotzdem aktualisieren
+        aktuell = load_json("odl-aktuell.json", {"orte": {}})
+        try:
+            ncz = teil_cz(aktuell, st); st.pop("cz_fehler", None)
+            save_json("odl-aktuell.json", aktuell)
+        except Exception as e2:
+            st["cz_fehler"] = f"{type(e2).__name__}: {e2}"[:200]
+        raise RuntimeError(f"BfS: {type(e).__name__}: {e}"[:200])
     sonden = []
     for f in latest.get("features", []):
         p = f.get("properties", {})
