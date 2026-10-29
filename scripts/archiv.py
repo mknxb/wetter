@@ -527,12 +527,23 @@ def teil_cz(aktuell, st):
 def teil_probe(status):
     """Einmalige Erkundung: Woher kommen tschechische Strahlungswerte noch? (Ergebnis in status.json)"""
     pr = status.setdefault("probe", {})
-    if pr.get("tag") == NOW.date().isoformat() and pr.get("v") == 2:
+    if pr.get("tag") == NOW.date().isoformat() and pr.get("v") == 3:
         return "heute schon erkundet"
-    out = {"v": 2}
+    out = {"v": 3}
+    try:
+        page = get_bytes("https://www.suro.cz/aplikace/monras/tabulky/svz", 60).decode("utf-8", "replace")
+        out["svz_kontext"] = [page[max(0, m.start() - 700):m.end() + 900] for m in re.finditer(r"svz\.json", page)][:2]
+    except Exception as e:
+        out["svz_kontext"] = str(e)[:150]
     for z in ("false", "true"):
         try:
-            raw = get_bytes(f"https://www.suro.cz/aplikace/monras/tabulky/svz.json?zhp={z}", 60).decode("utf-8", "replace")
+            body = urllib.parse.urlencode({"draw": "1", "start": "0", "length": "1000"}).encode()
+            req = urllib.request.Request(f"https://www.suro.cz/aplikace/monras/tabulky/svz.json?zhp={z}", data=body,
+                                         headers={**UA, "X-Requested-With": "XMLHttpRequest",
+                                                  "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+                                                  "Referer": "https://www.suro.cz/aplikace/monras/tabulky/svz"})
+            with urllib.request.urlopen(req, timeout=60) as r:
+                raw = r.read().decode("utf-8", "replace")
             out[f"svz_{z}_len"] = len(raw)
             out[f"svz_{z}_anfang"] = raw[:2500]
             out[f"svz_{z}_namen"] = sorted(set(re.findall(r"P[řr]imda|Chur[áa][ňn]ov|Plze[ňn][^\"]{0,20}|Kocelovice|Klatovy|Doma[žz]lice|Susice|Sušice|Tachov|Vimperk|Prachatice|Strakonice|[ČC]esk[ée] Bud[ěe]jovice[^\"]{0,15}|Temel[íi]n[^\"]{0,15}", raw)))
