@@ -527,36 +527,40 @@ def teil_cz(aktuell, st):
 def teil_probe(status):
     """Einmalige Erkundung: Woher kommen tschechische Strahlungswerte noch? (Ergebnis in status.json)"""
     pr = status.setdefault("probe", {})
-    if pr.get("tag") == NOW.date().isoformat() and pr.get("v") == 4:
+    if pr.get("tag") == NOW.date().isoformat() and pr.get("v") == 5:
         return "heute schon erkundet"
-    out = {"v": 4}
+    out = {"v": 5}
     base = "https://www.suro.cz/aplikace/monras/"
-    def hole(url, data=None, ct=None, accept="application/json, text/javascript, */*; q=0.01"):
-        h = {**UA, "X-Requested-With": "XMLHttpRequest", "Accept": accept, "Referer": base + "tabulky/svz"}
+    def hole(url, data=None, ct=None):
+        h = {**UA, "X-Requested-With": "XMLHttpRequest", "Accept": "application/json, text/javascript, */*; q=0.01", "Referer": base + "tabulky/svz"}
         if ct: h["Content-Type"] = ct
         try:
             with urllib.request.urlopen(urllib.request.Request(url, data=data, headers=h), timeout=60) as r:
-                t = r.read().decode("utf-8", "replace"); return f"OK {len(t)}: " + t[:1800]
+                t = r.read().decode("utf-8", "replace"); return f"OK {len(t)}: " + t[:2500]
         except urllib.error.HTTPError as e:
-            return f"HTTP {e.code}: " + e.read()[:300].decode("utf-8", "replace")
+            return f"HTTP {e.code}"
         except Exception as e:
             return str(e)[:150]
-    u = base + "tabulky/svz.json?zhp=false"
-    out["svz_get_json"] = hole(u)
-    out["svz_post_json"] = hole(u, json.dumps({"draw": 1, "start": 0, "length": 1000}).encode(), "application/json")
-    out["svz_post_leer"] = hole(u, b"", "application/x-www-form-urlencoded; charset=UTF-8")
     try:
-        page = get_bytes(base + "tabulky/svz", 60).decode("utf-8", "replace")
-        mains = re.findall(r'data-main="([^"]+)"', page)
-        out["svz_datamain"] = mains
+        main = get_bytes(base + "resources/js/main.js", 60).decode("utf-8", "replace")
+        out["svz_main_rest"] = main[1500:6000]
+        mods = sorted(set(re.findall(r"['\"]((?:app|modules?|js|monras)/[\w/.-]+)['\"]", main)))[:25]
+        out["svz_module"] = mods
         js = {}
-        for m in mains[:2]:
-            url = urllib.parse.urljoin(base + "tabulky/svz", m if m.endswith(".js") else m + ".js")
-            t = get_bytes(url, 60).decode("utf-8", "replace")
-            js[url] = [t[max(0, x.start() - 400):x.end() + 600] for x in re.finditer(r"ajax-table|data-ajax|\.DataTable|ajax\s*:", t)][:3] or t[:1500]
+        for m in mods:
+            url = base + "resources/js/" + (m if m.endswith(".js") else m + ".js")
+            try:
+                t = get_bytes(url, 60).decode("utf-8", "replace")
+            except Exception as e:
+                continue
+            hits = [t[max(0, x.start() - 500):x.end() + 700] for x in re.finditer(r"data\(['\"]ajax|ajax-table|\$\.ajax|ajax\s*:|urlWithLocale\s*=|function urlWithLocale", t)][:3]
+            if hits:
+                js[m] = hits
         out["svz_js"] = js
     except Exception as e:
         out["svz_js"] = str(e)[:150]
+    for path in ("cs/tabulky/svz.json?zhp=false", "tabulky/svz.json?zhp=false&lng=cs_CZ"):
+        out["svz_post_" + path] = hole(base + path, b"", "application/x-www-form-urlencoded; charset=UTF-8")
     try:
         cap = get_bytes(BFS + "?service=WFS&request=GetCapabilities", 60).decode("utf-8", "replace")
         out["bfs_eurdep_layer"] = sorted(set(re.findall(r"<(?:wfs:)?Name>([^<]*eurdep[^<]*)</", cap, re.I)))
