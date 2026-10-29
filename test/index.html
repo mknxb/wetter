@@ -406,7 +406,7 @@ footer a{color:var(--accent)}
     <li>Wetter, Vorhersage, Radar, Warnungen: Deutscher Wetterdienst (DWD Open Data) über <a href="https://brightsky.dev" target="_blank" rel="noopener">Bright Sky</a>; tschechische Wetterstationen über den internationalen SYNOP-Austausch</li>
     <li>UV-Index, Pollenflug, Biowetter, Klima-Tageswerte seit 1991, Bayern-Jahresmittel seit 1881: <a href="https://opendata.dwd.de" target="_blank" rel="noopener">DWD Open Data</a></li>
     <li>Pegel und Speicher: <a href="https://www.hnd.bayern.de" target="_blank" rel="noopener">Hochwassernachrichtendienst Bayern</a> (LfU)</li>
-    <li>Strahlung: <a href="https://odlinfo.bfs.de" target="_blank" rel="noopener">BfS-Messnetz ODL</a>; Tschechien über den europäischen Austausch EURDEP</li>
+    <li>Strahlung: <a href="https://odlinfo.bfs.de" target="_blank" rel="noopener">BfS-Messnetz ODL</a>; Tschechien: Frühwarnnetz der Strahlenschutzbehörde <a href="https://www.suro.cz/aplikace/monras/tabulky/svz" target="_blank" rel="noopener">SÚRO</a> (MonRaS)</li>
     <li>Polarlicht (Kp-Index): <a href="https://www.swpc.noaa.gov" target="_blank" rel="noopener">NOAA SWPC</a> · Karte: © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>-Mitwirkende</li>
     <li>Eigene Berechnungen: Waldbrandindex (FWI), Sonne und Mond, Signale; eigenes Archiv für Pegel und Strahlung</li>
   </ul>
@@ -1957,7 +1957,7 @@ async function loadODLOrt(force) {
   const cz = ARC.odlAkt?.cz?.[ortKey()];
   if (cz && cz.length) {
     cz.forEach(s => ODLV.sonden[s.kenn] = s); odlEinordnung();
-    $("odl-cz").innerHTML = '<div class="subh"><span class="flag">CZ</span>Tschechien <small>EURDEP · eigene Aufzeichnung</small></div>' + cz.map(s => `<div class="od od2 odx" role="button" tabindex="0" data-kenn="${esc(s.kenn)}" aria-expanded="false">
+    $("odl-cz").innerHTML = '<div class="subh"><span class="flag">CZ</span>Tschechien <small>SÚRO · eigene Aufzeichnung</small></div>' + cz.map(s => `<div class="od od2 odx" role="button" tabindex="0" data-kenn="${esc(s.kenn)}" aria-expanded="false">
       <div class="nm"><b>${esc(s.name)}</b><small>${Math.round(s.km)} km${s.ende ? " · " + hhmm(new Date(s.ende)) + " Uhr" : ""}${s.mittel7 ? " · Wochenmittel " + fmt3(s.mittel7) : ""}</small></div>
       <span class="ov">${fmt3(s.wert)}</span></div>`).join("");
   } else loadCZ().catch(() => { $("odl-cz").innerHTML = '<div class="note">Tschechische Werte gerade nicht abrufbar.</div>'; });

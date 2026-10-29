@@ -456,41 +456,59 @@ def eurdep_row(f):
             "ende": end, "cc": cc}
 
 
+# Lage der tschechischen Messstellen (SÚRO liefert keine Koordinaten); Schlüssel = Namensanfang ohne Akzente
+CZ_LAGE = {
+    "primda": (49.669, 12.678), "churanov": (49.068, 13.615), "kocelovice": (49.467, 13.838),
+    "klatovy": (49.396, 13.295), "domazlice": (49.440, 12.930), "susice": (49.231, 13.520),
+    "tachov": (49.795, 12.633), "plzen": (49.747, 13.378), "strakonice": (49.261, 13.902),
+    "vimperk": (49.053, 13.783), "prachatice": (49.013, 13.997), "horazdovice": (49.321, 13.701),
+    "nyrsko": (49.293, 13.144), "zelezna ruda": (49.137, 13.235), "kdyne": (49.391, 13.040),
+    "stod": (49.639, 13.165), "rokycany": (49.743, 13.594), "pisek": (49.309, 14.148),
+    "ceske budejovice": (48.952, 14.470), "cheb": (50.080, 12.370), "marianske lazne": (49.965, 12.701),
+    "karlovy vary": (50.231, 12.871), "horsovsky tyn": (49.530, 12.944), "bela nad radbuzou": (49.591, 12.718),
+}
+
+
+def _ascii(t):
+    import unicodedata
+    return unicodedata.normalize("NFKD", t).encode("ascii", "ignore").decode().lower().strip()
+
+
 def teil_cz(aktuell, st):
-    # wie im Browser erprobt: WFS 1.0.0, bbox in Länge/Breite; nur die Region, das Europa-Netz ist groß
-    fc, info = {}, []
-    for q in ({"version": "1.0.0", "typeName": "opendata:eurdep_latestValue", "bbox": "11.0,48.0,14.8,50.6"},
-              {"version": "1.0.0", "typeName": "opendata:eurdep_latestValue"},
-              {"typeName": "opendata:eurdep_latestValue"},
-              {"version": "2.0.0", "typeNames": "opendata:eurdep_latestValue", "count": "5000"},
-              {"typeName": "eurdep_latestValue"}):
-        url = BFS + "?" + urllib.parse.urlencode({"service": "WFS", "version": "1.1.0", "request": "GetFeature",
-                                                   "outputFormat": "application/json", **q})
-        raw = b""
+    """Tschechische Ortsdosisleistung vom Frühwarnnetz SÚRO (MonRaS). EURDEP beim BfS liefert seit 27.10.2026 nicht mehr."""
+    rows, ohne = [], set()
+    for zhp in (False, True):
         try:
-            raw = get_bytes(url, 90)
-            fc = json.loads(raw.decode("utf-8", "replace"))
-            if fc.get("features"):
-                break
-            info.append(f"{q.get('version', '1.1.0')}: leer")
+            rows += json.loads(suro_svz(zhp)).get("data", [])
         except Exception as e:
-            info.append(f"{q.get('version', '1.1.0')}{' bbox' if 'bbox' in q else ''}: {type(e).__name__} {re.sub(r'\s+', ' ', re.sub(r'<[^>]+>', ' ', raw.decode('utf-8', 'replace')))[:300] if raw else str(e)[:120]}"[:400])
-    st["cz_versuche"] = info
-    if not fc.get("features"):
-        raise RuntimeError("EURDEP ohne Daten: " + " | ".join(info))
-    feats = fc.get("features", [])
-    if feats:
-        st["cz_felder"] = sorted((feats[0].get("properties") or {}).keys())[:40]
+            st.setdefault("cz_fehler_teil", {})[str(zhp)] = f"{type(e).__name__}: {e}"[:200]
+    if not rows:
+        raise RuntimeError("SÚRO ohne Daten: " + json.dumps(st.get("cz_fehler_teil", {}))[:300])
+    st.pop("cz_versuche", None)
     sonden = {}
-    for f in feats:
-        s = eurdep_row(f)
-        if s["cc"] != "CZ" or s["wert"] is None or s["lat"] is None:
+    for r in rows:
+        name, v = str(r.get("mermisto") or "").strip(), r.get("hodnotaPrumer")
+        if not name or v is None:
             continue
-        if min(km(lat, lon, s["lat"], s["lon"]) for _, lat, lon in ORTE.values()) > 90:
+        key = next((k for k in CZ_LAGE if _ascii(name).startswith(k)), None)
+        if not key:
+            ohne.add(name)
             continue
+        lat, lon = CZ_LAGE[key]
+        if min(km(la, lo, lat, lon) for _, la, lo in ORTE.values()) > 90:
+            continue
+        try:
+            beginn = datetime.fromisoformat(str(r["datum"]).replace("Z", "+00:00"))
+        except Exception:
+            beginn = NOW
+        s = {"kenn": f"CZ_{r.get('idMermisto')}", "name": name, "lat": lat, "lon": lon, "cc": "CZ",
+             "wert": round(float(v) / 1000, 4), "ende": (beginn + timedelta(hours=1)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+             "betreiber": r.get("provozovatel")}
         o = sonden.get(s["kenn"])
-        if not o or str(s["ende"] or "") > str(o["ende"] or ""):
+        if not o or s["ende"] > o["ende"]:
             sonden[s["kenn"]] = s
+    st["cz_quelle"] = "SÚRO MonRaS"
+    st["cz_ohne_lage"] = sorted(ohne)[:80]
     grenze = (NOW - timedelta(days=7)).strftime("%Y-%m-%dT%H:%M")
     for kenn, s in sonden.items():
         p = path("odl-cz", f"{kenn[3:]}.csv")
@@ -593,7 +611,7 @@ def main():
     status["fehler"] = {}
     status.pop("pegel_seen", None)
     # schnelle, häufige Teile zuerst; nach jedem Teil Zwischenstand sichern (falls der Lauf abgebrochen wird)
-    for name, fn in [("pegel", teil_pegel), ("odl", teil_odl), ("tage", teil_tage), ("bayern", teil_bayern), ("probe", teil_probe)]:
+    for name, fn in [("pegel", teil_pegel), ("odl", teil_odl), ("tage", teil_tage), ("bayern", teil_bayern)]:
         t0 = datetime.now(timezone.utc)
         try:
             status.setdefault("ergebnis", {})[name] = fn(status)
