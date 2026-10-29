@@ -527,28 +527,36 @@ def teil_cz(aktuell, st):
 def teil_probe(status):
     """Einmalige Erkundung: Woher kommen tschechische Strahlungswerte noch? (Ergebnis in status.json)"""
     pr = status.setdefault("probe", {})
-    if pr.get("tag") == NOW.date().isoformat() and pr.get("v") == 3:
+    if pr.get("tag") == NOW.date().isoformat() and pr.get("v") == 4:
         return "heute schon erkundet"
-    out = {"v": 3}
-    try:
-        page = get_bytes("https://www.suro.cz/aplikace/monras/tabulky/svz", 60).decode("utf-8", "replace")
-        out["svz_kontext"] = [page[max(0, m.start() - 700):m.end() + 900] for m in re.finditer(r"svz\.json", page)][:2]
-    except Exception as e:
-        out["svz_kontext"] = str(e)[:150]
-    for z in ("false", "true"):
+    out = {"v": 4}
+    base = "https://www.suro.cz/aplikace/monras/"
+    def hole(url, data=None, ct=None, accept="application/json, text/javascript, */*; q=0.01"):
+        h = {**UA, "X-Requested-With": "XMLHttpRequest", "Accept": accept, "Referer": base + "tabulky/svz"}
+        if ct: h["Content-Type"] = ct
         try:
-            body = urllib.parse.urlencode({"draw": "1", "start": "0", "length": "1000"}).encode()
-            req = urllib.request.Request(f"https://www.suro.cz/aplikace/monras/tabulky/svz.json?zhp={z}", data=body,
-                                         headers={**UA, "X-Requested-With": "XMLHttpRequest",
-                                                  "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-                                                  "Referer": "https://www.suro.cz/aplikace/monras/tabulky/svz"})
-            with urllib.request.urlopen(req, timeout=60) as r:
-                raw = r.read().decode("utf-8", "replace")
-            out[f"svz_{z}_len"] = len(raw)
-            out[f"svz_{z}_anfang"] = raw[:2500]
-            out[f"svz_{z}_namen"] = sorted(set(re.findall(r"P[řr]imda|Chur[áa][ňn]ov|Plze[ňn][^\"]{0,20}|Kocelovice|Klatovy|Doma[žz]lice|Susice|Sušice|Tachov|Vimperk|Prachatice|Strakonice|[ČC]esk[ée] Bud[ěe]jovice[^\"]{0,15}|Temel[íi]n[^\"]{0,15}", raw)))
+            with urllib.request.urlopen(urllib.request.Request(url, data=data, headers=h), timeout=60) as r:
+                t = r.read().decode("utf-8", "replace"); return f"OK {len(t)}: " + t[:1800]
+        except urllib.error.HTTPError as e:
+            return f"HTTP {e.code}: " + e.read()[:300].decode("utf-8", "replace")
         except Exception as e:
-            out[f"svz_{z}"] = str(e)[:150]
+            return str(e)[:150]
+    u = base + "tabulky/svz.json?zhp=false"
+    out["svz_get_json"] = hole(u)
+    out["svz_post_json"] = hole(u, json.dumps({"draw": 1, "start": 0, "length": 1000}).encode(), "application/json")
+    out["svz_post_leer"] = hole(u, b"", "application/x-www-form-urlencoded; charset=UTF-8")
+    try:
+        page = get_bytes(base + "tabulky/svz", 60).decode("utf-8", "replace")
+        mains = re.findall(r'data-main="([^"]+)"', page)
+        out["svz_datamain"] = mains
+        js = {}
+        for m in mains[:2]:
+            url = urllib.parse.urljoin(base + "tabulky/svz", m if m.endswith(".js") else m + ".js")
+            t = get_bytes(url, 60).decode("utf-8", "replace")
+            js[url] = [t[max(0, x.start() - 400):x.end() + 600] for x in re.finditer(r"ajax-table|data-ajax|\.DataTable|ajax\s*:", t)][:3] or t[:1500]
+        out["svz_js"] = js
+    except Exception as e:
+        out["svz_js"] = str(e)[:150]
     try:
         cap = get_bytes(BFS + "?service=WFS&request=GetCapabilities", 60).decode("utf-8", "replace")
         out["bfs_eurdep_layer"] = sorted(set(re.findall(r"<(?:wfs:)?Name>([^<]*eurdep[^<]*)</", cap, re.I)))
