@@ -575,6 +575,50 @@ def suro_svz(zhp):
         return r.read().decode("utf-8", "replace")
 
 
+def utm32_nach_wgs84(e, n):
+    """ETRS89/UTM Zone 32N -> Breite, Länge (Krüger-Reihe, genau auf wenige Meter)."""
+    a, f, k0 = 6378137.0, 1 / 298.257222101, 0.9996
+    n_ = f / (2 - f); A = a / (1 + n_) * (1 + n_ ** 2 / 4 + n_ ** 4 / 64)
+    b1, b2, b3 = n_ / 2 - 2 * n_ ** 2 / 3 + 37 * n_ ** 3 / 96, n_ ** 2 / 48 + n_ ** 3 / 15, 17 * n_ ** 3 / 480
+    d1, d2, d3 = 2 * n_ - 2 * n_ ** 2 / 3 - 2 * n_ ** 3, 7 * n_ ** 2 / 3 - 8 * n_ ** 3 / 5, 56 * n_ ** 3 / 15
+    xi, eta = n / (k0 * A), (e - 500000) / (k0 * A)
+    xi_ = xi - sum(b * math.sin(2 * j * xi) * math.cosh(2 * j * eta) for j, b in ((1, b1), (2, b2), (3, b3)))
+    eta_ = eta - sum(b * math.cos(2 * j * xi) * math.sinh(2 * j * eta) for j, b in ((1, b1), (2, b2), (3, b3)))
+    chi = math.asin(math.sin(xi_) / math.cosh(eta_))
+    lat = chi + sum(d * math.sin(2 * j * chi) for j, d in ((1, d1), (2, d2), (3, d3)))
+    lon = math.radians(9) + math.atan2(math.sinh(eta_), math.cos(xi_))
+    return round(math.degrees(lat), 5), round(math.degrees(lon), 5)
+
+
+def teil_pegellage(status):
+    """Lage der Pegel aus den HND-Stammdaten (einmalig je Pegel), für die Sortierung nach Entfernung."""
+    lage = load_json("pegel-lage.json", {})
+    pj = json.load(open("pegel.json", encoding="utf-8"))
+    neu, fehl = 0, {}
+    for s in pj.get("stations", []):
+        sid, url = s["id"], s.get("url")
+        if sid in lage or not url:
+            continue
+        base = re.sub(r"/(abfluss|tabelle|stammdaten)$", "", url)
+        try:
+            txt = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", get_bytes(base + "/stammdaten", 60).decode("utf-8", "replace")))
+        except Exception as e:
+            fehl[sid] = str(e)[:80]
+            continue
+        m_e = re.search(r"(?:Ostwert|Rechtswert|East)[^0-9]{0,40}(\d{6}(?:[.,]\d+)?)", txt)
+        m_n = re.search(r"(?:Nordwert|Hochwert|North)[^0-9]{0,40}(\d{7}(?:[.,]\d+)?)", txt)
+        if m_e and m_n:
+            lat, lon = utm32_nach_wgs84(float(m_e.group(1).replace(",", ".")), float(m_n.group(1).replace(",", ".")))
+            if 47 < lat < 51 and 10 < lon < 15:
+                lage[sid] = {"lat": lat, "lon": lon, "name": s["name"]}
+                neu += 1
+                continue
+        fehl[sid] = "keine Koordinaten: " + (txt[txt.find("Koordin"):][:160] if "Koordin" in txt else txt[:160])
+    save_json("pegel-lage.json", lage)
+    status.setdefault("pegellage", {})["fehlt"] = fehl
+    return f"{len(lage)} Pegel mit Lage, {neu} neu, {len(fehl)} ohne"
+
+
 def teil_probe(status):
     """Einmalige Erkundung: Woher kommen tschechische Strahlungswerte noch? (Ergebnis in status.json)"""
     pr = status.setdefault("probe", {})
@@ -621,7 +665,7 @@ def main():
     status["fehler"] = {}
     status.pop("pegel_seen", None)
     # schnelle, häufige Teile zuerst; nach jedem Teil Zwischenstand sichern (falls der Lauf abgebrochen wird)
-    for name, fn in [("pegel", teil_pegel), ("odl", teil_odl), ("tage", teil_tage), ("bayern", teil_bayern)]:
+    for name, fn in [("pegel", teil_pegel), ("pegellage", teil_pegellage), ("odl", teil_odl), ("tage", teil_tage), ("bayern", teil_bayern)]:
         t0 = datetime.now(timezone.utc)
         try:
             status.setdefault("ergebnis", {})[name] = fn(status)
