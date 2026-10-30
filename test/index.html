@@ -284,6 +284,13 @@ h2 small{font:500 .72rem var(--f-body);letter-spacing:.04em;text-transform:none;
 .pgx[aria-expanded="true"]::after{transform:rotate(-135deg);margin-top:4px;border-color:var(--accent)}
 .pgx:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .pg-vl{padding:4px 0 12px}.pg-vl .seg{margin:4px 0 8px}.pg-vl .note a{color:var(--accent)}
+.ticker{margin-top:10px;display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--line);border-radius:12px;cursor:pointer;overflow:hidden;min-height:22px}
+.tk-lbl{font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--mu);flex:none}
+.tk-item{font-size:.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:0}
+.tk-item.in{animation:tkin 3.5s ease both}
+@keyframes tkin{0%{opacity:0;transform:translateY(6px)}10%,88%{opacity:1;transform:none}100%{opacity:0;transform:translateY(-6px)}}
+@media (prefers-reduced-motion:reduce){.tk-item.in{animation:none;opacity:1}}
+.tk-item small{color:var(--mu)}.tk-item strong{font:700 1rem var(--f-disp);margin-left:4px}.tk-item em{font-style:normal;font-size:.75rem;color:var(--mu)}.tk-item em.up{color:var(--amber)}.tk-item em.dn{color:var(--accent)}
 .pall{margin-top:10px}.pall summary{cursor:pointer;color:var(--accent);font-size:.85rem;font-weight:600;padding:6px 0}
 
 /* Strahlung */
@@ -1133,7 +1140,7 @@ function pRow(s) {
   const tt = tr && Math.abs(tr.d) >= 2 ? `<span class="pt ${tr.d > 0 ? "up" : "dn"}">${tr.d > 0 ? "▲" : "▼"} ${tr.d > 0 ? "+" : ""}${Math.round(tr.d)} cm/${Math.round(tr.hrs)} h</span>` : `<span class="pt">gleich</span>`;
   const ms = s.stage > 0 ? `<span class="ms ms${Math.min(4, s.stage)}">MS ${s.stage}</span>` : "";
   const name = esc(s.name);
-  return `<div class="pg pgx" role="button" tabindex="0" data-id="${esc(s.id)}" aria-expanded="false"><div class="nm"><b>${name} ${ms}</b><small>${SPEICHER[s.id] && s.level != null ? SPEICHER[s.id].zeile(s.level, SPEICHER[s.id].wert(s.level)).sub : esc(s.river) + (s.flow != null ? " · " + f1(s.flow) + " m³/s" : "") + (s.hint ? " · " + esc(s.hint) : "")}</small></div>
+  return `<div class="pg pgx" role="button" tabindex="0" data-id="${esc(s.id)}" aria-expanded="false"><div class="nm"><b>${name} ${ms}</b><small>${PEGEL_KM[s.id] != null ? Math.round(PEGEL_KM[s.id]) + " km · " : ""}${SPEICHER[s.id] && s.level != null ? SPEICHER[s.id].zeile(s.level, SPEICHER[s.id].wert(s.level)).sub : esc(s.river) + (s.flow != null ? " · " + f1(s.flow) + " m³/s" : "") + (s.hint ? " · " + esc(s.hint) : "")}</small></div>
     <div class="pv">${SPEICHER[s.id] && s.level != null ? (z => `<b>${z.big}</b><span class="pt">${z.lbl}</span>`)(SPEICHER[s.id].zeile(s.level, SPEICHER[s.id].wert(s.level)))
       : /see|talsperre/i.test(s.name + s.river) && s.level > 100
       ? `<b>${s.level.toLocaleString("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2})}</b> m ü. NN`
@@ -1214,6 +1221,34 @@ function initPGV() {
   card.addEventListener("keydown", e => { const row = e.target.closest(".pgx"); if (row && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); pgOpen(row); } });
 }
 
+/* Laufband: die übrigen Pegel nacheinander, nach Entfernung sortiert; Tipp springt zur Liste */
+let PEGEL_KM = {}, TK = {timer: null, i: 0, list: []};
+function tkText(x) {
+  const s = x.s, tr = pTrend(s);
+  const val = SPEICHER[s.id] && s.level != null ? SPEICHER[s.id].zeile(s.level, SPEICHER[s.id].wert(s.level)).big
+    : s.level != null ? `${Math.round(s.level)} cm` : `${f1(s.flow)} m³/s`;
+  const t = tr && Math.abs(tr.d) >= 2 ? ` <em class="${tr.d > 0 ? "up" : "dn"}">${tr.d > 0 ? "▲" : "▼"}${Math.abs(Math.round(tr.d))}</em>` : "";
+  const ms = s.stage > 0 ? ` <span class="ms ms${Math.min(4, s.stage)}">MS ${s.stage}</span>` : "";
+  return `<b>${esc(s.name)}</b> <small>${esc(s.river)} · ${Math.round(x.d)} km</small> <strong>${val}</strong>${t}${ms}`;
+}
+function startTicker(list) {
+  clearInterval(TK.timer); TK.list = list; TK.i = 0;
+  if (!list.length) return;
+  const show = () => {
+    const el = $("pg-tk-item"); if (!el) { clearInterval(TK.timer); return; }
+    el.classList.remove("in"); void el.offsetWidth;
+    el.innerHTML = tkText(TK.list[TK.i % TK.list.length]); el.classList.add("in");
+    TK.i++;
+  };
+  setTimeout(show, 0);
+  const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  TK.timer = setInterval(show, still ? 6000 : 3500);
+}
+document.addEventListener("click", e => {
+  if (!e.target.closest("#pg-ticker")) return;
+  const d = document.querySelector("#pegel details.pall"); if (d) { d.open = true; d.scrollIntoView({behavior: "smooth", block: "start"}); }
+});
+
 async function loadPegel() {
   let data;
   try {
@@ -1238,9 +1273,24 @@ async function loadPegel() {
   for (const s of st) (groups[s.river || "Sonstige"] ??= []).push(s);
   const order = Object.keys(groups).sort((a, b) => ((FLUSS_ORDER.indexOf(a) + 1) || 99) - ((FLUSS_ORDER.indexOf(b) + 1) || 99) || a.localeCompare(b, "de"));
   const age = (Date.now() - Date.parse(data.updated)) / 6e4;
-  $("pegel").innerHTML = banner
-    + regenBlock() + `<div class="subh">Für ${esc(ORT.name)}</div>` + key.map(pRow).join("")
-    + `<details class="pall"><summary>Alle ${st.length} Pegel der Region</summary>${order.map(r => `<div class="subh">${esc(r)}</div>` + groups[r].map(pRow).join("")).join("")}</details>`
+  // nach Entfernung zum gewählten Ort sortiert (Lage aus dem Archiv), sonst feste Auswahl je Ort
+  const LG = ARC.pegelLage || {};
+  const mitLage = st.filter(s => LG[s.id]).map(s => ({s, d: km(ORT.lat, ORT.lon, LG[s.id].lat, LG[s.id].lon)})).sort((a, b) => a.d - b.d);
+  let mid;
+  if (mitLage.length >= 5) {
+    const near = mitLage.slice(0, 5), rest = mitLage.slice(5);
+    PEGEL_KM = Object.fromEntries(mitLage.map(x => [x.s.id, x.d]));
+    mid = `<div class="subh">Die 5 nächsten Pegel <small>zu ${esc(ORT.name)}</small></div>` + near.map(x => pRow(x.s)).join("")
+      + (rest.length ? `<div class="ticker" id="pg-ticker" aria-live="off"><span class="tk-lbl">Weitere</span><span class="tk-item" id="pg-tk-item"></span></div>`
+        + `<details class="pall"><summary>Alle ${rest.length} weiteren Pegel, nach Entfernung</summary>${rest.map(x => pRow(x.s)).join("")}</details>` : "");
+    startTicker(rest);
+  } else {
+    PEGEL_KM = {};
+    mid = `<div class="subh">Für ${esc(ORT.name)}</div>` + key.map(pRow).join("")
+      + `<details class="pall"><summary>Alle ${st.length} Pegel der Region</summary>${order.map(r => `<div class="subh">${esc(r)}</div>` + groups[r].map(pRow).join("")).join("")}</details>`;
+    startTicker([]);
+  }
+  $("pegel").innerHTML = banner + regenBlock() + mid
     + `<div class="unit">Stand ${hhmm(new Date(data.updated))} Uhr${age > 120 ? " · älter als 2 Stunden" : ""} · Quelle: Hochwassernachrichtendienst Bayern · Pegel antippen für den Verlauf</div>`;
 }
 function spark(pts, name) {
@@ -1629,6 +1679,7 @@ async function loadArchiv() {
   jobs.push(fetchText(ARCHIV + "odl-aktuell.json").then(t => { ARC.odlAkt = JSON.parse(t); }).catch(() => {}));
   jobs.push(fetchText(ARCHIV + "pegel-tage.csv").then(t => { ARC.pegelTage = parseCsv(t); }).catch(() => {}));
   jobs.push(fetchText(ARCHIV + "pegel-meldestufen.json").then(t => { ARC.ms = JSON.parse(t); }).catch(() => {}));
+  jobs.push(fetchText(ARCHIV + "pegel-lage.json").then(t => { ARC.pegelLage = JSON.parse(t); }).catch(() => {}));
   await Promise.all(jobs);
 }
 // Tageswerte vorbereiten: Index nach Datum, Klimamittel 1991–2020 je Kalendertag und Monat
