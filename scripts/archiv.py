@@ -625,6 +625,66 @@ def teil_pegellage(status):
     return f"{len(lage)} Pegel mit Lage, {neu} neu, {len(fehl)} ohne"
 
 
+CHMI = "https://opendata.chmi.cz/meteorology/climate/now/"
+
+
+def _chmi_values(raw):
+    d = json.loads(raw)
+    inner = d.get("data", {}).get("data", {})
+    head = [h.strip() for h in str(inner.get("header", "")).split(",")]
+    return head, inner.get("values", [])
+
+
+def teil_chmi(status):
+    """Tschechische Wetterstationen (ČHMÚ Open Data, 10-Minuten-Werte): aktuelle Temperatur, Tiefst/Höchst 12 h."""
+    st = status.setdefault("chmi", {})
+    meta = None
+    for tag in (NOW, NOW - timedelta(days=1)):
+        try:
+            meta = _chmi_values(get_bytes(f"{CHMI}metadata/meta1-{tag:%Y%m%d}.json", 60).decode("utf-8", "replace"))
+            break
+        except Exception as e:
+            st["meta_fehler"] = str(e)[:120]
+    if not meta:
+        raise RuntimeError("ČHMÚ-Stationsliste nicht erreichbar")
+    head, rows = meta
+    ix = {h: i for i, h in enumerate(head)}
+    stationen = []
+    for r in rows:
+        try:
+            wsi, gh, name = r[ix["WSI"]], str(r[ix["GH_ID"]]), r[ix["FULL_NAME"]]
+            lon, lat, hoehe = float(r[ix["GEOGR1"]]), float(r[ix["GEOGR2"]]), r[ix["ELEVATION"]]
+        except Exception:
+            continue
+        if gh.startswith("ZIS"):            # ausländische Stationen in der Liste
+            continue
+        if min(km(la, lo, lat, lon) for _, la, lo in ORTE.values()) > 105:
+            continue
+        stationen.append({"wsi": wsi, "name": name, "lat": lat, "lon": lon, "hoehe": hoehe})
+    grenze = (NOW - timedelta(hours=12)).strftime("%Y-%m-%dT%H:%M")
+    tage = [NOW] + ([NOW - timedelta(days=1)] if NOW.hour < 13 else [])
+    out, fehl = [], 0
+    for s in stationen:
+        werte = []
+        for tag in tage:
+            try:
+                head, rows = _chmi_values(get_bytes(f"{CHMI}data/10m-{s['wsi']}-{tag:%Y%m%d}.json", 60).decode("utf-8", "replace"))
+            except Exception:
+                continue
+            ix = {h: i for i, h in enumerate(head)}
+            for r in rows:
+                if r[ix["ELEMENT"]] == "T" and r[ix["VAL"]] is not None:
+                    werte.append((str(r[ix["DT"]])[:16], float(r[ix["VAL"]])))
+        werte = sorted(w for w in werte if w[0] >= grenze)
+        if not werte:
+            fehl += 1
+            continue
+        mn, mx = min(werte, key=lambda w: w[1]), max(werte, key=lambda w: w[1])
+        out.append(dict(s, t=werte[-1][1], at=werte[-1][0] + "Z", min=mn[1], min_at=mn[0] + "Z", max=mx[1], max_at=mx[0] + "Z"))
+    save_json("chmi-temp.json", {"stand": NOW.isoformat(), "stationen": out})
+    return f"{len(out)} tschechische Stationen mit Temperatur, {fehl} ohne Werte"
+
+
 def teil_probe(status):
     """Einmalige Erkundung: Woher kommen tschechische Strahlungswerte noch? (Ergebnis in status.json)"""
     pr = status.setdefault("probe", {})
@@ -682,7 +742,7 @@ def main():
     status["fehler"] = {}
     status.pop("pegel_seen", None)
     # schnelle, häufige Teile zuerst; nach jedem Teil Zwischenstand sichern (falls der Lauf abgebrochen wird)
-    for name, fn in [("pegel", teil_pegel), ("pegellage", teil_pegellage), ("odl", teil_odl), ("tage", teil_tage), ("bayern", teil_bayern), ("probe", teil_probe)]:
+    for name, fn in [("pegel", teil_pegel), ("pegellage", teil_pegellage), ("odl", teil_odl), ("chmi", teil_chmi), ("tage", teil_tage), ("bayern", teil_bayern)]:
         t0 = datetime.now(timezone.utc)
         try:
             status.setdefault("ergebnis", {})[name] = fn(status)
