@@ -302,7 +302,14 @@ h2 small{font:500 .72rem var(--f-body);letter-spacing:.04em;text-transform:none;
 .rr .rn small{display:block;color:var(--mu);font-size:.7rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .rr .rv{font:700 1.05rem var(--f-disp);text-align:right;white-space:nowrap}.rr .rv small{font:500 .7rem var(--f-body);color:var(--mu)}
 .rr em{font-style:normal;font-size:.72rem;color:var(--mu);text-align:right}.rr em.up{color:var(--amber)}.rr em.dn{color:var(--accent)}
-.tabs4 button{padding-left:6px;padding-right:6px;font-size:.78rem}
+.stg{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+.stc-h{font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;font-weight:700;padding:4px 0 6px}
+.stc.kalt .stc-h{color:var(--cold)}.stc.warm .stc-h{color:var(--warm)}
+.sti{display:grid;grid-template-columns:1.2em minmax(0,1fr) auto;align-items:center;gap:6px;padding:6px 0;border-top:1px solid var(--line)}
+.sti .rk{font-size:.72rem;color:var(--mu);text-align:right}
+.sti .nm{min-width:0;line-height:1.15}.sti .nm b{display:block;font-size:.84rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sti .nm small{display:block;font-size:.64rem;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sti .pill{font-size:.8rem;padding:2px 6px;min-width:0;width:auto;justify-self:end}
 .pall{margin-top:10px}.pall summary{cursor:pointer;color:var(--accent);font-size:.85rem;font-weight:600;padding:6px 0}
 
 /* Strahlung */
@@ -391,16 +398,12 @@ footer a{color:var(--accent)}
     </section>
     <section class="card">
       <h2>Kälteste und wärmste Orte <small>100 km um den Ort, DE und CZ</small></h2>
-      <div class="tabs tabs4" role="tablist" id="st-tabs">
-        <button type="button" role="tab" data-p="cold" aria-selected="true">Kalt jetzt</button>
-        <button type="button" role="tab" data-p="warm" aria-selected="false">Warm jetzt</button>
-        <button type="button" role="tab" data-p="min12" aria-selected="false">Tiefst 12 h</button>
-        <button type="button" role="tab" data-p="max12" aria-selected="false">Höchst 12 h</button>
+      <div class="tabs" role="tablist" id="st-tabs">
+        <button type="button" role="tab" data-p="st-jetzt" aria-selected="true">Jetzt</button>
+        <button type="button" role="tab" data-p="st-12h" aria-selected="false">Letzte 12 Stunden</button>
       </div>
-      <div id="cold"><div class="load">Frage Stationen ab …</div></div>
-      <div id="warm" hidden></div>
-      <div id="min12" hidden></div>
-      <div id="max12" hidden></div>
+      <div id="st-jetzt" class="st2"><div class="load">Frage Stationen ab …</div></div>
+      <div id="st-12h" class="st2" hidden></div>
     </section>
     <section class="card">
       <h2>Strahlung <small>BfS-Messnetz</small></h2>
@@ -919,14 +922,12 @@ async function loadStations() {
   STN = ok;
   // Nach Name zusammenfassen, falls zwei Quellen dieselbe Station liefern
   const uniq = arr => { const seen = new Set(); return arr.filter(x => !seen.has(x.name) && seen.add(x.name)); };
-  const cold = uniq(ok.filter(x => x.now).sort((a, b) => a.now.t - b.now.t)).slice(0, 10);
+  const cold = uniq(ok.filter(x => x.now).sort((a, b) => a.now.t - b.now.t)).slice(0, 8);
   const mins = uniq(ok.filter(x => x.min).sort((a, b) => a.min.t - b.min.t)).slice(0, 8);
-  const warm = uniq(ok.filter(x => x.now).sort((a, b) => b.now.t - a.now.t)).slice(0, 10);
+  const warm = uniq(ok.filter(x => x.now).sort((a, b) => b.now.t - a.now.t)).slice(0, 8);
   const maxs = uniq(ok.filter(x => x.max).sort((a, b) => b.max.t - a.max.t)).slice(0, 8);
-  $("cold").innerHTML = stTable(cold, "now", "Temp.");
-  $("warm").innerHTML = stTable(warm, "now", "Temp.");
-  $("min12").innerHTML = stTable(mins, "min", "Tiefstwert");
-  $("max12").innerHTML = stTable(maxs, "max", "Höchstwert");
+  $("st-jetzt").innerHTML = stSpalten(cold, warm, "now", "now", "Kälteste", "Wärmste");
+  $("st-12h").innerHTML = stSpalten(mins, maxs, "min", "max", "Tiefstwerte", "Höchstwerte");
 }
 
 /* ---------- Regenradar (DWD über Bright Sky) ---------- */
@@ -2318,6 +2319,13 @@ function showSig(k) {
 }
 
 
+function stSpalten(links, rechts, fl, fr, tl, tr) {
+  const spalte = (rows, f, titel, cls) => `<div class="stc ${cls}"><div class="stc-h">${titel}</div>${rows.length ? rows.map((r, i) => `<div class="sti">
+      <span class="rk">${i + 1}</span>
+      <span class="nm"><b title="${esc(r.name)}">${esc(r.name)}</b><small>${r.land ? r.land + " · " : ""}${r.hoehe != null ? Math.round(r.hoehe) + " m" : ""}${r.dist != null ? " · " + Math.round(r.dist) + " km" : ""}</small></span>
+      <span class="pill" style="background:${tcol(r[f].t)}">${f1(r[f].t)}°</span></div>`).join("") : '<div class="note">keine Daten</div>'}</div>`;
+  return `<div class="stg">${spalte(links, fl, tl, "kalt")}${spalte(rechts, fr, tr, "warm")}</div>`;
+}
 function stTable(rows, f) {
   if (!rows.length) return '<div class="err">Keine Stationsdaten verfügbar.</div>';
   return rows.map((r, i) => `<div class="st">
@@ -2361,7 +2369,7 @@ let busy = false, lastRun = Date.now(), forceODL = false;
 async function refresh() {
   if (busy) return; busy = true; lastRun = Date.now();
   $("reload").classList.add("spin");
-  await Promise.all([run(loadForecast, ["cur","chart","hours","days"]), run(loadWarningsOrt, ["warn"]), run(loadStations, ["cold","min12"]),
+  await Promise.all([run(loadForecast, ["cur","chart","hours","days"]), run(loadWarningsOrt, ["warn"]), run(loadStations, ["st-jetzt","st-12h"]),
     run(loadRadar, ["rad-sum"]), loadExtra(), loadArchiv()]);
   await Promise.all([run(loadPegel, ["pegel"]), run(() => loadODLOrt(forceODL), ["odl"])]);
   try { if (LAST) $("klima-chip").innerHTML = klimaChip(LAST.recs, LAST.now); } catch {}
@@ -2402,8 +2410,8 @@ function initOrt() {
     if (!ORTE[sel.value]) return;
     ORT = {key: sel.value, ...ORTE[sel.value]};
     showStar();
-    for (const id of ["chart","days","cold"]) $(id).innerHTML = '<div class="load">Lade …</div>';
-    $("hours").innerHTML = ""; $("min12").innerHTML = "";
+    for (const id of ["chart","days","st-jetzt"]) $(id).innerHTML = '<div class="load">Lade …</div>';
+    $("hours").innerHTML = ""; $("st-12h").innerHTML = "";
     $("odl").innerHTML = '<div class="load">Lade …</div>'; $("odl-spark").innerHTML = ""; $("odl-cz").innerHTML = ""; $("odl-skala").innerHTML = ""; ODLV.open = null; forceODL = true;
     $("rb-body").innerHTML = '<div class="load">Lade Archiv …</div>'; $("pegel").innerHTML = '<div class="load">Lade …</div>';
     refresh();
