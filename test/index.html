@@ -284,8 +284,11 @@ h2 small{font:500 .72rem var(--f-body);letter-spacing:.04em;text-transform:none;
 .pgx[aria-expanded="true"]::after{transform:rotate(-135deg);margin-top:4px;border-color:var(--accent)}
 .pgx:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .pg-vl{padding:4px 0 12px}.pg-vl .seg{margin:4px 0 8px}.pg-vl .note a{color:var(--accent)}
-.roll{position:relative;height:calc(5 * 46px);overflow:hidden;cursor:pointer;border-top:1px solid var(--line);
+.roll{position:relative;height:calc(var(--rows,5) * 46px);overflow:hidden;cursor:pointer;border-top:1px solid var(--line);
   -webkit-mask-image:linear-gradient(180deg,transparent,#000 12%,#000 88%,transparent);mask-image:linear-gradient(180deg,transparent,#000 12%,#000 88%,transparent)}
+.roll.roll3{--rows:3}
+.flag.sm{font-size:.62rem;padding:1px 4px;margin-right:6px;vertical-align:2px}
+.rr .rv.ok{color:var(--ok)}
 .roll:not(.an){height:auto;-webkit-mask-image:none;mask-image:none}
 .roll.an .roll-in{animation:rollup calc(var(--n) * 2.6s) linear infinite}
 .roll:hover .roll-in,.roll:active .roll-in{animation-play-state:paused}
@@ -394,7 +397,6 @@ footer a{color:var(--accent)}
     </section>
     <section class="card">
       <h2>Strahlung <small>BfS-Messnetz</small></h2>
-      <div class="subh"><span class="flag">DE</span>Deutschland</div>
       <div id="odl"><div class="load">Lade Messwerte …</div></div>
       <div id="odl-cz"></div>
       <div id="odl-spark"></div>
@@ -1270,7 +1272,10 @@ async function loadPegel() {
   const age = (Date.now() - Date.parse(data.updated)) / 6e4;
   // nach Entfernung zum gewählten Ort sortiert (Lage aus dem Archiv), sonst feste Auswahl je Ort
   const LG = ARC.pegelLage || {};
-  const mitLage = st.filter(s => LG[s.id]).map(s => ({s, d: km(ORT.lat, ORT.lon, LG[s.id].lat, LG[s.id].lon)})).sort((a, b) => a.d - b.d);
+  // Seen und Trinkwasserspeicher immer oben, in eigener kleiner Rubrik
+  const seen = st.filter(s => SPEICHER[s.id]);
+  const seenBlock = seen.length ? `<div class="subh">Seen und Speicher</div>` + seen.map(pRow).join("") : "";
+  const mitLage = st.filter(s => LG[s.id] && !SPEICHER[s.id]).map(s => ({s, d: km(ORT.lat, ORT.lon, LG[s.id].lat, LG[s.id].lon)})).sort((a, b) => a.d - b.d);
   let mid;
   if (mitLage.length >= 5) {
     const near = mitLage.slice(0, 5), rest = mitLage.slice(5);
@@ -1286,7 +1291,7 @@ async function loadPegel() {
       + `<details class="pall"><summary>Alle ${st.length} Pegel der Region</summary>${order.map(r => `<div class="subh">${esc(r)}</div>` + groups[r].map(pRow).join("")).join("")}</details>`;
     
   }
-  $("pegel").innerHTML = banner + regenBlock() + mid
+  $("pegel").innerHTML = banner + regenBlock() + seenBlock + mid
     + `<div class="unit">Stand ${hhmm(new Date(data.updated))} Uhr${age > 120 ? " · älter als 2 Stunden" : ""} · Quelle: Hochwassernachrichtendienst Bayern · Pegel antippen für den Verlauf</div>`;
 }
 function spark(pts, name) {
@@ -1990,28 +1995,43 @@ async function loadODLOrt(force) {
   if (!list || !list.length) return loadODL(force);       // Rückfall: direkt beim BfS
   const near = list.filter(s => s.wert != null);
   const z = odlZustand(near);
-  const vmax = Math.max(0.2, ...near.map(s => s.wert));
+  const cz = (ARC.odlAkt?.cz?.[ortKey()] || []).filter(s => s.wert != null).map(s => ({...s, cc: "CZ"}));
+  const weitere = (ARC.odlAkt?.weitere?.[ortKey()] || []).filter(s => s.wert != null);
+  // alle Sonden (DE + CZ) nach Entfernung zum gewählten Ort; Verlauf gibt es für die nahen DE- und alle CZ-Sonden
+  const alle = [...near, ...cz, ...weitere].sort((a, b) => a.km - b.km);
+  ODLV.sonden = {}; [...near, ...cz].forEach(s => ODLV.sonden[s.kenn] = s);
+  const flag = s => s.cc === "CZ" ? '<span class="flag sm">CZ</span>' : "";
   const row = s => {
-    const d = s.mittel7 ? s.wert - s.mittel7 : null, p = s.mittel7 ? (s.wert / s.mittel7 - 1) * 100 : null;
+    const p = s.mittel7 ? (s.wert / s.mittel7 - 1) * 100 : null;
     const h24 = (s.stunden || []).at(-25)?.[1], t24 = h24 != null ? s.wert - h24 : null;
-    return `<div class="od od2 odx" role="button" tabindex="0" data-kenn="${esc(s.kenn)}" aria-expanded="false"><div class="nm"><b>${esc(s.name)}</b><small>${Math.round(s.km)} km · Wochenmittel ${fmt3(s.mittel7)}${t24 != null ? ` · 24 h ${t24 >= 0 ? "+" : "−"}${fmt3(Math.abs(t24))}` : ""}</small></div>
+    const info = [`${Math.round(s.km)} km`, s.mittel7 ? `Wochenmittel ${fmt3(s.mittel7)}` : "", t24 != null && s.cc !== "CZ" ? `24 h ${t24 >= 0 ? "+" : "−"}${fmt3(Math.abs(t24))}` : ""].filter(Boolean).join(" · ");
+    const kann = !!ODLV.sonden[s.kenn];
+    return `<div class="od od2${kann ? " odx" : ""}"${kann ? ` role="button" tabindex="0" data-kenn="${esc(s.kenn)}" aria-expanded="false"` : ""}><div class="nm"><b>${flag(s)}${esc(s.name)}</b><small>${info}</small></div>
       <span class="ov">${fmt3(s.wert)}${p != null ? `<em class="${p > 15 ? "up" : p < -15 ? "dn" : ""}">${p >= 0 ? "+" : "−"}${Math.abs(Math.round(p))} %</em>` : ""}</span></div>`;
   };
+  const rollRow = (s, i) => {
+    const p = s.mittel7 ? (s.wert / s.mittel7 - 1) * 100 : null;
+    return `<div class="rr"><span class="rk">${i}</span><span class="rn"><b>${flag(s)}${esc(s.name)}</b><small>${s.cc === "CZ" ? "Tschechien" : "Deutschland"} · ${Math.round(s.km)} km</small></span><span class="rv ok">${fmt3(s.wert)}</span><em class="${p > 15 ? "up" : p < -15 ? "dn" : ""}">${p != null ? (p >= 0 ? "+" : "−") + Math.abs(Math.round(p)) + " %" : ""}</em></div>`;
+  };
+  const fest = alle.slice(0, 3), rest = alle.slice(3);
+  const rows = rest.map((s, i) => rollRow(s, i + 4)).join("");
   $("odl").innerHTML = (z ? `<div class="odl-z ${z.k}"><b>${z.t}</b> ${z.d}</div>` : "")
     + `<div class="unit odl-head">µSv/h, Stundenwert bis ${hhmm(new Date(near[0].ende))} Uhr · % = Abweichung vom Wochenmittel · antippen für Verlauf</div>`
-    + near.map(row).join("");
+    + `<div class="subh">Die 3 nächsten Sonden <small>zu ${esc(ORT.name)}</small></div>` + fest.map(row).join("")
+    + (rest.length ? `<div class="subh">Weitere Sonden <small>DE und CZ nach Entfernung, laufen durch · antippen für die Liste</small></div>`
+      + `<div class="roll roll3${rest.length > 3 ? " an" : ""}" id="odl-roll" style="--n:${rest.length}"><div class="roll-in">${rows}${rest.length > 3 ? rows : ""}</div></div>`
+      + `<details class="pall" id="odl-all"><summary>Alle ${rest.length} weiteren Sonden, nach Entfernung</summary>${rest.map(row).join("")}</details>` : "");
   ODLV.erste = near[0].kenn;
   $("odl-spark").innerHTML = "";
-  ODLV.sonden = {}; near.forEach(s => ODLV.sonden[s.kenn] = s); odlEinordnung();
-  const cz = ARC.odlAkt?.cz?.[ortKey()];
-  if (cz && cz.length) {
-    cz.forEach(s => ODLV.sonden[s.kenn] = s); odlEinordnung();
-    $("odl-cz").innerHTML = '<div class="subh"><span class="flag">CZ</span>Tschechien <small>SÚRO · eigene Aufzeichnung</small></div>' + cz.map(s => `<div class="od od2 odx" role="button" tabindex="0" data-kenn="${esc(s.kenn)}" aria-expanded="false">
-      <div class="nm"><b>${esc(s.name)}</b><small>${Math.round(s.km)} km${s.ende ? " · " + hhmm(new Date(s.ende)) + " Uhr" : ""}${s.mittel7 ? " · Wochenmittel " + fmt3(s.mittel7) : ""}</small></div>
-      <span class="ov">${fmt3(s.wert)}</span></div>`).join("");
-  } else loadCZ().catch(() => { $("odl-cz").innerHTML = '<div class="note">Tschechische Werte gerade nicht abrufbar.</div>'; });
-  if (ODLV.open && ODLV.sonden[ODLV.open]) odlOpen(ODLV.open, true); else ODLV.open = null;
+  $("odl-cz").innerHTML = cz.length ? '<div class="note">Tschechische Werte: Frühwarnnetz SÚRO, eigene Aufzeichnung seit 29.10.2026.</div>'
+    : '<div class="note">Tschechische Werte gerade nicht abrufbar.</div>';
+  odlEinordnung();
+  if (ODLV.open && ODLV.sonden[ODLV.open] && document.querySelector(`.odx[data-kenn="${ODLV.open}"]`)) odlOpen(ODLV.open, true); else ODLV.open = null;
 }
+document.addEventListener("click", e => {
+  if (!e.target.closest("#odl-roll")) return;
+  const d = $("odl-all"); if (d) { d.open = true; d.scrollIntoView({behavior: "smooth", block: "start"}); }
+});
 
 /* ---------- Gewässer: Pegel zum Ort + Regen am Ort ---------- */
 function regenBlock() {
