@@ -918,7 +918,14 @@ async function loadStations() {
     }
     return out;
   });
-  const ok = data.filter(Boolean);
+  let ok = data.filter(Boolean);
+  if (!ARC.chmi) { try { ARC.chmi = JSON.parse(await fetchText(ARCHIV + "chmi-temp.json")); } catch {} }
+  // Tschechien: alle Stationen des Wetterdienstes ČHMÚ (eigener Abholdienst) statt nur der großen SYNOP-Stationen
+  const cz = (ARC.chmi?.stationen || []).map(c => ({name: c.name, land: "CZ", hoehe: c.hoehe, dist: km(ORT.lat, ORT.lon, c.lat, c.lon),
+      now: c.t != null && now - Date.parse(c.at) < 3 * 36e5 ? {t: c.t, at: new Date(c.at)} : null,
+      min: c.min != null ? {t: c.min, at: new Date(c.min_at)} : null, max: c.max != null ? {t: c.max, at: new Date(c.max_at)} : null}))
+    .filter(c => c.dist <= RADIUS / 1000);
+  if (cz.length) ok = ok.filter(x => x.land !== "CZ").concat(cz);
   STN = ok;
   // Nach Name zusammenfassen, falls zwei Quellen dieselbe Station liefern
   const uniq = arr => { const seen = new Set(); return arr.filter(x => !seen.has(x.name) && seen.add(x.name)); };
@@ -1738,6 +1745,7 @@ async function loadArchiv() {
   jobs.push(fetchText(ARCHIV + "pegel-tage.csv").then(t => { ARC.pegelTage = parseCsv(t); }).catch(() => {}));
   jobs.push(fetchText(ARCHIV + "pegel-meldestufen.json").then(t => { ARC.ms = JSON.parse(t); }).catch(() => {}));
   jobs.push(fetchText(ARCHIV + "pegel-lage.json").then(t => { ARC.pegelLage = JSON.parse(t); }).catch(() => {}));
+  jobs.push(fetchText(ARCHIV + "chmi-temp.json").then(t => { ARC.chmi = JSON.parse(t); }).catch(() => {}));
   await Promise.all(jobs);
 }
 // Tageswerte vorbereiten: Index nach Datum, Klimamittel 1991–2020 je Kalendertag und Monat
