@@ -628,15 +628,26 @@ def teil_pegellage(status):
 def teil_probe(status):
     """Einmalige Erkundung: Woher kommen tschechische Strahlungswerte noch? (Ergebnis in status.json)"""
     pr = status.setdefault("probe", {})
-    if pr.get("tag") == NOW.date().isoformat() and pr.get("v") == 6:
+    if pr.get("tag") == NOW.date().isoformat() and pr.get("v") == 7:
         return "heute schon erkundet"
-    out = {"v": 6}
+    out = {"v": 7}
+    tag = NOW.strftime("%Y%m%d")
+    base = "https://opendata.chmi.cz/meteorology/climate/now/"
+    for name, url in (("chmi_meta1", f"{base}metadata/meta1-{tag}.json"), ("chmi_dir", f"{base}data/"), ("chmi_meta_dir", f"{base}metadata/")):
+        try:
+            t = get_bytes(url, 60).decode("utf-8", "replace")
+            out[name] = {"len": len(t), "anfang": t[:1500]}
+            if name == "chmi_dir":
+                out["chmi_dateien"] = re.findall(r'href="([^"]+)"', t)[:40]
+        except Exception as e:
+            out[name] = str(e)[:150]
     try:
-        roh = suro_svz(False)
-        out["svz_ok_len"] = len(roh)
-        out["svz_ok_anfang"] = roh[:3000]
+        files = [f for f in out.get("chmi_dateien", []) if f.startswith("10m-")]
+        if files:
+            t = get_bytes(base + "data/" + files[0], 60).decode("utf-8", "replace")
+            out["chmi_10m"] = {"datei": files[0], "len": len(t), "anfang": t[:1500]}
     except Exception as e:
-        out["svz_fehler"] = f"{type(e).__name__}: {e}"[:300]
+        out["chmi_10m"] = str(e)[:150]
     try:
         cap = get_bytes(BFS + "?service=WFS&request=GetCapabilities", 60).decode("utf-8", "replace")
         out["bfs_eurdep_layer"] = sorted(set(re.findall(r"<(?:wfs:)?Name>([^<]*eurdep[^<]*)</", cap, re.I)))
@@ -671,7 +682,7 @@ def main():
     status["fehler"] = {}
     status.pop("pegel_seen", None)
     # schnelle, häufige Teile zuerst; nach jedem Teil Zwischenstand sichern (falls der Lauf abgebrochen wird)
-    for name, fn in [("pegel", teil_pegel), ("pegellage", teil_pegellage), ("odl", teil_odl), ("tage", teil_tage), ("bayern", teil_bayern)]:
+    for name, fn in [("pegel", teil_pegel), ("pegellage", teil_pegellage), ("odl", teil_odl), ("tage", teil_tage), ("bayern", teil_bayern), ("probe", teil_probe)]:
         t0 = datetime.now(timezone.utc)
         try:
             status.setdefault("ergebnis", {})[name] = fn(status)
