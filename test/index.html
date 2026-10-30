@@ -215,6 +215,7 @@ h2 small{font:500 .72rem var(--f-body);letter-spacing:.04em;text-transform:none;
 
 /* Tage */
 .days{display:flex;flex-direction:column}
+.day.fern{opacity:.72}
 .day{display:grid;grid-template-columns:5.6em 34px 2.2em minmax(50px,1fr) 2.2em 6.4em;align-items:center;gap:10px;padding:9px 2px;border-top:1px solid var(--line)}
 .day:first-child{border-top:0}
 .day .n{font-weight:600}.day .n small{display:block;color:var(--mu);font-weight:400;font-size:.72rem}
@@ -577,7 +578,7 @@ let LAST = null, CUR = null; // letzte Vorhersage, für Neuzeichnen bei Größen
 async function loadForecast() {
   const now = new Date();
   const start = new Date(now.getTime() - 74 * 36e5);
-  const end = new Date(now.getTime() + 4 * 864e5);
+  const end = new Date(now.getTime() + 8 * 864e5);   // 7 Tage Vorschau + Reserve
   const [cur, wx] = await Promise.all([
     getJSON("/current_weather", {lat:ORT.lat, lon:ORT.lon}),
     getJSON("/weather", {lat:ORT.lat, lon:ORT.lon, date:start.toISOString(), last_date:dayKey(end)})
@@ -808,7 +809,8 @@ function renderDays(recs, now, curT) {
     if (!by.has(k)) by.set(k, []);
     by.get(k).push({...r, _d:d});
   }
-  const keys = [...by.keys()].filter(k => k >= dayKey(now)).slice(0, 4);
+  // heute plus 6 Tage; nur Tage mit genug Stundenwerten (sonst wären Tief/Hoch verfälscht)
+  const keys = [...by.keys()].filter(k => k >= dayKey(now) && (k === dayKey(now) || by.get(k).length >= 18)).slice(0, 7);
   const days = keys.map(k => {
     const a = by.get(k), T_ = a.map(r => r.temperature).filter(v => v != null);
     const day = a.filter(r => { const h = hourOf(r._d); return h >= 9 && h <= 18; });
@@ -822,7 +824,7 @@ function renderDays(recs, now, curT) {
   $("days").innerHTML = days.map((d, i) => {
     const label = i === 0 ? "Heute" : new Intl.DateTimeFormat("de-DE",{timeZone:TZ,weekday:"long"}).format(d.a[0]._d);
     const dot = i === 0 && curT != null ? `<b style="left:${pos(Math.max(d.lo, Math.min(d.hi, curT)))}%"></b>` : "";
-    return `<div class="day">
+    return `<div class="day${i >= 4 ? " fern" : ""}">
       <div class="n">${label}<small>${dm(d.a[0]._d)}.</small></div>
       ${icon(rainIcon(d.a, d.rain) || spanIcon(d.day.length ? d.day : d.a, true))}
       <div class="lo">${f0(d.lo)}°</div>
@@ -830,7 +832,7 @@ function renderDays(recs, now, curT) {
       <div class="hi">${f0(d.hi)}°</div>
       <div class="rn"><b>${d.rain >= 0.1 ? f1(d.rain) + " mm" : "trocken"}</b><br>${d.pp} % · Böen ${f0(d.gu)}</div>
     </div>`;
-  }).join("");
+  }).join("") + (days.length > 4 ? '<div class="note">Ab dem 5. Tag ist die Vorhersage deutlich unsicherer (blasser dargestellt).</div>' : "");
 }
 
 function land(s) {
