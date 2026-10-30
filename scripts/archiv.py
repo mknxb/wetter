@@ -388,6 +388,12 @@ def teil_odl(status):
             liste.append(s2)
             benoetigt[s["kenn"]] = s
         aktuell["orte"][ort] = liste
+        # weitere Sonden bis 100 km nur mit aktuellem Wert (für die durchlaufende Liste)
+        schon = {s["kenn"] for s in near}
+        aktuell.setdefault("weitere", {})[ort] = [
+            {k: s.get(k) for k in ("kenn", "name", "lat", "lon", "wert", "ende", "hoehe")} | {"km": round(km(lat, lon, s["lat"], s["lon"]), 1)}
+            for s in sorted(sonden, key=lambda s: km(lat, lon, s["lat"], s["lon"]))
+            if s["kenn"] not in schon and km(lat, lon, s["lat"], s["lon"]) <= 100][:16]
     # Stundenverlauf 7 Tage je benoetigter Sonde
     for kenn, s in benoetigt.items():
         try:
@@ -505,7 +511,7 @@ def teil_cz(aktuell, st):
             ohne.add(name)
             continue
         lat, lon = CZ_LAGE[key]
-        if min(km(la, lo, lat, lon) for _, la, lo in ORTE.values()) > 90:
+        if min(km(la, lo, lat, lon) for _, la, lo in ORTE.values()) > 100:
             continue
         try:
             beginn = datetime.fromisoformat(str(r["datum"]).replace("Z", "+00:00"))
@@ -546,9 +552,9 @@ def teil_cz(aktuell, st):
             f.write("datum;usvh\n" + "".join(f"{d};{sum(v) / len(v):.4f}\n" for d, v in sorted(tage.items()) if d < heute))
     aktuell["cz"] = {}
     for ort, (name, lat, lon) in ORTE.items():
-        near = sorted(sonden.values(), key=lambda s: km(lat, lon, s["lat"], s["lon"]))[:4]
+        near = sorted(sonden.values(), key=lambda s: km(lat, lon, s["lat"], s["lon"]))
         aktuell["cz"][ort] = [dict(s, km=round(km(lat, lon, s["lat"], s["lon"]), 1)) for s in near
-                              if km(lat, lon, s["lat"], s["lon"]) < 90]
+                              if km(lat, lon, s["lat"], s["lon"]) <= 100]
     return len(sonden)
 
 
