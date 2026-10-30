@@ -12,11 +12,10 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <meta name="robots" content="noindex">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;700;800&family=Barlow:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<!-- Schriften und Kartenbibliothek liegen im Repository: keine Abrufe bei Google oder cdnjs -->
+<link rel="stylesheet" href="assets/fonts.css">
+<link rel="stylesheet" href="assets/leaflet/leaflet.css">
+<script src="assets/leaflet/leaflet.js"></script>
 <style>
 /* Layout: Himmels-Hero mit Bergkamm über volle Breite, darunter Vorhersage (links) und Stationen (rechts) */
 :root{
@@ -217,6 +216,7 @@ h2 small{font:500 .72rem var(--f-body);letter-spacing:.04em;text-transform:none;
 
 /* Tage */
 .days{display:flex;flex-direction:column}
+.day.fern{opacity:.72}
 .day{display:grid;grid-template-columns:5.6em 34px 2.2em minmax(50px,1fr) 2.2em 6.4em;align-items:center;gap:10px;padding:9px 2px;border-top:1px solid var(--line)}
 .day:first-child{border-top:0}
 .day .n{font-weight:600}.day .n small{display:block;color:var(--mu);font-weight:400;font-size:.72rem}
@@ -285,6 +285,23 @@ h2 small{font:500 .72rem var(--f-body);letter-spacing:.04em;text-transform:none;
 .pgx[aria-expanded="true"]::after{transform:rotate(-135deg);margin-top:4px;border-color:var(--accent)}
 .pgx:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .pg-vl{padding:4px 0 12px}.pg-vl .seg{margin:4px 0 8px}.pg-vl .note a{color:var(--accent)}
+.grp{margin-top:12px;padding:4px 12px 8px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.025)}
+.grp-h{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-weight:700;padding:8px 0 6px}
+.grp-h small{letter-spacing:0;text-transform:none;color:var(--mu);font-weight:500;margin-left:6px}
+.grp .pg:first-of-type,.grp .od:first-of-type{border-top:0}
+.nr{display:inline-grid;place-items:center;min-width:1.6em;height:1.6em;margin-right:8px;border-radius:6px;background:rgba(255,255,255,.08);font:600 .72rem var(--f-body);color:var(--mu);vertical-align:1px}
+.roll-h{font-size:.7rem;color:var(--mu);padding:8px 0 4px;border-top:1px dashed var(--line);margin-top:4px}
+.roll{position:relative;height:calc(var(--rows,5) * 46px);overflow-y:auto;scrollbar-width:none;overscroll-behavior:contain;touch-action:pan-y;
+  -webkit-mask-image:linear-gradient(180deg,transparent,#000 10%,#000 90%,transparent);mask-image:linear-gradient(180deg,transparent,#000 10%,#000 90%,transparent)}
+.roll::-webkit-scrollbar{display:none}
+.roll.roll3{--rows:3}
+.roll[data-auto="0"]{height:auto;-webkit-mask-image:none;mask-image:none}
+.rr{display:grid;grid-template-columns:1.6em minmax(0,1fr) auto 2.6em;align-items:center;gap:8px;height:46px;border-bottom:1px solid var(--line)}
+.rr .rk{display:inline-grid;place-items:center;width:1.6em;height:1.6em;border-radius:6px;background:rgba(255,255,255,.08);font:600 .72rem var(--f-body);color:var(--mu)}
+.rr .rn{min-width:0;line-height:1.2}.rr .rn b{font-weight:600;font-size:.92rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:inline-block;max-width:100%;vertical-align:bottom}
+.rr .rn small{display:block;color:var(--mu);font-size:.7rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rr .rv{font:700 1.05rem var(--f-disp);text-align:right;white-space:nowrap}.rr .rv small{font:500 .7rem var(--f-body);color:var(--mu)}
+.rr em{font-style:normal;font-size:.72rem;color:var(--mu);text-align:right}.rr em.up{color:var(--amber)}.rr em.dn{color:var(--accent)}
 .pall{margin-top:10px}.pall summary{cursor:pointer;color:var(--accent);font-size:.85rem;font-weight:600;padding:6px 0}
 
 /* Strahlung */
@@ -382,7 +399,6 @@ footer a{color:var(--accent)}
     </section>
     <section class="card">
       <h2>Strahlung <small>BfS-Messnetz</small></h2>
-      <div class="subh"><span class="flag">DE</span>Deutschland</div>
       <div id="odl"><div class="load">Lade Messwerte …</div></div>
       <div id="odl-cz"></div>
       <div id="odl-spark"></div>
@@ -579,7 +595,7 @@ let LAST = null, CUR = null; // letzte Vorhersage, für Neuzeichnen bei Größen
 async function loadForecast() {
   const now = new Date();
   const start = new Date(now.getTime() - 74 * 36e5);
-  const end = new Date(now.getTime() + 4 * 864e5);
+  const end = new Date(now.getTime() + 8 * 864e5);   // 7 Tage Vorschau + Reserve
   const [cur, wx] = await Promise.all([
     getJSON("/current_weather", {lat:ORT.lat, lon:ORT.lon}),
     getJSON("/weather", {lat:ORT.lat, lon:ORT.lon, date:start.toISOString(), last_date:dayKey(end)})
@@ -810,7 +826,8 @@ function renderDays(recs, now, curT) {
     if (!by.has(k)) by.set(k, []);
     by.get(k).push({...r, _d:d});
   }
-  const keys = [...by.keys()].filter(k => k >= dayKey(now)).slice(0, 4);
+  // heute plus 6 Tage; nur Tage mit genug Stundenwerten (sonst wären Tief/Hoch verfälscht)
+  const keys = [...by.keys()].filter(k => k >= dayKey(now) && (k === dayKey(now) || by.get(k).length >= 18)).slice(0, 7);
   const days = keys.map(k => {
     const a = by.get(k), T_ = a.map(r => r.temperature).filter(v => v != null);
     const day = a.filter(r => { const h = hourOf(r._d); return h >= 9 && h <= 18; });
@@ -824,7 +841,7 @@ function renderDays(recs, now, curT) {
   $("days").innerHTML = days.map((d, i) => {
     const label = i === 0 ? "Heute" : new Intl.DateTimeFormat("de-DE",{timeZone:TZ,weekday:"long"}).format(d.a[0]._d);
     const dot = i === 0 && curT != null ? `<b style="left:${pos(Math.max(d.lo, Math.min(d.hi, curT)))}%"></b>` : "";
-    return `<div class="day">
+    return `<div class="day${i >= 4 ? " fern" : ""}">
       <div class="n">${label}<small>${dm(d.a[0]._d)}.</small></div>
       ${icon(rainIcon(d.a, d.rain) || spanIcon(d.day.length ? d.day : d.a, true))}
       <div class="lo">${f0(d.lo)}°</div>
@@ -832,7 +849,7 @@ function renderDays(recs, now, curT) {
       <div class="hi">${f0(d.hi)}°</div>
       <div class="rn"><b>${d.rain >= 0.1 ? f1(d.rain) + " mm" : "trocken"}</b><br>${d.pp} % · Böen ${f0(d.gu)}</div>
     </div>`;
-  }).join("");
+  }).join("") + (days.length > 4 ? '<div class="note">Ab dem 5. Tag ist die Vorhersage deutlich unsicherer (blasser dargestellt).</div>' : "");
 }
 
 function land(s) {
@@ -1128,12 +1145,12 @@ const SPEICHER = {
     unit: "cm", yF: v => nf(v, 0), info: "Wasserspiegel in cm über dem Dauerstau (405,00 m ü. NN). Bei Hochwasser füllt sich der Rückhalteraum bis zum Vollstau 408,25 m (+325 cm, 4 Mio m³)."
   }
 };
-function pRow(s) {
+function pRow(s, nr) {
   const tr = pTrend(s);
   const tt = tr && Math.abs(tr.d) >= 2 ? `<span class="pt ${tr.d > 0 ? "up" : "dn"}">${tr.d > 0 ? "▲" : "▼"} ${tr.d > 0 ? "+" : ""}${Math.round(tr.d)} cm/${Math.round(tr.hrs)} h</span>` : `<span class="pt">gleich</span>`;
   const ms = s.stage > 0 ? `<span class="ms ms${Math.min(4, s.stage)}">MS ${s.stage}</span>` : "";
   const name = esc(s.name);
-  return `<div class="pg pgx" role="button" tabindex="0" data-id="${esc(s.id)}" aria-expanded="false"><div class="nm"><b>${name} ${ms}</b><small>${SPEICHER[s.id] && s.level != null ? SPEICHER[s.id].zeile(s.level, SPEICHER[s.id].wert(s.level)).sub : esc(s.river) + (s.flow != null ? " · " + f1(s.flow) + " m³/s" : "") + (s.hint ? " · " + esc(s.hint) : "")}</small></div>
+  return `<div class="pg pgx" role="button" tabindex="0" data-id="${esc(s.id)}" aria-expanded="false"><div class="nm"><b>${nr ? `<span class="nr">${nr}</span>` : ""}${name} ${ms}</b><small>${PEGEL_KM[s.id] != null ? Math.round(PEGEL_KM[s.id]) + " km · " : ""}${SPEICHER[s.id] && s.level != null ? SPEICHER[s.id].zeile(s.level, SPEICHER[s.id].wert(s.level)).sub : esc(s.river) + (s.flow != null ? " · " + f1(s.flow) + " m³/s" : "") + (s.hint ? " · " + esc(s.hint) : "")}</small></div>
     <div class="pv">${SPEICHER[s.id] && s.level != null ? (z => `<b>${z.big}</b><span class="pt">${z.lbl}</span>`)(SPEICHER[s.id].zeile(s.level, SPEICHER[s.id].wert(s.level)))
       : /see|talsperre/i.test(s.name + s.river) && s.level > 100
       ? `<b>${s.level.toLocaleString("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2})}</b> m ü. NN`
@@ -1214,6 +1231,54 @@ function initPGV() {
   card.addEventListener("keydown", e => { const row = e.target.closest(".pgx"); if (row && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); pgOpen(row); } });
 }
 
+/* Rollliste: die übrigen Pegel laufen langsam von unten nach oben durch (wie eine Anzeigetafel) */
+let PEGEL_KM = {};
+function rollRows(list, start) {
+  return list.map((x, i) => {
+    const s = x.s, tr = pTrend(s);
+    const val = SPEICHER[s.id] && s.level != null ? SPEICHER[s.id].zeile(s.level, SPEICHER[s.id].wert(s.level)).big
+      : s.level != null ? `${Math.round(s.level)}<small> cm</small>` : `${f1(s.flow)}<small> m³/s</small>`;
+    const t = tr && Math.abs(tr.d) >= 2 ? `<em class="${tr.d > 0 ? "up" : "dn"}">${tr.d > 0 ? "▲" : "▼"}${Math.abs(Math.round(tr.d))}</em>` : "<em></em>";
+    const ms = s.stage > 0 ? ` <span class="ms ms${Math.min(4, s.stage)}">MS ${s.stage}</span>` : "";
+    return `<div class="rr"><span class="rk">${start + i}</span><span class="rn"><b>${esc(s.name)}</b>${ms}<small>${esc(s.river)} · ${Math.round(x.d)} km</small></span><span class="rv">${val}</span>${t}</div>`;
+  }).join("");
+}
+
+/* Durchlaufende Liste: läuft langsam nach oben; Finger/Maus hält an, Wischen spult vor oder zurück,
+   nach dem Loslassen läuft sie von dort weiter. Endlos, weil der Inhalt doppelt drinsteht. */
+function initRoll(el) {
+  if (!el) return;
+  if (el._roll) cancelAnimationFrame(el._roll.raf);
+  const st = el._roll = {pause: 0, last: 0, raf: 0, pos: el.scrollTop};
+  const auto = el.dataset.auto === "1" && !matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const halb = () => el.firstElementChild.scrollHeight / 2;
+  const halt = ms => { st.pause = performance.now() + ms; };
+  el.addEventListener("pointerdown", () => halt(1e9), {passive: true});
+  el.addEventListener("touchstart", () => halt(1e9), {passive: true});
+  const los = () => halt(2500);
+  el.addEventListener("pointerup", los, {passive: true}); el.addEventListener("pointercancel", los, {passive: true});
+  el.addEventListener("touchend", los, {passive: true}); el.addEventListener("mouseleave", los, {passive: true});
+  el.addEventListener("wheel", () => halt(2500), {passive: true});
+  el.addEventListener("scroll", () => {
+    if (!auto) return;
+    const h = halb();
+    if (el.scrollTop >= h) el.scrollTop -= h; else if (el.scrollTop <= 0 && performance.now() < st.pause) el.scrollTop += h;
+    st.pos = el.scrollTop;
+  }, {passive: true});
+  if (!auto) return;
+  const step = t => {
+    if (!el.isConnected) return;
+    const dt = st.last ? Math.min(100, t - st.last) : 0; st.last = t;
+    if (t > st.pause && document.visibilityState === "visible") {
+      st.pos += dt * 0.018;                     // ca. 18 px pro Sekunde
+      const h = halb(); if (st.pos >= h) st.pos -= h;
+      el.scrollTop = st.pos;
+    } else st.pos = el.scrollTop;
+    st.raf = requestAnimationFrame(step);
+  };
+  st.raf = requestAnimationFrame(step);
+}
+
 async function loadPegel() {
   let data;
   try {
@@ -1238,10 +1303,30 @@ async function loadPegel() {
   for (const s of st) (groups[s.river || "Sonstige"] ??= []).push(s);
   const order = Object.keys(groups).sort((a, b) => ((FLUSS_ORDER.indexOf(a) + 1) || 99) - ((FLUSS_ORDER.indexOf(b) + 1) || 99) || a.localeCompare(b, "de"));
   const age = (Date.now() - Date.parse(data.updated)) / 6e4;
-  $("pegel").innerHTML = banner
-    + regenBlock() + `<div class="subh">Für ${esc(ORT.name)}</div>` + key.map(pRow).join("")
-    + `<details class="pall"><summary>Alle ${st.length} Pegel der Region</summary>${order.map(r => `<div class="subh">${esc(r)}</div>` + groups[r].map(pRow).join("")).join("")}</details>`
+  // nach Entfernung zum gewählten Ort sortiert (Lage aus dem Archiv), sonst feste Auswahl je Ort
+  const LG = ARC.pegelLage || {};
+  // Seen und Trinkwasserspeicher immer oben, in eigener kleiner Rubrik
+  const seen = st.filter(s => SPEICHER[s.id]);
+  const seenBlock = seen.length ? `<div class="grp"><div class="grp-h">Seen und Speicher</div>${seen.map((s, i) => pRow(s, "S" + (i + 1))).join("")}</div>` : "";
+  const mitLage = st.filter(s => LG[s.id] && !SPEICHER[s.id]).map(s => ({s, d: km(ORT.lat, ORT.lon, LG[s.id].lat, LG[s.id].lon)})).sort((a, b) => a.d - b.d);
+  let mid;
+  if (mitLage.length >= 3) {
+    const near = mitLage.slice(0, 3), rest = mitLage.slice(3);
+    PEGEL_KM = Object.fromEntries(mitLage.map(x => [x.s.id, x.d]));
+    mid = `<div class="grp"><div class="grp-h">Flusspegel <small>nach Entfernung zu ${esc(ORT.name)}</small></div>` + near.map((x, i) => pRow(x.s, i + 1)).join("")
+      + (rest.length ? `<div class="roll-h">ab Nr. 4 laufend · Finger hält an, Wischen spult vor und zurück</div>`
+        + `<div class="roll" id="pg-roll" data-auto="${rest.length > 4 ? 1 : 0}"><div class="roll-in">${rollRows(rest, 4)}${rest.length > 4 ? rollRows(rest, 4) : ""}</div></div>`
+        + `<details class="pall"><summary>Alle ${rest.length} weiteren Pegel als Liste</summary>${rest.map((x, i) => pRow(x.s, i + 4)).join("")}</details>` : "") + `</div>`;
+    
+  } else {
+    PEGEL_KM = {};
+    mid = `<div class="subh">Für ${esc(ORT.name)}</div>` + key.map(pRow).join("")
+      + `<details class="pall"><summary>Alle ${st.length} Pegel der Region</summary>${order.map(r => `<div class="subh">${esc(r)}</div>` + groups[r].map(pRow).join("")).join("")}</details>`;
+    
+  }
+  $("pegel").innerHTML = banner + regenBlock() + seenBlock + mid
     + `<div class="unit">Stand ${hhmm(new Date(data.updated))} Uhr${age > 120 ? " · älter als 2 Stunden" : ""} · Quelle: Hochwassernachrichtendienst Bayern · Pegel antippen für den Verlauf</div>`;
+  initRoll($("pg-roll"));
 }
 function spark(pts, name) {
   const W = 320, H = 70, L = 4, R = 4, T = 8, B = 16;
@@ -1629,6 +1714,7 @@ async function loadArchiv() {
   jobs.push(fetchText(ARCHIV + "odl-aktuell.json").then(t => { ARC.odlAkt = JSON.parse(t); }).catch(() => {}));
   jobs.push(fetchText(ARCHIV + "pegel-tage.csv").then(t => { ARC.pegelTage = parseCsv(t); }).catch(() => {}));
   jobs.push(fetchText(ARCHIV + "pegel-meldestufen.json").then(t => { ARC.ms = JSON.parse(t); }).catch(() => {}));
+  jobs.push(fetchText(ARCHIV + "pegel-lage.json").then(t => { ARC.pegelLage = JSON.parse(t); }).catch(() => {}));
   await Promise.all(jobs);
 }
 // Tageswerte vorbereiten: Index nach Datum, Klimamittel 1991–2020 je Kalendertag und Monat
@@ -1943,27 +2029,39 @@ async function loadODLOrt(force) {
   if (!list || !list.length) return loadODL(force);       // Rückfall: direkt beim BfS
   const near = list.filter(s => s.wert != null);
   const z = odlZustand(near);
-  const vmax = Math.max(0.2, ...near.map(s => s.wert));
-  const row = s => {
-    const d = s.mittel7 ? s.wert - s.mittel7 : null, p = s.mittel7 ? (s.wert / s.mittel7 - 1) * 100 : null;
+  const cz = (ARC.odlAkt?.cz?.[ortKey()] || []).filter(s => s.wert != null).map(s => ({...s, cc: "CZ"}));
+  const weitere = (ARC.odlAkt?.weitere?.[ortKey()] || []).filter(s => s.wert != null);
+  // alle Sonden (DE + CZ) nach Entfernung zum gewählten Ort; Verlauf gibt es für die nahen DE- und alle CZ-Sonden
+  const alle = [...near, ...cz, ...weitere].sort((a, b) => a.km - b.km);
+  ODLV.sonden = {}; [...near, ...cz].forEach(s => ODLV.sonden[s.kenn] = s);
+  const flag = s => s.cc === "CZ" ? '<span class="flag sm">CZ</span>' : "";
+  const row = (s, nr) => {
+    const p = s.mittel7 ? (s.wert / s.mittel7 - 1) * 100 : null;
     const h24 = (s.stunden || []).at(-25)?.[1], t24 = h24 != null ? s.wert - h24 : null;
-    return `<div class="od od2 odx" role="button" tabindex="0" data-kenn="${esc(s.kenn)}" aria-expanded="false"><div class="nm"><b>${esc(s.name)}</b><small>${Math.round(s.km)} km · Wochenmittel ${fmt3(s.mittel7)}${t24 != null ? ` · 24 h ${t24 >= 0 ? "+" : "−"}${fmt3(Math.abs(t24))}` : ""}</small></div>
+    const info = [`${Math.round(s.km)} km`, s.mittel7 ? `Wochenmittel ${fmt3(s.mittel7)}` : "", t24 != null && s.cc !== "CZ" ? `24 h ${t24 >= 0 ? "+" : "−"}${fmt3(Math.abs(t24))}` : ""].filter(Boolean).join(" · ");
+    const kann = !!ODLV.sonden[s.kenn];
+    return `<div class="od od2${kann ? " odx" : ""}"${kann ? ` role="button" tabindex="0" data-kenn="${esc(s.kenn)}" aria-expanded="false"` : ""}><div class="nm"><b>${nr ? `<span class="nr">${nr}</span>` : ""}${flag(s)}${esc(s.name)}</b><small>${info}</small></div>
       <span class="ov">${fmt3(s.wert)}${p != null ? `<em class="${p > 15 ? "up" : p < -15 ? "dn" : ""}">${p >= 0 ? "+" : "−"}${Math.abs(Math.round(p))} %</em>` : ""}</span></div>`;
   };
+  const rollRow = (s, i) => {
+    const p = s.mittel7 ? (s.wert / s.mittel7 - 1) * 100 : null;
+    return `<div class="rr"><span class="rk">${i}</span><span class="rn"><b>${flag(s)}${esc(s.name)}</b><small>${s.cc === "CZ" ? "Tschechien" : "Deutschland"} · ${Math.round(s.km)} km</small></span><span class="rv ok">${fmt3(s.wert)}</span><em class="${p > 15 ? "up" : p < -15 ? "dn" : ""}">${p != null ? (p >= 0 ? "+" : "−") + Math.abs(Math.round(p)) + " %" : ""}</em></div>`;
+  };
+  const fest = alle.slice(0, 3), rest = alle.slice(3);
+  const rows = rest.map((s, i) => rollRow(s, i + 4)).join("");
   $("odl").innerHTML = (z ? `<div class="odl-z ${z.k}"><b>${z.t}</b> ${z.d}</div>` : "")
     + `<div class="unit odl-head">µSv/h, Stundenwert bis ${hhmm(new Date(near[0].ende))} Uhr · % = Abweichung vom Wochenmittel · antippen für Verlauf</div>`
-    + near.map(row).join("");
+    + `<div class="grp"><div class="grp-h">Messsonden DE und CZ <small>nach Entfernung zu ${esc(ORT.name)}</small></div>` + fest.map((s, i) => row(s, i + 1)).join("")
+    + (rest.length ? `<div class="roll-h">ab Nr. 4 laufend · Finger hält an, Wischen spult vor und zurück</div>`
+      + `<div class="roll roll3" id="odl-roll" data-auto="${rest.length > 3 ? 1 : 0}"><div class="roll-in">${rows}${rest.length > 3 ? rows : ""}</div></div>`
+      + `<details class="pall" id="odl-all"><summary>Alle ${rest.length} weiteren Sonden als Liste</summary>${rest.map((s, i) => row(s, i + 4)).join("")}</details>` : "") + `</div>`;
   ODLV.erste = near[0].kenn;
   $("odl-spark").innerHTML = "";
-  ODLV.sonden = {}; near.forEach(s => ODLV.sonden[s.kenn] = s); odlEinordnung();
-  const cz = ARC.odlAkt?.cz?.[ortKey()];
-  if (cz && cz.length) {
-    cz.forEach(s => ODLV.sonden[s.kenn] = s); odlEinordnung();
-    $("odl-cz").innerHTML = '<div class="subh"><span class="flag">CZ</span>Tschechien <small>SÚRO · eigene Aufzeichnung</small></div>' + cz.map(s => `<div class="od od2 odx" role="button" tabindex="0" data-kenn="${esc(s.kenn)}" aria-expanded="false">
-      <div class="nm"><b>${esc(s.name)}</b><small>${Math.round(s.km)} km${s.ende ? " · " + hhmm(new Date(s.ende)) + " Uhr" : ""}${s.mittel7 ? " · Wochenmittel " + fmt3(s.mittel7) : ""}</small></div>
-      <span class="ov">${fmt3(s.wert)}</span></div>`).join("");
-  } else loadCZ().catch(() => { $("odl-cz").innerHTML = '<div class="note">Tschechische Werte gerade nicht abrufbar.</div>'; });
-  if (ODLV.open && ODLV.sonden[ODLV.open]) odlOpen(ODLV.open, true); else ODLV.open = null;
+  $("odl-cz").innerHTML = cz.length ? '<div class="note">Tschechische Werte: Frühwarnnetz SÚRO, eigene Aufzeichnung seit 29.10.2026.</div>'
+    : '<div class="note">Tschechische Werte gerade nicht abrufbar.</div>';
+  initRoll($("odl-roll"));
+  odlEinordnung();
+  if (ODLV.open && ODLV.sonden[ODLV.open] && document.querySelector(`.odx[data-kenn="${ODLV.open}"]`)) odlOpen(ODLV.open, true); else ODLV.open = null;
 }
 
 /* ---------- Gewässer: Pegel zum Ort + Regen am Ort ---------- */
