@@ -295,12 +295,14 @@ h2 small{font:500 .72rem var(--f-body);letter-spacing:.04em;text-transform:none;
 .roll::-webkit-scrollbar{display:none}
 .roll.roll3{--rows:3}
 .roll[data-auto="0"]{height:auto;-webkit-mask-image:none;mask-image:none}
+.roll .rr{cursor:pointer}
 .rr{display:grid;grid-template-columns:1.6em minmax(0,1fr) auto 2.6em;align-items:center;gap:8px;height:46px;border-bottom:1px solid var(--line)}
 .rr .rk{display:inline-grid;place-items:center;width:1.6em;height:1.6em;border-radius:6px;background:rgba(255,255,255,.08);font:600 .72rem var(--f-body);color:var(--mu)}
 .rr .rn{min-width:0;line-height:1.2}.rr .rn b{font-weight:600;font-size:.92rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:inline-block;max-width:100%;vertical-align:bottom}
 .rr .rn small{display:block;color:var(--mu);font-size:.7rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .rr .rv{font:700 1.05rem var(--f-disp);text-align:right;white-space:nowrap}.rr .rv small{font:500 .7rem var(--f-body);color:var(--mu)}
 .rr em{font-style:normal;font-size:.72rem;color:var(--mu);text-align:right}.rr em.up{color:var(--amber)}.rr em.dn{color:var(--accent)}
+.tabs4 button{padding-left:6px;padding-right:6px;font-size:.78rem}
 .pall{margin-top:10px}.pall summary{cursor:pointer;color:var(--accent);font-size:.85rem;font-weight:600;padding:6px 0}
 
 /* Strahlung */
@@ -388,13 +390,17 @@ footer a{color:var(--accent)}
       <div id="pegel"><div class="load">Lade Pegel …</div></div>
     </section>
     <section class="card">
-      <h2>Kälteste Orte <small>100 km</small></h2>
-      <div class="tabs" role="tablist">
-        <button type="button" role="tab" id="tab-now" aria-selected="true">Jetzt</button>
-        <button type="button" role="tab" id="tab-min" aria-selected="false">Tiefst 12 h</button>
+      <h2>Kälteste und wärmste Orte <small>100 km um den Ort, DE und CZ</small></h2>
+      <div class="tabs tabs4" role="tablist" id="st-tabs">
+        <button type="button" role="tab" data-p="cold" aria-selected="true">Kalt jetzt</button>
+        <button type="button" role="tab" data-p="warm" aria-selected="false">Warm jetzt</button>
+        <button type="button" role="tab" data-p="min12" aria-selected="false">Tiefst 12 h</button>
+        <button type="button" role="tab" data-p="max12" aria-selected="false">Höchst 12 h</button>
       </div>
       <div id="cold"><div class="load">Frage Stationen ab …</div></div>
+      <div id="warm" hidden></div>
       <div id="min12" hidden></div>
+      <div id="max12" hidden></div>
     </section>
     <section class="card">
       <h2>Strahlung <small>BfS-Messnetz</small></h2>
@@ -902,6 +908,8 @@ async function loadStations() {
       if (rs.length) {
         const m = rs.reduce((a, b) => b.temperature < a.temperature ? b : a);
         out.min = {t:m.temperature, at:new Date(m.timestamp)};
+        const mx = rs.reduce((a, b) => b.temperature > a.temperature ? b : a);
+        out.max = {t:mx.temperature, at:new Date(mx.timestamp)};
         if (!out.now) { const l = rs[rs.length - 1]; if (now - Date.parse(l.timestamp) < 3 * 36e5) out.now = {t:l.temperature, at:new Date(l.timestamp)}; }
       }
     }
@@ -913,8 +921,12 @@ async function loadStations() {
   const uniq = arr => { const seen = new Set(); return arr.filter(x => !seen.has(x.name) && seen.add(x.name)); };
   const cold = uniq(ok.filter(x => x.now).sort((a, b) => a.now.t - b.now.t)).slice(0, 10);
   const mins = uniq(ok.filter(x => x.min).sort((a, b) => a.min.t - b.min.t)).slice(0, 8);
+  const warm = uniq(ok.filter(x => x.now).sort((a, b) => b.now.t - a.now.t)).slice(0, 10);
+  const maxs = uniq(ok.filter(x => x.max).sort((a, b) => b.max.t - a.max.t)).slice(0, 8);
   $("cold").innerHTML = stTable(cold, "now", "Temp.");
+  $("warm").innerHTML = stTable(warm, "now", "Temp.");
   $("min12").innerHTML = stTable(mins, "min", "Tiefstwert");
+  $("max12").innerHTML = stTable(maxs, "max", "Höchstwert");
 }
 
 /* ---------- Regenradar (DWD über Bright Sky) ---------- */
@@ -1239,12 +1251,24 @@ function rollRows(list, start) {
       : s.level != null ? `${Math.round(s.level)}<small> cm</small>` : `${f1(s.flow)}<small> m³/s</small>`;
     const t = tr && Math.abs(tr.d) >= 2 ? `<em class="${tr.d > 0 ? "up" : "dn"}">${tr.d > 0 ? "▲" : "▼"}${Math.abs(Math.round(tr.d))}</em>` : "<em></em>";
     const ms = s.stage > 0 ? ` <span class="ms ms${Math.min(4, s.stage)}">MS ${s.stage}</span>` : "";
-    return `<div class="rr"><span class="rk">${start + i}</span><span class="rn"><b>${esc(s.name)}</b>${ms}<small>${esc(s.river)} · ${Math.round(x.d)} km</small></span><span class="rv">${val}</span>${t}</div>`;
+    return `<div class="rr" data-id="${esc(s.id)}"><span class="rk">${start + i}</span><span class="rn"><b>${esc(s.name)}</b>${ms}<small>${esc(s.river)} · ${Math.round(x.d)} km</small></span><span class="rv">${val}</span>${t}</div>`;
   }).join("");
 }
 
 /* Durchlaufende Liste: läuft langsam nach oben; Finger/Maus hält an, Wischen spult vor oder zurück,
    nach dem Loslassen läuft sie von dort weiter. Endlos, weil der Inhalt doppelt drinsteht. */
+/* Tipp auf eine laufende Zeile: Liste darunter öffnen und genau diese Zeile mit Verlauf aufklappen */
+document.addEventListener("click", e => {
+  const r = e.target.closest(".roll .rr"); if (!r) return;
+  const box = r.closest(".roll").nextElementSibling;
+  if (!box || box.tagName !== "DETAILS") return;
+  box.open = true;
+  const ziel = r.dataset.id ? box.querySelector(`.pgx[data-id="${r.dataset.id}"]`) : box.querySelector(`[data-kenn="${r.dataset.kenn}"]`);
+  if (!ziel) { box.scrollIntoView({behavior: "smooth", block: "start"}); return; }
+  if (ziel.classList.contains("pgx")) { if (ziel.getAttribute("aria-expanded") !== "true") pgOpen(ziel); }
+  else if (ziel.classList.contains("odx")) { if (ODLV.open !== r.dataset.kenn) odlOpen(r.dataset.kenn); }
+  ziel.scrollIntoView({behavior: "smooth", block: "center"});
+});
 function initRoll(el) {
   if (!el) return;
   if (el._roll) cancelAnimationFrame(el._roll.raf);
@@ -1313,8 +1337,7 @@ async function loadPegel() {
     const near = mitLage.slice(0, 3), rest = mitLage.slice(3);
     PEGEL_KM = Object.fromEntries(mitLage.map(x => [x.s.id, x.d]));
     mid = `<div class="grp"><div class="grp-h">Flusspegel <small>nach Entfernung zu ${esc(ORT.name)}</small></div>` + near.map((x, i) => pRow(x.s, i + 1)).join("")
-      + (rest.length ? `<div class="roll-h">ab Nr. 4 laufend · Finger hält an, Wischen spult vor und zurück</div>`
-        + `<div class="roll" id="pg-roll" data-auto="${rest.length > 4 ? 1 : 0}"><div class="roll-in">${rollRows(rest, 4)}${rest.length > 4 ? rollRows(rest, 4) : ""}</div></div>`
+      + (rest.length ? `<div class="roll" id="pg-roll" data-auto="${rest.length > 4 ? 1 : 0}"><div class="roll-in">${rollRows(rest, 4)}${rest.length > 4 ? rollRows(rest, 4) : ""}</div></div>`
         + `<details class="pall"><summary>Alle ${rest.length} weiteren Pegel als Liste</summary>${rest.map((x, i) => pRow(x.s, i + 4)).join("")}</details>` : "") + `</div>`;
     
   } else {
@@ -2044,15 +2067,14 @@ async function loadODLOrt(force) {
   };
   const rollRow = (s, i) => {
     const p = s.mittel7 ? (s.wert / s.mittel7 - 1) * 100 : null;
-    return `<div class="rr"><span class="rk">${i}</span><span class="rn"><b>${flag(s)}${esc(s.name)}</b><small>${s.cc === "CZ" ? "Tschechien" : "Deutschland"} · ${Math.round(s.km)} km</small></span><span class="rv ok">${fmt3(s.wert)}</span><em class="${p > 15 ? "up" : p < -15 ? "dn" : ""}">${p != null ? (p >= 0 ? "+" : "−") + Math.abs(Math.round(p)) + " %" : ""}</em></div>`;
+    return `<div class="rr" data-kenn="${esc(s.kenn)}"><span class="rk">${i}</span><span class="rn"><b>${flag(s)}${esc(s.name)}</b><small>${s.cc === "CZ" ? "Tschechien" : "Deutschland"} · ${Math.round(s.km)} km</small></span><span class="rv ok">${fmt3(s.wert)}</span><em class="${p > 15 ? "up" : p < -15 ? "dn" : ""}">${p != null ? (p >= 0 ? "+" : "−") + Math.abs(Math.round(p)) + " %" : ""}</em></div>`;
   };
   const fest = alle.slice(0, 3), rest = alle.slice(3);
   const rows = rest.map((s, i) => rollRow(s, i + 4)).join("");
   $("odl").innerHTML = (z ? `<div class="odl-z ${z.k}"><b>${z.t}</b> ${z.d}</div>` : "")
     + `<div class="unit odl-head">µSv/h, Stundenwert bis ${hhmm(new Date(near[0].ende))} Uhr · % = Abweichung vom Wochenmittel · antippen für Verlauf</div>`
     + `<div class="grp"><div class="grp-h">Messsonden DE und CZ <small>nach Entfernung zu ${esc(ORT.name)}</small></div>` + fest.map((s, i) => row(s, i + 1)).join("")
-    + (rest.length ? `<div class="roll-h">ab Nr. 4 laufend · Finger hält an, Wischen spult vor und zurück</div>`
-      + `<div class="roll roll3" id="odl-roll" data-auto="${rest.length > 3 ? 1 : 0}"><div class="roll-in">${rows}${rest.length > 3 ? rows : ""}</div></div>`
+    + (rest.length ? `<div class="roll roll3" id="odl-roll" data-auto="${rest.length > 3 ? 1 : 0}"><div class="roll-in">${rows}${rest.length > 3 ? rows : ""}</div></div>`
       + `<details class="pall" id="odl-all"><summary>Alle ${rest.length} weiteren Sonden als Liste</summary>${rest.map((s, i) => row(s, i + 4)).join("")}</details>` : "") + `</div>`;
   ODLV.erste = near[0].kenn;
   $("odl-spark").innerHTML = "";
@@ -2300,7 +2322,7 @@ function stTable(rows, f) {
   if (!rows.length) return '<div class="err">Keine Stationsdaten verfügbar.</div>';
   return rows.map((r, i) => `<div class="st">
       <span class="rk ${i < 3 ? "r" + (i + 1) : ""}">${i + 1}</span>
-      <div class="nm"><b title="${esc(r.name)}">${esc(r.name)}</b><small>${r.land ? `<span class="flag">${r.land}</span>` : ""}${r.hoehe != null ? Math.round(r.hoehe) + " m" : ""}</small></div>
+      <div class="nm"><b title="${esc(r.name)}">${esc(r.name)}</b><small>${r.land ? `<span class="flag">${r.land}</span>` : ""}${r.hoehe != null ? Math.round(r.hoehe) + " m" : ""}${r.dist != null ? " · " + Math.round(r.dist) + " km" : ""}</small></div>
       <span class="tm">${hhmm(r[f].at)}</span>
       <span class="pill" style="background:${tcol(r[f].t)}">${f1(r[f].t)}°</span>
     </div>`).join("");
@@ -2388,13 +2410,10 @@ function initOrt() {
   });
 }
 function initTabs() {
-  const set = which => {
-    $("tab-now").setAttribute("aria-selected", which === "now");
-    $("tab-min").setAttribute("aria-selected", which === "min");
-    $("cold").hidden = which !== "now"; $("min12").hidden = which !== "min";
-  };
-  $("tab-now").addEventListener("click", () => set("now"));
-  $("tab-min").addEventListener("click", () => set("min"));
+  $("st-tabs").addEventListener("click", e => {
+    const b = e.target.closest("button[data-p]"); if (!b) return;
+    document.querySelectorAll("#st-tabs button").forEach(x => { x.setAttribute("aria-selected", x === b); $(x.dataset.p).hidden = x !== b; });
+  });
 }
 
 /* ---------- Bergsilhouette Bayerischer Wald: weiche Rücken, Dunst, Fichtenwald, Großer Arber mit Radarkuppeln ---------- */
