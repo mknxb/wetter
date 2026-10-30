@@ -1,6 +1,6 @@
 # IT-Dokumentation Wetter Bayerwald
 
-Stand 28.10.2026 · Matthias Brem · Kopie der IT-Dokumentation aus Claude Docs (Architekturdiagramm nur dort)
+Stand 30.10.2026 · Matthias Brem · Kopie der IT-Dokumentation aus Claude Docs (Architekturdiagramm nur dort)
 
 ## Überblick
 
@@ -35,7 +35,7 @@ Sechs Anbieter liefern die Daten. Bright Sky, BfS und OpenStreetMap fragt der Br
 | [Bright Sky](https://brightsky.dev) (DWD Open Data) | Messwerte inkl. Luftdruckverlauf, MOSMIX-Vorhersage inkl. Sonneneinstrahlung und Taupunkt, Stationsliste, Warnungen | `api.brightsky.dev` `/current_weather`, `/weather`, `/sources`, `/alerts` | Browser | alle 10 min |
 | Bright Sky (DWD RADOLAN) | Regenradar, 1 h Messung + 2 h Vorhersage, 5-min-Raster, 1 km | `api.brightsky.dev/radar` | Browser | alle 10 min |
 | [BfS ODL-Messnetz](https://odlinfo.bfs.de/ODL/EN/service/data-interface/data-interface_node.html) | Gamma-Ortsdosisleistung DE, Stundenwert und 7-Tage-Verlauf | WFS `www.imis.bfs.de/ogc/opendata/ows`, Ebenen `odlinfo_odl_1h_latest`, `odlinfo_timeseries_odl_1h` | Browser | höchstens stündlich |
-| BfS (EURDEP) | Ortsdosisleistung Tschechien | gleicher WFS, Ebene `eurdep_latestValue` | Browser | mit ODL |
+| BfS (EURDEP) | Ortsdosisleistung Tschechien | seit 29.10.2026 SÚRO MonRaS, Frühwarnnetz (POST an www.suro.cz/aplikace/monras/tabulky/svz.json mit Sitzung und CSRF-Token; Lage der Messstellen in scripts/archiv.py hinterlegt); vorher BfS-WFS, Ebene `eurdep_latestValue` | Browser | mit ODL |
 | [HND Bayern](https://www.hnd.bayern.de/pegel) | Wasserstand, Abfluss, Meldestufe von 31 Pegeln an Regen und Chamb | HTML-Seite `www.hnd.bayern.de/pegel` | GitHub Actions → `pegel.json` | 2× pro Stunde |
 | DWD Open Data (Gesundheit) | UV-Index (Regensburg, Großer Arber), Pollenflug Region Allgäu/Oberbayern/Bay. Wald, Biowetter Zone Niederbayern/Oberpfalz | `opendata.dwd.de/climate_environment/health/alerts/uvi.json`, `s31fg.json`, `biowetter.json` | GitHub Actions → `extra.json` | 2× pro Stunde |
 | DWD Open Data (Klima) | Schneehöhe Station Großer Arber (01832, 1436 m), Tageswert vom Vortag | `opendata.dwd.de/climate_environment/CDC/observations_germany/climate/daily/kl/recent/` | GitHub Actions → `extra.json` | 2× pro Stunde |
@@ -54,7 +54,7 @@ Jede Änderung im Zweig `main` geht ohne Build-Schritt live: GitHub Pages veröf
 | `index.html` | Live-Seite: HTML, CSS und JavaScript in einer Datei | Hand (Claude) |
 | `test/index.html` | Testseite für neue Funktionen; seit 27.10.2026 21:10 gleicher Stand wie Live (Pfade mit ../, Kennzeichen „Testseite“) | Hand (Claude) |
 | `manifest.webmanifest` | App-Name „Bayerwald“, Farben, Symbole für die Installation | Hand |
-| `sw.js` | Service Worker (Cache `bayerwald-v``5`): Seite offline öffnen, Netz zuerst | Hand |
+| `sw.js` | Service Worker (Cache `bayerwald-v``6`): Seite offline öffnen, Netz zuerst | Hand |
 | `icon-192.png`, `icon-512.png`, `apple-touch-icon.png` | App-Symbol (Mond über Bergkämmen) | Hand |
 | `scripts/pegel.py` | holt die Pegel von HND Bayern | Hand |
 | `scripts/extra.py` | holt UV, Pollen, Kp-Index, Biowetter, Schneehöhe Arber | Hand |
@@ -118,7 +118,7 @@ Die Seite lädt alle Bereiche parallel, zeichnet sie alle 10 Minuten neu und bei
 | Heute im Bayerwald | 12 Kacheln, immer für den oben gewählten Ort (neu: Waldbrandindex nach eigener FWI-Berechnung, November bis Februar ausgeblendet), zutreffende zuerst (orange), „vielleicht“ blau, sonst grau; die 6 wichtigsten sichtbar, „Alle anzeigen“ für den Rest; Tipp öffnet Erklärung | siehe Tabelle unten |
 | Nächste 36 Stunden | Temperaturkurve, Regenbalken, 0-°C-Linie, 3-Stunden-Kacheln | MOSMIX-Stundenwerte. Mit Finger oder Maus nachfahren: Linie, Punkt und Kästchen mit Uhrzeit, Temperatur, Regen, Wind; bleibt nach dem Loslassen 3 s stehen. |
 | Regenradar | Film über 3 h im 5-min-Takt auf OpenStreetMap-Karte, Kurzantwort „Regen ab …“ | RADOLAN-Gitter (polarstereografisch) wird im Browser auf Web-Mercator umgerechnet, 75 km um den Ort. Farbstufen 0,1 bis 40 mm/h. Regen am Ort = mindestens 0,1 mm/h im Umkreis von 2 km. |
-| Die nächsten Tage | 4 Tage mit Tief, Hoch, Temperaturbalken, Regen, Böen | Regensymbol ab 0,5 mm am Tag (0,1 mm je 3 h), Schnee bei Höchstwert unter 1 °C. Böen nur aus eigenen Werten, nicht von Nachbarstationen. |
+| Die nächsten Tage | 7 Tage (ab Tag 5 blasser) mit Tief, Hoch, Temperaturbalken, Regen, Böen | Regensymbol ab 0,5 mm am Tag (0,1 mm je 3 h), Schnee bei Höchstwert unter 1 °C. Böen nur aus eigenen Werten, nicht von Nachbarstationen. |
 | Warnungen | DWD-Warnungen | zuerst für den gewählten Ort, darunter „In der Umgebung“ für die 5 nächsten Orte |
 | Gewässer | zwei Pegel je Ort (Blaibach: Kötzting und Chamerau), Regenmengen 24 h und 3 Tage, alle Pegel der Region aufklappbar. Pegel antippen → Verlauf 7 Tage, 30 Tage, 1 Jahr mit Mittelwasser und Meldestufe 1. Talsperre Frauenau als Füllstand in % (Näherung, 100 % = Stauziel 767 m), Drachensee als cm zum Dauerstau 405,00 m und belegter Rückhalteraum | Hinweis bei Meldestufe 1 bis 4. Frühwarnung bei Anstieg um 15 cm oder mehr in rund 3 h am Oberlauf (Weißer, Schwarzer, Großer, Kleiner Regen, Teisnach, Aitnach). |
 | Kälteste Orte | Jetzt und Tiefstwert 12 h, je Top 10/8 | Stationen im Umkreis 100 km, Meldung jünger als 6 h, nur echte Messwerte (keine Vorhersage, keine Ersatzwerte). |
@@ -156,7 +156,7 @@ Die Live-Seite verarbeitet keine personenbezogenen Daten selbst und hält keine 
 
 **Datenübermittlung an Dritte**
 
-Beim Aufruf übermittelt der Browser die IP-Adresse des Besuchers an: Bright Sky, BfS, OpenStreetMap-Kachelserver, cdnjs (Cloudflare) und Google Fonts. Die Seite ist öffentlich erreichbar.
+Beim Aufruf übermittelt der Browser die IP-Adresse des Besuchers an: Bright Sky, BfS, OpenStreetMap-Kachelserver und GitHub (Hosting); Schriften und Leaflet liegen seit 30.10.2026 im Repository. Die Seite ist öffentlich erreichbar.
 
 **Lizenzen und Quellenangaben**
 
@@ -173,8 +173,8 @@ Beim Aufruf übermittelt der Browser die IP-Adresse des Besuchers an: Bright Sky
 
 **Empfehlungen**
 
-- [ ] Google Fonts lokal im Repository ablegen, damit keine IP-Adressen an Google gehen.
-- [ ] Leaflet mit Integritätsprüfung (SRI-Hash) einbinden oder lokal ablegen.
+- [x] Erledigt 30.10.2026: Google Fonts lokal im Repository ablegen, damit keine IP-Adressen an Google gehen.
+- [x] Erledigt 30.10.2026: Leaflet lokal abgelegt.
 - [ ] Nutzungsbedingungen von HND Bayern / LfU für das automatische Auslesen klären.
 - [ ] Falls in Home Assistant ein Token „Wetterseite“ angelegt wurde: dort löschen.
 
@@ -225,6 +225,8 @@ Die Live-Seite entstand am 26.10.2026; seitdem kamen Radar, Strahlung, Pegel, 11
 
 | Datum | Seite | Änderung |
 | --- | --- | --- |
+| 30.10.2026 19:42 | Live | „Die nächsten Tage“ mit 7 Tagen (ab Tag 5 blasser, unsicherer); Schriften und Leaflet lokal unter assets/ (keine Abrufe mehr bei Google Fonts und cdnjs); Gewässer: Rubrik „Seen und Speicher“ fest oben, Flusspegel nach Entfernung zum Ort (Lage aus pegel-lage.json), 3 fest + durchlaufende Liste; Strahlung: DE- und CZ-Sonden bis 100 km nach Entfernung, 3 fest + durchlaufende Liste; Listen mit Finger anhalten, wischen spult; Cache bayerwald-v6 |
+| 29.10.2026 18:51 | Daten | Tschechische Strahlung aus dem SÚRO-Frühwarnnetz (MonRaS) statt EURDEP (beim BfS entfallen). 7 Messstellen in der Region (u. a. Klatovy, Přimda, Churáňov, Plzeň, Strakonice, Kocelovice). Keine dokumentierte Schnittstelle: öffentliche Tabelle wird wie im Browser abgefragt. Tschechien wird auch bei BfS-Störung aktualisiert. |
 | 28.10.2026 21:45 | Daten | Archiv: wieder bis zu 6 Strahlungssonden je Ort; Zwischenstand nach jedem Teil, Laufzeit je Teil in status.json. Tschechische Werte fehlen seit 27.10.: BfS meldet „Feature type opendata:eurdep_latestValue unknown“; mehrere Abfragevarianten eingebaut, Abwarten vereinbart |
 | 28.10.2026 21:08 | Live | Startort per Stern neben dem Ortsnamen (localStorage-Schlüssel wetter-startort, nur auf dem Gerät; Standard Blaibach; ?ort= hat Vorrang); neue Orte Walderbach (Pegel Kienhof, Nittenau) und Bruck i.d.OPf. (Nittenau, Marienthal), auch im Archiv; Cache bayerwald-v5 |
 | 27.10.2026 21:32 | Live | Ziehende Wolken nach Bewölkungsgrad und Wind; Sterne nach Bewölkung abgestuft; Mondlicht hellt den Nachthimmel auf und dämpft Sterne; Bewölkung aus der DWD-Vorhersage für den Ort, wenn die Wolkenstation mehr als 15 km entfernt ist (z. B. Weiding misst keine Wolken); Cache bayerwald-v4 |
