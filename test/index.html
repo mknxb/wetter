@@ -284,22 +284,23 @@ h2 small{font:500 .72rem var(--f-body);letter-spacing:.04em;text-transform:none;
 .pgx[aria-expanded="true"]::after{transform:rotate(-135deg);margin-top:4px;border-color:var(--accent)}
 .pgx:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .pg-vl{padding:4px 0 12px}.pg-vl .seg{margin:4px 0 8px}.pg-vl .note a{color:var(--accent)}
-.roll{position:relative;height:calc(var(--rows,5) * 46px);overflow:hidden;cursor:pointer;border-top:1px solid var(--line);
-  -webkit-mask-image:linear-gradient(180deg,transparent,#000 12%,#000 88%,transparent);mask-image:linear-gradient(180deg,transparent,#000 12%,#000 88%,transparent)}
+.grp{margin-top:12px;padding:4px 12px 8px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.025)}
+.grp-h{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-weight:700;padding:8px 0 6px}
+.grp-h small{letter-spacing:0;text-transform:none;color:var(--mu);font-weight:500;margin-left:6px}
+.grp .pg:first-of-type,.grp .od:first-of-type{border-top:0}
+.nr{display:inline-grid;place-items:center;min-width:1.6em;height:1.6em;margin-right:8px;border-radius:6px;background:rgba(255,255,255,.08);font:600 .72rem var(--f-body);color:var(--mu);vertical-align:1px}
+.roll-h{font-size:.7rem;color:var(--mu);padding:8px 0 4px;border-top:1px dashed var(--line);margin-top:4px}
+.roll{position:relative;height:calc(var(--rows,5) * 46px);overflow-y:auto;scrollbar-width:none;overscroll-behavior:contain;touch-action:pan-y;
+  -webkit-mask-image:linear-gradient(180deg,transparent,#000 10%,#000 90%,transparent);mask-image:linear-gradient(180deg,transparent,#000 10%,#000 90%,transparent)}
+.roll::-webkit-scrollbar{display:none}
 .roll.roll3{--rows:3}
-.flag.sm{font-size:.62rem;padding:1px 4px;margin-right:6px;vertical-align:2px}
-.rr .rv.ok{color:var(--ok)}
-.roll:not(.an){height:auto;-webkit-mask-image:none;mask-image:none}
-.roll.an .roll-in{animation:rollup calc(var(--n) * 2.6s) linear infinite}
-.roll:hover .roll-in,.roll:active .roll-in{animation-play-state:paused}
-@keyframes rollup{from{transform:translateY(0)}to{transform:translateY(-50%)}}
+.roll[data-auto="0"]{height:auto;-webkit-mask-image:none;mask-image:none}
 .rr{display:grid;grid-template-columns:1.6em minmax(0,1fr) auto 2.6em;align-items:center;gap:8px;height:46px;border-bottom:1px solid var(--line)}
-.rr .rk{color:var(--mu);font-size:.8rem;text-align:right}
+.rr .rk{display:inline-grid;place-items:center;width:1.6em;height:1.6em;border-radius:6px;background:rgba(255,255,255,.08);font:600 .72rem var(--f-body);color:var(--mu)}
 .rr .rn{min-width:0;line-height:1.2}.rr .rn b{font-weight:600;font-size:.92rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:inline-block;max-width:100%;vertical-align:bottom}
 .rr .rn small{display:block;color:var(--mu);font-size:.7rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .rr .rv{font:700 1.05rem var(--f-disp);text-align:right;white-space:nowrap}.rr .rv small{font:500 .7rem var(--f-body);color:var(--mu)}
 .rr em{font-style:normal;font-size:.72rem;color:var(--mu);text-align:right}.rr em.up{color:var(--amber)}.rr em.dn{color:var(--accent)}
-@media (prefers-reduced-motion:reduce){.roll{overflow-y:auto}.roll-in{animation:none}}
 .pall{margin-top:10px}.pall summary{cursor:pointer;color:var(--accent);font-size:.85rem;font-weight:600;padding:6px 0}
 
 /* Strahlung */
@@ -1143,12 +1144,12 @@ const SPEICHER = {
     unit: "cm", yF: v => nf(v, 0), info: "Wasserspiegel in cm über dem Dauerstau (405,00 m ü. NN). Bei Hochwasser füllt sich der Rückhalteraum bis zum Vollstau 408,25 m (+325 cm, 4 Mio m³)."
   }
 };
-function pRow(s) {
+function pRow(s, nr) {
   const tr = pTrend(s);
   const tt = tr && Math.abs(tr.d) >= 2 ? `<span class="pt ${tr.d > 0 ? "up" : "dn"}">${tr.d > 0 ? "▲" : "▼"} ${tr.d > 0 ? "+" : ""}${Math.round(tr.d)} cm/${Math.round(tr.hrs)} h</span>` : `<span class="pt">gleich</span>`;
   const ms = s.stage > 0 ? `<span class="ms ms${Math.min(4, s.stage)}">MS ${s.stage}</span>` : "";
   const name = esc(s.name);
-  return `<div class="pg pgx" role="button" tabindex="0" data-id="${esc(s.id)}" aria-expanded="false"><div class="nm"><b>${name} ${ms}</b><small>${PEGEL_KM[s.id] != null ? Math.round(PEGEL_KM[s.id]) + " km · " : ""}${SPEICHER[s.id] && s.level != null ? SPEICHER[s.id].zeile(s.level, SPEICHER[s.id].wert(s.level)).sub : esc(s.river) + (s.flow != null ? " · " + f1(s.flow) + " m³/s" : "") + (s.hint ? " · " + esc(s.hint) : "")}</small></div>
+  return `<div class="pg pgx" role="button" tabindex="0" data-id="${esc(s.id)}" aria-expanded="false"><div class="nm"><b>${nr ? `<span class="nr">${nr}</span>` : ""}${name} ${ms}</b><small>${PEGEL_KM[s.id] != null ? Math.round(PEGEL_KM[s.id]) + " km · " : ""}${SPEICHER[s.id] && s.level != null ? SPEICHER[s.id].zeile(s.level, SPEICHER[s.id].wert(s.level)).sub : esc(s.river) + (s.flow != null ? " · " + f1(s.flow) + " m³/s" : "") + (s.hint ? " · " + esc(s.hint) : "")}</small></div>
     <div class="pv">${SPEICHER[s.id] && s.level != null ? (z => `<b>${z.big}</b><span class="pt">${z.lbl}</span>`)(SPEICHER[s.id].zeile(s.level, SPEICHER[s.id].wert(s.level)))
       : /see|talsperre/i.test(s.name + s.river) && s.level > 100
       ? `<b>${s.level.toLocaleString("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2})}</b> m ü. NN`
@@ -1241,10 +1242,41 @@ function rollRows(list, start) {
     return `<div class="rr"><span class="rk">${start + i}</span><span class="rn"><b>${esc(s.name)}</b>${ms}<small>${esc(s.river)} · ${Math.round(x.d)} km</small></span><span class="rv">${val}</span>${t}</div>`;
   }).join("");
 }
-document.addEventListener("click", e => {
-  if (!e.target.closest("#pg-roll")) return;
-  const d = document.querySelector("#pegel details.pall"); if (d) { d.open = true; d.scrollIntoView({behavior: "smooth", block: "start"}); }
-});
+
+/* Durchlaufende Liste: läuft langsam nach oben; Finger/Maus hält an, Wischen spult vor oder zurück,
+   nach dem Loslassen läuft sie von dort weiter. Endlos, weil der Inhalt doppelt drinsteht. */
+function initRoll(el) {
+  if (!el) return;
+  if (el._roll) cancelAnimationFrame(el._roll.raf);
+  const st = el._roll = {pause: 0, last: 0, raf: 0, pos: el.scrollTop};
+  const auto = el.dataset.auto === "1" && !matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const halb = () => el.firstElementChild.scrollHeight / 2;
+  const halt = ms => { st.pause = performance.now() + ms; };
+  el.addEventListener("pointerdown", () => halt(1e9), {passive: true});
+  el.addEventListener("touchstart", () => halt(1e9), {passive: true});
+  const los = () => halt(2500);
+  el.addEventListener("pointerup", los, {passive: true}); el.addEventListener("pointercancel", los, {passive: true});
+  el.addEventListener("touchend", los, {passive: true}); el.addEventListener("mouseleave", los, {passive: true});
+  el.addEventListener("wheel", () => halt(2500), {passive: true});
+  el.addEventListener("scroll", () => {
+    if (!auto) return;
+    const h = halb();
+    if (el.scrollTop >= h) el.scrollTop -= h; else if (el.scrollTop <= 0 && performance.now() < st.pause) el.scrollTop += h;
+    st.pos = el.scrollTop;
+  }, {passive: true});
+  if (!auto) return;
+  const step = t => {
+    if (!el.isConnected) return;
+    const dt = st.last ? Math.min(100, t - st.last) : 0; st.last = t;
+    if (t > st.pause && document.visibilityState === "visible") {
+      st.pos += dt * 0.018;                     // ca. 18 px pro Sekunde
+      const h = halb(); if (st.pos >= h) st.pos -= h;
+      el.scrollTop = st.pos;
+    } else st.pos = el.scrollTop;
+    st.raf = requestAnimationFrame(step);
+  };
+  st.raf = requestAnimationFrame(step);
+}
 
 async function loadPegel() {
   let data;
@@ -1274,16 +1306,16 @@ async function loadPegel() {
   const LG = ARC.pegelLage || {};
   // Seen und Trinkwasserspeicher immer oben, in eigener kleiner Rubrik
   const seen = st.filter(s => SPEICHER[s.id]);
-  const seenBlock = seen.length ? `<div class="subh">Seen und Speicher</div>` + seen.map(pRow).join("") : "";
+  const seenBlock = seen.length ? `<div class="grp"><div class="grp-h">Seen und Speicher</div>${seen.map((s, i) => pRow(s, "S" + (i + 1))).join("")}</div>` : "";
   const mitLage = st.filter(s => LG[s.id] && !SPEICHER[s.id]).map(s => ({s, d: km(ORT.lat, ORT.lon, LG[s.id].lat, LG[s.id].lon)})).sort((a, b) => a.d - b.d);
   let mid;
-  if (mitLage.length >= 5) {
-    const near = mitLage.slice(0, 5), rest = mitLage.slice(5);
+  if (mitLage.length >= 3) {
+    const near = mitLage.slice(0, 3), rest = mitLage.slice(3);
     PEGEL_KM = Object.fromEntries(mitLage.map(x => [x.s.id, x.d]));
-    mid = `<div class="subh">Die 5 nächsten Pegel <small>zu ${esc(ORT.name)}</small></div>` + near.map(x => pRow(x.s)).join("")
-      + (rest.length ? `<div class="subh">Weitere Pegel <small>nach Entfernung, laufen durch · antippen für die Liste</small></div>`
-        + `<div class="roll${rest.length > 4 ? " an" : ""}" id="pg-roll" style="--n:${rest.length}"><div class="roll-in">${rollRows(rest, 6)}${rest.length > 4 ? rollRows(rest, 6) : ""}</div></div>`
-        + `<details class="pall"><summary>Alle ${rest.length} weiteren Pegel, nach Entfernung</summary>${rest.map(x => pRow(x.s)).join("")}</details>` : "");
+    mid = `<div class="grp"><div class="grp-h">Flusspegel <small>nach Entfernung zu ${esc(ORT.name)}</small></div>` + near.map((x, i) => pRow(x.s, i + 1)).join("")
+      + (rest.length ? `<div class="roll-h">ab Nr. 4 laufend · Finger hält an, Wischen spult vor und zurück</div>`
+        + `<div class="roll" id="pg-roll" data-auto="${rest.length > 4 ? 1 : 0}"><div class="roll-in">${rollRows(rest, 4)}${rest.length > 4 ? rollRows(rest, 4) : ""}</div></div>`
+        + `<details class="pall"><summary>Alle ${rest.length} weiteren Pegel als Liste</summary>${rest.map((x, i) => pRow(x.s, i + 4)).join("")}</details>` : "") + `</div>`;
     
   } else {
     PEGEL_KM = {};
@@ -1293,6 +1325,7 @@ async function loadPegel() {
   }
   $("pegel").innerHTML = banner + regenBlock() + seenBlock + mid
     + `<div class="unit">Stand ${hhmm(new Date(data.updated))} Uhr${age > 120 ? " · älter als 2 Stunden" : ""} · Quelle: Hochwassernachrichtendienst Bayern · Pegel antippen für den Verlauf</div>`;
+  initRoll($("pg-roll"));
 }
 function spark(pts, name) {
   const W = 320, H = 70, L = 4, R = 4, T = 8, B = 16;
@@ -2001,12 +2034,12 @@ async function loadODLOrt(force) {
   const alle = [...near, ...cz, ...weitere].sort((a, b) => a.km - b.km);
   ODLV.sonden = {}; [...near, ...cz].forEach(s => ODLV.sonden[s.kenn] = s);
   const flag = s => s.cc === "CZ" ? '<span class="flag sm">CZ</span>' : "";
-  const row = s => {
+  const row = (s, nr) => {
     const p = s.mittel7 ? (s.wert / s.mittel7 - 1) * 100 : null;
     const h24 = (s.stunden || []).at(-25)?.[1], t24 = h24 != null ? s.wert - h24 : null;
     const info = [`${Math.round(s.km)} km`, s.mittel7 ? `Wochenmittel ${fmt3(s.mittel7)}` : "", t24 != null && s.cc !== "CZ" ? `24 h ${t24 >= 0 ? "+" : "−"}${fmt3(Math.abs(t24))}` : ""].filter(Boolean).join(" · ");
     const kann = !!ODLV.sonden[s.kenn];
-    return `<div class="od od2${kann ? " odx" : ""}"${kann ? ` role="button" tabindex="0" data-kenn="${esc(s.kenn)}" aria-expanded="false"` : ""}><div class="nm"><b>${flag(s)}${esc(s.name)}</b><small>${info}</small></div>
+    return `<div class="od od2${kann ? " odx" : ""}"${kann ? ` role="button" tabindex="0" data-kenn="${esc(s.kenn)}" aria-expanded="false"` : ""}><div class="nm"><b>${nr ? `<span class="nr">${nr}</span>` : ""}${flag(s)}${esc(s.name)}</b><small>${info}</small></div>
       <span class="ov">${fmt3(s.wert)}${p != null ? `<em class="${p > 15 ? "up" : p < -15 ? "dn" : ""}">${p >= 0 ? "+" : "−"}${Math.abs(Math.round(p))} %</em>` : ""}</span></div>`;
   };
   const rollRow = (s, i) => {
@@ -2017,21 +2050,18 @@ async function loadODLOrt(force) {
   const rows = rest.map((s, i) => rollRow(s, i + 4)).join("");
   $("odl").innerHTML = (z ? `<div class="odl-z ${z.k}"><b>${z.t}</b> ${z.d}</div>` : "")
     + `<div class="unit odl-head">µSv/h, Stundenwert bis ${hhmm(new Date(near[0].ende))} Uhr · % = Abweichung vom Wochenmittel · antippen für Verlauf</div>`
-    + `<div class="subh">Die 3 nächsten Sonden <small>zu ${esc(ORT.name)}</small></div>` + fest.map(row).join("")
-    + (rest.length ? `<div class="subh">Weitere Sonden <small>DE und CZ nach Entfernung, laufen durch · antippen für die Liste</small></div>`
-      + `<div class="roll roll3${rest.length > 3 ? " an" : ""}" id="odl-roll" style="--n:${rest.length}"><div class="roll-in">${rows}${rest.length > 3 ? rows : ""}</div></div>`
-      + `<details class="pall" id="odl-all"><summary>Alle ${rest.length} weiteren Sonden, nach Entfernung</summary>${rest.map(row).join("")}</details>` : "");
+    + `<div class="grp"><div class="grp-h">Messsonden DE und CZ <small>nach Entfernung zu ${esc(ORT.name)}</small></div>` + fest.map((s, i) => row(s, i + 1)).join("")
+    + (rest.length ? `<div class="roll-h">ab Nr. 4 laufend · Finger hält an, Wischen spult vor und zurück</div>`
+      + `<div class="roll roll3" id="odl-roll" data-auto="${rest.length > 3 ? 1 : 0}"><div class="roll-in">${rows}${rest.length > 3 ? rows : ""}</div></div>`
+      + `<details class="pall" id="odl-all"><summary>Alle ${rest.length} weiteren Sonden als Liste</summary>${rest.map((s, i) => row(s, i + 4)).join("")}</details>` : "") + `</div>`;
   ODLV.erste = near[0].kenn;
   $("odl-spark").innerHTML = "";
   $("odl-cz").innerHTML = cz.length ? '<div class="note">Tschechische Werte: Frühwarnnetz SÚRO, eigene Aufzeichnung seit 29.10.2026.</div>'
     : '<div class="note">Tschechische Werte gerade nicht abrufbar.</div>';
+  initRoll($("odl-roll"));
   odlEinordnung();
   if (ODLV.open && ODLV.sonden[ODLV.open] && document.querySelector(`.odx[data-kenn="${ODLV.open}"]`)) odlOpen(ODLV.open, true); else ODLV.open = null;
 }
-document.addEventListener("click", e => {
-  if (!e.target.closest("#odl-roll")) return;
-  const d = $("odl-all"); if (d) { d.open = true; d.scrollIntoView({behavior: "smooth", block: "start"}); }
-});
 
 /* ---------- Gewässer: Pegel zum Ort + Regen am Ort ---------- */
 function regenBlock() {
