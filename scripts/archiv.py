@@ -673,8 +673,12 @@ def teil_chmi(status):
                 continue
             ix = {h: i for i, h in enumerate(head)}
             for r in rows:
-                if r[ix["ELEMENT"]] == "T" and r[ix["VAL"]] is not None:
+                if r[ix["ELEMENT"]] != "T":
+                    continue
+                try:
                     werte.append((str(r[ix["DT"]])[:16], float(r[ix["VAL"]])))
+                except (TypeError, ValueError):
+                    continue
         werte = sorted(w for w in werte if w[0] >= grenze)
         if not werte:
             fehl += 1
