@@ -1,5 +1,5 @@
 // Service Worker: Seite auch offline öffnen; Live-Daten immer frisch aus dem Netz.
-const CACHE = "bayerwald-v6";
+const CACHE = "bayerwald-v7";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./apple-touch-icon.png", "./assets/fonts.css", "./assets/leaflet/leaflet.css", "./assets/leaflet/leaflet.js"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener("activate", e => {
