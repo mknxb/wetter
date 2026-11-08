@@ -303,6 +303,8 @@ h2 small{font:500 .72rem var(--f-body);letter-spacing:.04em;text-transform:none;
 .rr .rv{font:700 1.05rem var(--f-disp);text-align:right;white-space:nowrap}.rr .rv small{font:500 .7rem var(--f-body);color:var(--mu)}
 .rr em{font-style:normal;font-size:.72rem;color:var(--mu);text-align:right}.rr em.up{color:var(--amber)}.rr em.dn{color:var(--accent)}
 .stg{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+@media (max-width:640px){.stg.auf{grid-template-columns:1fr;gap:14px}}
+.st-det .seg{margin-top:10px}
 .stc-h{font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;font-weight:700;padding:4px 0 6px}
 .stc.kalt .stc-h{color:var(--cold)}.stc.warm .stc-h{color:var(--warm)}
 .sti{display:grid;grid-template-columns:1.2em minmax(0,1fr) auto;align-items:center;gap:6px;padding:6px 0;border-top:1px solid var(--line)}
@@ -366,7 +368,7 @@ footer a{color:var(--accent)}
   <svg class="ridge" id="ridge" viewBox="0 0 1200 360" preserveAspectRatio="xMidYMax slice" aria-hidden="true"></svg>
   <div class="hero-in">
     <div class="topbar">
-      <span class="brand"><span class="testbadge">Testseite · Stand 08.11. 20:15</span> Bayerischer Wald · Böhmerwald</span>
+      <span class="brand"><span class="testbadge">Testseite · Stand 08.11. 20:45</span> Bayerischer Wald · Böhmerwald</span>
       <span class="stand"><span id="stand">lädt …</span>
         <button class="icon-btn" id="reload" type="button" aria-label="Aktualisieren"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg></button></span>
     </div>
@@ -928,7 +930,7 @@ async function loadStations() {
       getJSON("/current_weather", {...id, max_dist:1}),
       getJSON("/weather", {...id, date:from, last_date:to})
     ]);
-    const out = {name:kurz(s.station_name), land:land(s), hoehe:s.height, dist: s.distance != null ? s.distance / 1000 : null, lat:s.lat, lon:s.lon};
+    const out = {bsid:id, name:kurz(s.station_name), land:land(s), hoehe:s.height, dist: s.distance != null ? s.distance / 1000 : null, lat:s.lat, lon:s.lon};
     if (c.status === "fulfilled") {
       const w = c.value.weather;
       const fc = (c.value.sources || []).some(x => x.id === w?.source_id && x.observation_type === "forecast");
@@ -954,7 +956,7 @@ async function loadStations() {
   if (!ARC.chmi) { try { ARC.chmi = JSON.parse(await fetchText(ARCHIV + "chmi-temp.json")); } catch {} }
   // Tschechien: alle Stationen des Wetterdienstes ČHMÚ (eigener Abholdienst) statt nur der großen SYNOP-Stationen
   const tv = (t, at) => t != null ? {t, at: new Date(at)} : null;
-  const cz = (ARC.chmi?.stationen || []).map(c => ({name: c.name, land: "CZ", hoehe: c.hoehe, dist: km(ORT.lat, ORT.lon, c.lat, c.lon), lat: c.lat, lon: c.lon, quelle: "ČHMÚ",
+  const cz = (ARC.chmi?.stationen || []).map(c => ({wsi: c.wsi, name: c.name, land: "CZ", hoehe: c.hoehe, dist: km(ORT.lat, ORT.lon, c.lat, c.lon), lat: c.lat, lon: c.lon, quelle: "ČHMÚ",
       now: c.t != null && now - Date.parse(c.at) < 3 * 36e5 ? {t: c.t, at: new Date(c.at)} : null,
       min: tv(c.min, c.min_at), max: tv(c.max, c.max_at), min24: tv(c.min24 ?? c.min, c.min24_at ?? c.min_at), max24: tv(c.max24 ?? c.max, c.max24_at ?? c.max_at)}))
     .filter(c => c.dist <= RADIUS / 1000);
@@ -2658,6 +2660,69 @@ function initKarten() {
   });
 }
 
+/* Temperaturverlauf einer Station: Deutschland direkt beim DWD (Bright Sky), Tschechien aus der eigenen Mitschrift */
+const STV = {range: "7", cache: {}};
+async function stStunden(r, tage) {
+  const key = (r.wsi || JSON.stringify(r.bsid)) + "|" + tage;
+  if (STV.cache[key]) return STV.cache[key];
+  const bis = Date.now(), von = bis - tage * 864e5;
+  let pts = [];
+  if (r.land === "CZ" && r.wsi) {
+    const txt = await fetchText(ARCHIV + `chmi/${r.wsi}.csv`);
+    pts = txt.trim().split("\n").slice(1).map(l => { const [t, v] = l.split(";"); return {t: new Date(t + "Z"), v: parseFloat(v)}; });
+  } else if (r.bsid) {
+    const teile = [];
+    for (let a = von; a < bis; a += 31 * 864e5) teile.push([a, Math.min(bis, a + 31 * 864e5)]);
+    const res = await pool(teile, 4, async ([a, b]) => {
+      const j = await getJSON("/weather", {...r.bsid, date: new Date(a).toISOString(), last_date: new Date(b).toISOString()});
+      const obs = new Set((j.sources || []).filter(x => x.observation_type !== "forecast").map(x => x.id));
+      return (j.weather || []).filter(w => w.temperature != null && obs.has(w.source_id) && isMeasured(w, "temperature")).map(w => ({t: new Date(w.timestamp), v: w.temperature}));
+    });
+    const m = new Map(); for (const arr of res) for (const p of arr || []) m.set(+p.t, p); pts = [...m.values()];
+  }
+  pts = pts.filter(p => !isNaN(p.v) && +p.t >= von && +p.t <= bis).sort((a, b) => a.t - b.t);
+  return STV.cache[key] = pts;
+}
+async function stVerlauf(box, r) {
+  if (!box || !r) return;
+  const range = STV.range;
+  const seg = `<div class="seg">${[["7", "7 Tage"], ["30", "30 Tage"], ["365", "1 Jahr"]].map(([k, t]) => `<button type="button" data-r="${k}" aria-pressed="${range === k}">${t}</button>`).join("")}</div>`;
+  const foot = r.land === "CZ" ? `<div class="note">Eigene Mitschrift der Stundenwerte des ČHMÚ, gesammelt seit 08.11.2026. Der Verlauf füllt sich Tag für Tag.</div>` : `<div class="note">Stundenwerte des Deutschen Wetterdienstes (über Bright Sky).</div>`;
+  box.innerHTML = seg + '<div class="load">Lade Verlauf …</div>';
+  let pts = [];
+  try { pts = await stStunden(r, +range); } catch {}
+  if (!box.isConnected || STV.range !== range) return;
+  if (pts.length < 3) { box.innerHTML = seg + `<div class="note">${r.land === "CZ" ? "Noch zu wenige Werte in der eigenen Mitschrift." : "Verlauf gerade nicht abrufbar."}</div>` + foot; return; }
+  const yF = v => nf(v, 0), tag = d => new Intl.DateTimeFormat("de-DE", {timeZone: TZ, weekday: "short", day: "numeric", month: "numeric"}).format(d);
+  const vals = pts.map(p => p.v), mn = Math.min(...vals), mx = Math.max(...vals);
+  const lmin = pts[vals.indexOf(mn)], lmax = pts[vals.indexOf(mx)];
+  const sum = `<p class="rb-sum">Tiefst <b>${f1(mn)}°</b> ${range === "7" ? tag(lmin.t) : dShort(dayKey(lmin.t))} · Höchst <b>${f1(mx)}°</b> ${range === "7" ? tag(lmax.t) : dShort(dayKey(lmax.t))}</p>`;
+  if (range === "7") {
+    const n = pts.length, span = (pts.at(-1).t - pts[0].t) / 864e5, step = Math.max(1, Math.round(n / Math.max(1, span) * (span > 3 ? 2 : 1)));
+    box.innerHTML = seg + sum + '<div class="rbc"></div>' + foot;
+    drawChart(box.querySelector(".rbc"), {n, h: 160, aria: `Temperatur ${r.name}`, yFmt: yF,
+      xLabel: i => { const k = n - 1 - i; return k === 0 ? "jetzt" : (k % step === 0 && i > n * 0.08 && k > n * 0.12 ? tag(pts[i].t).replace(/\.$/, "") : null); },
+      layers: [{type: "line", vals, color: "#f2a65a", width: 1.8, dots: n < 12}],
+      tip: i => `<b>${tag(pts[i].t)} ${hhmm(pts[i].t)}</b><span class="tt" style="color:#f2a65a">${f1(vals[i])} °C</span>`});
+    return;
+  }
+  const by = new Map();
+  for (const p of pts) { const k = dayKey(p.t); const a = by.get(k) || []; a.push(p.v); by.set(k, a); }
+  const today = dayKey(new Date()), dates = [];
+  for (let i = +range - 1; i >= 0; i--) dates.push(addDays(today, -i));
+  const rows = dates.map(d => { const a = by.get(d); return a && a.length >= 6 ? {min: Math.min(...a), max: Math.max(...a), mittel: a.reduce((x, y) => x + y, 0) / a.length} : null; });
+  const ok = rows.filter(Boolean);
+  if (ok.length < 2) { box.innerHTML = seg + '<div class="note">Für diesen Zeitraum liegen noch zu wenige Tageswerte vor.</div>' + foot; return; }
+  const erster = dates[rows.findIndex(Boolean)];
+  box.innerHTML = seg + sum.replace("</p>", (r.land === "CZ" && erster > dates[0] ? ` · Werte ab ${dShort(erster)}` : "") + "</p>") + `<div class="rbc"></div>
+    <div class="legend"><span><i style="background:#f2a65a"></i>Tagesmittel</span><span><i style="background:#f2a65a;opacity:.3"></i>Tief bis Hoch</span></div>` + foot;
+  drawChart(box.querySelector(".rbc"), {n: dates.length, h: 160, aria: `Tageswerte Temperatur ${r.name}`, yFmt: yF,
+    xLabel: i => (i % Math.ceil(dates.length / 6) === 0) ? dShort(dates[i]) : null,
+    layers: [{type: "range", lo: rows.map(x => x ? x.min : null), hi: rows.map(x => x ? x.max : null), color: "rgba(242,166,90,.3)"},
+             {type: "line", vals: rows.map(x => x ? x.mittel : null), color: "#f2a65a", width: 2, dots: ok.length < 15}],
+    tip: i => `<b>${dShort(dates[i])}</b>${rows[i] ? `<span class="tt" style="color:#f2a65a">Mittel ${f1(rows[i].mittel)} °C</span><span>${f1(rows[i].min)} bis ${f1(rows[i].max)} °C</span>` : "<span>kein Wert</span>"}`});
+}
+
 function initTabs() {
   $("st-tabs").addEventListener("click", e => {
     const b = e.target.closest("button[data-p]"); if (!b) return;
@@ -2669,18 +2734,26 @@ function initTabs() {
     const offen = row.nextElementSibling?.classList.contains("st-det");
     card.querySelectorAll(".st-det").forEach(x => { kartenWeg(x); x.remove(); });
     card.querySelectorAll(".sti[aria-expanded]").forEach(x => x.removeAttribute("aria-expanded"));
+    card.querySelectorAll(".stg.auf").forEach(x => x.classList.remove("auf"));
     if (offen) return;
+    row.closest(".stg")?.classList.add("auf");
     const r = STN[+row.dataset.si]; if (!r) return;
     row.setAttribute("aria-expanded", "true");
     const d = document.createElement("div"); d.className = "st-det";
     const z = (k, l) => r[k] ? `<span>${l} <b>${f1(r[k].t)}°</b> <small>${hhmm(r[k].at)}</small></span>` : "";
     d.innerHTML = `<div class="st-werte">${z("now", "jetzt")}${z("min", "Tief 12 h")}${z("max", "Hoch 12 h")}${z("min24", "Tief 24 h")}${z("max24", "Hoch 24 h")}</div>`
-      + (r.lat != null ? `<div class="minimap"></div><a class="maplink" href="${kartenUrl(r.lat, r.lon, r.name)}" target="_blank" rel="noopener">In Karten-App öffnen ↗</a>` : "")
+      + `<div class="vl-body"></div>`
+      + (r.lat != null ? `<div class="subh">Lage</div><div class="minimap"></div><a class="maplink" href="${kartenUrl(r.lat, r.lon, r.name)}" target="_blank" rel="noopener">In Karten-App öffnen ↗</a>` : "")
       + `<div class="note">${r.land === "CZ" ? "Tschechischer Wetterdienst ČHMÚ" : "Deutscher Wetterdienst (über Bright Sky)"}${r.hoehe != null ? " · " + Math.round(r.hoehe) + " m ü. NN" : ""}${r.dist != null ? " · " + Math.round(r.dist) + " km von " + esc(ORT.name) : ""}</div>`;
-    row.after(d);
+    row.after(d); d.dataset.si = row.dataset.si;
+    stVerlauf(d.querySelector(".vl-body"), r);
     if (r.lat != null) miniKarte(d.querySelector(".minimap"), r.lat, r.lon, r.name, tcol(r[row.dataset.f]?.t ?? r.now?.t));
   };
-  card.addEventListener("click", e => { const row = e.target.closest(".sti[data-si]"); if (row) auf(row); });
+  card.addEventListener("click", e => {
+    const b = e.target.closest(".st-det .seg button[data-r]");
+    if (b) { STV.range = b.dataset.r; const d = b.closest(".st-det"); stVerlauf(d.querySelector(".vl-body"), STN[+d.dataset.si]); }
+  });
+  card.addEventListener("click", e => { if (e.target.closest(".st-det")) return; const row = e.target.closest(".sti[data-si]"); if (row) auf(row); });
   card.addEventListener("keydown", e => { const row = e.target.closest(".sti[data-si]"); if (row && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); auf(row); } });
   initKarten();
 }

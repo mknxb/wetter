@@ -11,6 +11,7 @@ Schreibt:
 - odl-aktuell.json      je Ort die naechsten Sonden mit Stundenwert, 7-Tage-Stundenverlauf, 7-Tage-Mittel,
                         dazu unter "cz" die naechsten tschechischen Sonden (EURDEP)
 - odl-cz/<id>.csv       eigene Mitschrift der tschechischen Stundenwerte (EURDEP liefert nur den letzten Wert)
+- chmi/<wsi>.csv        eigene Mitschrift der Stundentemperaturen tschechischer Wetterstationen (ČHMÚ)
 - odl/<id>.csv          auch fuer tschechische Sonden: Tagesmittel aus der eigenen Mitschrift
 - status.json           Zeitpunkte der letzten Laeufe, Fehler je Teil
 
@@ -635,6 +636,30 @@ def _chmi_values(raw):
     return head, inner.get("values", [])
 
 
+def _chmi_mitschrift(wsi, werte):
+    """Stundenwerte (volle Stunde, sonst letzter Wert der Stunde) in chmi/<wsi>.csv nachtragen."""
+    if not werte:
+        return
+    std = {}
+    for t, v in sorted(werte):
+        k = t[:13] + ":00"
+        if k not in std or t[14:16] == "00":
+            std[k] = v
+    p = path("chmi", f"{wsi}.csv")
+    rows = {}
+    if os.path.exists(p):
+        with open(p, encoding="utf-8") as f:
+            next(f, None)
+            for l in f:
+                k, _, v = l.strip().partition(";")
+                if k:
+                    rows[k] = v
+    for k, v in std.items():
+        rows[k] = f"{v:.1f}"
+    with open(p, "w", encoding="utf-8") as f:
+        f.write("zeit;t\n" + "".join(f"{k};{v}\n" for k, v in sorted(rows.items())))
+
+
 def teil_chmi(status):
     """Tschechische Wetterstationen (ČHMÚ Open Data, 10-Minuten-Werte): aktuelle Temperatur, Tiefst/Höchst 12 h."""
     st = status.setdefault("chmi", {})
@@ -680,6 +705,7 @@ def teil_chmi(status):
                     werte.append((str(r[ix["DT"]])[:16], float(r[ix["VAL"]])))
                 except (TypeError, ValueError):
                     continue
+        _chmi_mitschrift(s["wsi"], werte)
         werte = sorted(w for w in werte if w[0] >= grenze)
         if not werte:
             fehl += 1
