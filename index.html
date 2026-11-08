@@ -304,6 +304,8 @@ h2 small{font:500 .72rem var(--f-body);letter-spacing:.04em;text-transform:none;
 .rr .rv{font:700 1.05rem var(--f-disp);text-align:right;white-space:nowrap}.rr .rv small{font:500 .7rem var(--f-body);color:var(--mu)}
 .rr em{font-style:normal;font-size:.72rem;color:var(--mu);text-align:right}.rr em.up{color:var(--amber)}.rr em.dn{color:var(--accent)}
 .stg{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+@media (max-width:640px){.stg.auf{grid-template-columns:1fr;gap:14px}}
+.st-det .seg{margin-top:2px}
 .stc-h{font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;font-weight:700;padding:4px 0 6px}
 .stc.kalt .stc-h{color:var(--cold)}.stc.warm .stc-h{color:var(--warm)}
 .sti{display:grid;grid-template-columns:1.2em minmax(0,1fr) auto;align-items:center;gap:6px;padding:6px 0;border-top:1px solid var(--line)}
@@ -311,6 +313,33 @@ h2 small{font:500 .72rem var(--f-body);letter-spacing:.04em;text-transform:none;
 .sti .nm{min-width:0;line-height:1.15}.sti .nm b{display:block;font-size:.84rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sti .nm small{display:block;font-size:.64rem;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sti .pill{font-size:.8rem;padding:2px 6px;min-width:0;width:auto;justify-self:end}
+.minimap{height:170px;border-radius:12px;overflow:hidden;margin:6px 0 4px;border:1px solid var(--line)}
+.bigmap{height:min(62vh,440px);border-radius:14px;overflow:hidden;margin-top:8px;border:1px solid var(--line)}
+.minimap,.bigmap{position:relative;z-index:0;isolation:isolate;-webkit-mask-image:-webkit-radial-gradient(white,black);transform:translateZ(0)}
+.minimap .leaflet-control-attribution,.bigmap .leaflet-control-attribution{font-size:9px;background:rgba(11,18,32,.6);color:#aab}
+.minimap .leaflet-control-attribution a,.bigmap .leaflet-control-attribution a{color:#cde}
+.maplink{display:inline-block;font-size:.78rem;color:var(--accent);margin:2px 0 8px;text-decoration:none}
+.mmtip{background:rgba(11,18,32,.85);color:#fff;border:0;font-size:.72rem;padding:2px 6px;box-shadow:none}.mmtip::before{display:none}
+.vm span{display:inline-block;transform:translate(-50%,-50%);padding:2px 6px;border-radius:8px;font:700 12px/1.25 var(--f-disp);letter-spacing:.02em;
+  white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.55);cursor:pointer}
+.heat{image-rendering:auto;filter:blur(6px)}
+.kv-bar{display:flex;justify-content:flex-end;margin-top:8px}.chk{font-size:.8rem;color:var(--mu);display:flex;gap:6px;align-items:center;cursor:pointer}
+.seg.ansicht{margin:10px 0 2px}
+.sti[data-si]{cursor:pointer}.sti[aria-expanded]{background:rgba(255,255,255,.04)}
+.st-det{grid-column:1/-1;padding:6px 0 10px;border-top:1px dashed var(--line)}
+.st-werte{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:.78rem;color:var(--mu)}.st-werte b{color:var(--tx,#eef3fb)}.st-werte small{font-size:.66rem}
+.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:#121b2e;color:#eef3fb}.leaflet-popup-content{font-size:.82rem;margin:8px 12px}.leaflet-popup-content a{color:var(--accent)}
+.minimap.tapbar{cursor:zoom-in}
+.map-tap{position:absolute;inset:0;z-index:1100;background:transparent;border:0;padding:0;cursor:zoom-in;-webkit-tap-highlight-color:transparent}
+.map-tap span{position:absolute;right:8px;top:8px;font:500 .68rem var(--f-body);padding:3px 7px;border-radius:8px;background:rgba(11,18,32,.75);color:#dfe8f6}
+.kg-btn{float:right;margin:8px 0 -4px;background:none;border:1px solid var(--line);border-radius:10px;color:var(--accent);font:600 .75rem var(--f-body);padding:5px 9px;cursor:pointer}
+.kgross{position:fixed;inset:0;z-index:2000;background:rgba(4,8,18,.72);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:max(12px,env(safe-area-inset-top)) 10px max(12px,env(safe-area-inset-bottom))}
+.kg-in{width:min(980px,100%);height:min(86vh,760px);display:flex;flex-direction:column;background:#0f1729;border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.kg-h{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid var(--line)}
+.kg-h b{font-size:.92rem}
+.kg-x{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:rgba(255,255,255,.06);color:#fff;font-size:1.4rem;line-height:1;cursor:pointer}
+.kg-map{flex:1;min-height:0;position:relative;isolation:isolate}
+body.noscroll{overflow:hidden}
 .pall{margin-top:10px}.pall summary{cursor:pointer;color:var(--accent);font-size:.85rem;font-weight:600;padding:6px 0}
 
 /* Strahlung */
@@ -401,10 +430,14 @@ footer a{color:var(--accent)}
       <h2>Kälteste und wärmste Orte <small>100 km um den Ort, DE und CZ</small></h2>
       <div class="tabs" role="tablist" id="st-tabs">
         <button type="button" role="tab" data-p="st-jetzt" aria-selected="true">Jetzt</button>
-        <button type="button" role="tab" data-p="st-12h" aria-selected="false">Letzte 12 Stunden</button>
+        <button type="button" role="tab" data-p="st-12h" aria-selected="false">12 h</button>
+        <button type="button" role="tab" data-p="st-24h" aria-selected="false">24 h</button>
+        <button type="button" role="tab" data-p="st-karte" aria-selected="false">Karte</button>
       </div>
       <div id="st-jetzt" class="st2"><div class="load">Frage Stationen ab …</div></div>
       <div id="st-12h" class="st2" hidden></div>
+      <div id="st-24h" class="st2" hidden></div>
+      <div id="st-karte" hidden></div>
     </section>
     <section class="card">
       <h2>Strahlung <small>BfS-Messnetz</small></h2>
@@ -891,14 +924,14 @@ async function loadStations() {
     if (!p || (p.observation_type !== "synop" && s.observation_type === "synop")) map.set(key, s);
   }
   const list = [...map.values()];
-  const from = new Date(now - 12 * 36e5).toISOString(), to = new Date(now).toISOString();
+  const from = new Date(now - 24 * 36e5).toISOString(), to = new Date(now).toISOString();
   const data = await pool(list, 6, async s => {
     const id = s.wmo_station_id ? {wmo_station_id:s.wmo_station_id} : {dwd_station_id:s.dwd_station_id};
     const [c, h] = await Promise.allSettled([
       getJSON("/current_weather", {...id, max_dist:1}),
       getJSON("/weather", {...id, date:from, last_date:to})
     ]);
-    const out = {name:kurz(s.station_name), land:land(s), hoehe:s.height, dist: s.distance != null ? s.distance / 1000 : null};
+    const out = {bsid:id, name:kurz(s.station_name), land:land(s), hoehe:s.height, dist: s.distance != null ? s.distance / 1000 : null, lat:s.lat, lon:s.lon};
     if (c.status === "fulfilled") {
       const w = c.value.weather;
       const fc = (c.value.sources || []).some(x => x.id === w?.source_id && x.observation_type === "forecast");
@@ -910,10 +943,11 @@ async function loadStations() {
       const obs = new Set((h.value.sources || []).filter(x => x.observation_type !== "forecast").map(x => x.id));
       const rs = (h.value.weather || []).filter(r => r.temperature != null && isMeasured(r, "temperature") && obs.has(r.source_id));
       if (rs.length) {
-        const m = rs.reduce((a, b) => b.temperature < a.temperature ? b : a);
-        out.min = {t:m.temperature, at:new Date(m.timestamp)};
-        const mx = rs.reduce((a, b) => b.temperature > a.temperature ? b : a);
-        out.max = {t:mx.temperature, at:new Date(mx.timestamp)};
+        const lo = arr => { const m = arr.reduce((a, b) => b.temperature < a.temperature ? b : a); return {t:m.temperature, at:new Date(m.timestamp)}; };
+        const hi = arr => { const m = arr.reduce((a, b) => b.temperature > a.temperature ? b : a); return {t:m.temperature, at:new Date(m.timestamp)}; };
+        const r12 = rs.filter(r => now - Date.parse(r.timestamp) <= 12 * 36e5);
+        out.min24 = lo(rs); out.max24 = hi(rs);
+        if (r12.length) { out.min = lo(r12); out.max = hi(r12); }
         if (!out.now) { const l = rs[rs.length - 1]; if (now - Date.parse(l.timestamp) < 3 * 36e5) out.now = {t:l.temperature, at:new Date(l.timestamp)}; }
       }
     }
@@ -922,9 +956,10 @@ async function loadStations() {
   let ok = data.filter(Boolean);
   if (!ARC.chmi) { try { ARC.chmi = JSON.parse(await fetchText(ARCHIV + "chmi-temp.json")); } catch {} }
   // Tschechien: alle Stationen des Wetterdienstes ČHMÚ (eigener Abholdienst) statt nur der großen SYNOP-Stationen
-  const cz = (ARC.chmi?.stationen || []).map(c => ({name: c.name, land: "CZ", hoehe: c.hoehe, dist: km(ORT.lat, ORT.lon, c.lat, c.lon),
+  const tv = (t, at) => t != null ? {t, at: new Date(at)} : null;
+  const cz = (ARC.chmi?.stationen || []).map(c => ({wsi: c.wsi, name: c.name, land: "CZ", hoehe: c.hoehe, dist: km(ORT.lat, ORT.lon, c.lat, c.lon), lat: c.lat, lon: c.lon, quelle: "ČHMÚ",
       now: c.t != null && now - Date.parse(c.at) < 3 * 36e5 ? {t: c.t, at: new Date(c.at)} : null,
-      min: c.min != null ? {t: c.min, at: new Date(c.min_at)} : null, max: c.max != null ? {t: c.max, at: new Date(c.max_at)} : null}))
+      min: tv(c.min, c.min_at), max: tv(c.max, c.max_at), min24: tv(c.min24 ?? c.min, c.min24_at ?? c.min_at), max24: tv(c.max24 ?? c.max, c.max24_at ?? c.max_at)}))
     .filter(c => c.dist <= RADIUS / 1000);
   if (cz.length) ok = ok.filter(x => x.land !== "CZ").concat(cz);
   STN = ok;
@@ -934,8 +969,12 @@ async function loadStations() {
   const mins = uniq(ok.filter(x => x.min).sort((a, b) => a.min.t - b.min.t)).slice(0, 8);
   const warm = uniq(ok.filter(x => x.now).sort((a, b) => b.now.t - a.now.t)).slice(0, 8);
   const maxs = uniq(ok.filter(x => x.max).sort((a, b) => b.max.t - a.max.t)).slice(0, 8);
+  const min24 = uniq(ok.filter(x => x.min24).sort((a, b) => a.min24.t - b.min24.t)).slice(0, 8);
+  const max24 = uniq(ok.filter(x => x.max24).sort((a, b) => b.max24.t - a.max24.t)).slice(0, 8);
   $("st-jetzt").innerHTML = stSpalten(cold, warm, "now", "now", "Kälteste", "Wärmste");
-  $("st-12h").innerHTML = stSpalten(mins, maxs, "min", "max", "Tiefstwerte", "Höchstwerte");
+  $("st-12h").innerHTML = stSpalten(mins, maxs, "min", "max", "Tiefstwerte 12 h", "Höchstwerte 12 h");
+  $("st-24h").innerHTML = stSpalten(min24, max24, "min24", "max24", "Tiefstwerte 24 h", "Höchstwerte 24 h");
+  if (!$("st-karte").hidden) tempKarte();
 }
 
 /* ---------- Regenradar (DWD über Bright Sky) ---------- */
@@ -1180,13 +1219,16 @@ function pRow(s, nr) {
 const PGV = {range: "7", std: {}};
 function pgOpen(row) {
   const was = row.getAttribute("aria-expanded") === "true";
-  document.querySelectorAll(".pg-vl").forEach(x => x.remove());
+  document.querySelectorAll(".pg-vl").forEach(x => { kartenWeg(x); x.remove(); });
   document.querySelectorAll(".pgx").forEach(r => r.setAttribute("aria-expanded", "false"));
   if (was) return;
   const s = (window.PEGEL_DATA?.stations || []).find(x => x.id === row.dataset.id); if (!s) return;
   row.setAttribute("aria-expanded", "true");
   const box = document.createElement("div"); box.className = "pg-vl"; box.dataset.id = s.id;
-  row.after(box); pgVerlauf(box, s);
+  const lg = ARC.pegelLage?.[s.id];
+  box.innerHTML = `<div class="vl-body"></div>` + (lg ? `<div class="subh">Lage</div><div class="minimap"></div><a class="maplink" href="${kartenUrl(lg.lat, lg.lon, s.name)}" target="_blank" rel="noopener">In Karten-App öffnen ↗</a>` : "");
+  row.after(box); pgVerlauf(box.querySelector(".vl-body"), s);
+  if (lg) miniKarte(box.querySelector(".minimap"), lg.lat, lg.lon, s.name, s.stage > 0 ? "#e88a2e" : "#4f86c6");
 }
 async function pegelStunden(id) {   // eigenes Archiv (Monatsdateien) + aktuelle Werte aus pegel.json
   const now = new Date(), mons = [dayKey(now).slice(0, 7), dayKey(new Date(now - 8 * 864e5)).slice(0, 7)];
@@ -1244,7 +1286,7 @@ function initPGV() {
   const card = $("pegel").closest(".card");
   card.addEventListener("click", e => {
     const r = e.target.closest(".pg-vl .seg button[data-r]");
-    if (r) { PGV.range = r.dataset.r; const box = r.closest(".pg-vl"); const s = (window.PEGEL_DATA?.stations || []).find(x => x.id === box.dataset.id); if (s) pgVerlauf(box, s); return; }
+    if (r) { PGV.range = r.dataset.r; const box = r.closest(".pg-vl"); const s = (window.PEGEL_DATA?.stations || []).find(x => x.id === box.dataset.id); if (s) pgVerlauf(box.querySelector(".vl-body") || box, s); return; }
     if (e.target.closest(".pg-vl")) return;
     const row = e.target.closest(".pgx"); if (row) pgOpen(row);
   });
@@ -1355,9 +1397,12 @@ async function loadPegel() {
       + `<details class="pall"><summary>Alle ${st.length} Pegel der Region</summary>${order.map(r => `<div class="subh">${esc(r)}</div>` + groups[r].map(pRow).join("")).join("")}</details>`;
     
   }
-  $("pegel").innerHTML = banner + regenBlock() + seenBlock + mid
+  kartenWeg($("pegel"));
+  $("pegel").innerHTML = banner + regenBlock() + (Object.keys(LG).length ? ansichtSchalter("pegel") : "") + `<div class="lv">` + seenBlock + mid + `</div>`
+    + `<div class="kv" hidden><div class="bigmap"></div><div class="legend"><span><i style="background:#4f86c6"></i>normal</span><span><i style="background:#c98a2b"></i>steigt ab 5 cm</span><span><i style="background:#e88a2e"></i>Meldestufe</span><span><i style="background:#3c7d8f"></i>See/Speicher</span></div></div>`
     + `<div class="unit">Stand ${hhmm(new Date(data.updated))} Uhr${age > 120 ? " · älter als 2 Stunden" : ""} · Quelle: Hochwassernachrichtendienst Bayern · Pegel antippen für den Verlauf</div>`;
   initRoll($("pg-roll"));
+  ansichtAnwenden("pegel");
 }
 function spark(pts, name) {
   const W = 320, H = 70, L = 4, R = 4, T = 8, B = 16;
@@ -1997,15 +2042,17 @@ function odlSkala(v) {
 const ODLV = {open: null, range: "7", sonden: {}};
 function odlEinordnung() {}   // Einordnung steckt jetzt im aufgeklappten Bereich
 function odlOpen(kenn, keep) {
-  document.querySelectorAll(".odl-vl").forEach(x => x.remove());
+  document.querySelectorAll(".odl-vl").forEach(x => { kartenWeg(x); x.remove(); });
   document.querySelectorAll(".odx").forEach(r => r.setAttribute("aria-expanded", "false"));
   if (!keep && ODLV.open === kenn) { ODLV.open = null; odlEinordnung(); return; }
   const row = [...document.querySelectorAll(".odx")].find(r => r.dataset.kenn === kenn), s = ODLV.sonden[kenn];
   if (!row || !s) { ODLV.open = null; odlEinordnung(); return; }
   ODLV.open = kenn; row.setAttribute("aria-expanded", "true"); odlEinordnung();
   const box = document.createElement("div"); box.className = "odl-vl";
-  box.innerHTML = `<div class="vl-body"></div>` + (s.wert != null ? `<div class="vl-skala"><div class="subh">Einordnung: ${fmt3(s.wert)} µSv/h</div>${odlSkala(s.wert)}</div>` : "");
+  box.innerHTML = `<div class="vl-body"></div>` + (s.wert != null ? `<div class="vl-skala"><div class="subh">Einordnung: ${fmt3(s.wert)} µSv/h</div>${odlSkala(s.wert)}</div>` : "")
+    + (s.lat != null ? `<div class="subh">Lage</div><div class="minimap"></div><a class="maplink" href="${kartenUrl(s.lat, s.lon, s.name)}" target="_blank" rel="noopener">In Karten-App öffnen ↗</a>` : "");
   row.after(box); odlVerlauf(box.querySelector(".vl-body"), s);
+  if (s.lat != null) miniKarte(box.querySelector(".minimap"), s.lat, s.lon, s.name, odlFarbe(s));
 }
 async function odlVerlauf(box, s) {
   const seg = `<div class="seg">${[["7", "7 Tage"], ["30", "30 Tage"], ["365", "1 Jahr"]].map(([k, t]) => `<button type="button" data-r="${k}" aria-pressed="${ODLV.range === k}">${t}</button>`).join("")}</div>`;
@@ -2081,16 +2128,19 @@ async function loadODLOrt(force) {
   };
   const fest = alle.slice(0, 3), rest = alle.slice(3);
   const rows = rest.map((s, i) => rollRow(s, i + 4)).join("");
-  $("odl").innerHTML = (z ? `<div class="odl-z ${z.k}"><b>${z.t}</b> ${z.d}</div>` : "")
+  kartenWeg($("odl"));
+  $("odl").innerHTML = (z ? `<div class="odl-z ${z.k}"><b>${z.t}</b> ${z.d}</div>` : "") + ansichtSchalter("odl") + `<div class="lv">`
     + `<div class="unit odl-head">µSv/h, Stundenwert bis ${hhmm(new Date(near[0].ende))} Uhr · % = Abweichung vom Wochenmittel · antippen für Verlauf</div>`
     + `<div class="grp"><div class="grp-h">Messsonden DE und CZ <small>nach Entfernung zu ${esc(ORT.name)}</small></div>` + fest.map((s, i) => row(s, i + 1)).join("")
     + (rest.length ? `<div class="roll roll3" id="odl-roll" data-auto="${rest.length > 3 ? 1 : 0}"><div class="roll-in">${rows}${rest.length > 3 ? rows : ""}</div></div>`
-      + `<details class="pall" id="odl-all"><summary>Alle ${rest.length} weiteren Sonden als Liste</summary>${rest.map((s, i) => row(s, i + 4)).join("")}</details>` : "") + `</div>`;
+      + `<details class="pall" id="odl-all"><summary>Alle ${rest.length} weiteren Sonden als Liste</summary>${rest.map((s, i) => row(s, i + 4)).join("")}</details>` : "") + `</div>`
+    + `</div><div class="kv" hidden><div class="bigmap"></div><div class="legend"><span><i style="background:#3f9d6b"></i>natürlich</span><span><i style="background:#c9a227"></i>über 1,5 × Wochenmittel (meist Regen)</span><span><i style="background:#d9473b"></i>auffällig</span></div></div>`;
   ODLV.erste = near[0].kenn;
   $("odl-spark").innerHTML = "";
   $("odl-cz").innerHTML = cz.length ? '<div class="note">Tschechische Werte: Frühwarnnetz SÚRO, eigene Aufzeichnung seit 29.10.2026.</div>'
     : '<div class="note">Tschechische Werte gerade nicht abrufbar.</div>';
   initRoll($("odl-roll"));
+  ansichtAnwenden("odl");
   odlEinordnung();
   if (ODLV.open && ODLV.sonden[ODLV.open] && document.querySelector(`.odx[data-kenn="${ODLV.open}"]`)) odlOpen(ODLV.open, true); else ODLV.open = null;
 }
@@ -2329,7 +2379,7 @@ function showSig(k) {
 
 
 function stSpalten(links, rechts, fl, fr, tl, tr) {
-  const spalte = (rows, f, titel, cls) => `<div class="stc ${cls}"><div class="stc-h">${titel}</div>${rows.length ? rows.map((r, i) => `<div class="sti">
+  const spalte = (rows, f, titel, cls) => `<div class="stc ${cls}"><div class="stc-h">${titel}</div>${rows.length ? rows.map((r, i) => `<div class="sti" role="button" tabindex="0" data-si="${STN.indexOf(r)}" data-f="${f}">
       <span class="rk">${i + 1}</span>
       <span class="nm"><b title="${esc(r.name)}">${esc(r.name)}</b><small>${r.land ? r.land + " · " : ""}${r.hoehe != null ? Math.round(r.hoehe) + " m" : ""}${r.dist != null ? " · " + Math.round(r.dist) + " km" : ""}</small></span>
       <span class="pill" style="background:${tcol(r[f].t)}">${f1(r[f].t)}°</span></div>`).join("") : '<div class="note">keine Daten</div>'}</div>`;
@@ -2426,11 +2476,285 @@ function initOrt() {
     refresh();
   });
 }
+/* ---------- Karten: kleine Lagekarte in den Details und große Kartenansicht je Bereich ---------- */
+const MAPS = new Set();
+function kartenUrl(lat, lon, name) {
+  return /iPhone|iPad|Macintosh/.test(navigator.userAgent)
+    ? `https://maps.apple.com/?ll=${lat},${lon}&q=${encodeURIComponent(name || "Messstelle")}`
+    : `https://www.google.com/maps/search/?api=1&query=${lat},${lon}`;
+}
+function grundkarte(el, opts = {}) {
+  if (typeof L === "undefined") { el.innerHTML = '<div class="note">Karte nicht verfügbar.</div>'; return null; }
+  const gross = !!el.closest(".kgross");
+  const m = L.map(el, {zoomControl: gross || opts.zoom !== false, attributionControl: true, scrollWheelZoom: gross, dragging: gross || (opts.drag ?? !L.Browser.mobile),
+    touchZoom: gross || !L.Browser.mobile, doubleClickZoom: gross || !L.Browser.mobile, tap: false, ...opts.leaflet});
+  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {maxZoom: 14, className: "darktiles",
+    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(m);
+  el._map = m; MAPS.add(m);
+  return m;
+}
+function kartenWeg(root) {   // Karten in einem Bereich sauber abbauen, bevor er neu gezeichnet wird
+  (root || document).querySelectorAll(".minimap, .bigmap, .kg-map").forEach(el => { if (el._map) { el._map.remove(); MAPS.delete(el._map); el._map = null; } });
+}
+function ortMarker(m) {
+  return L.circleMarker([ORT.lat, ORT.lon], {radius: 6, color: "#fff", weight: 2, fillColor: "#0b1220", fillOpacity: 1})
+    .bindTooltip(esc(ORT.name), {permanent: false}).addTo(m);
+}
+function miniKarte(el, lat, lon, name, farbe) {
+  const gross = !!el.closest(".kgross");
+  const m = grundkarte(el, {zoom: false, drag: false}); if (!m) return;
+  if (!gross) {
+    // Durchsichtige Schaltfläche über der ganzen kleinen Karte: Leaflet bekommt den Tipp gar nicht erst
+    el.insertAdjacentHTML("beforeend", '<button type="button" class="map-tap" aria-label="Karte vergrößern"><span>⤢ vergrößern</span></button>');
+    el.querySelector(".map-tap").addEventListener("click", e => { e.stopPropagation(); karteGross(name, box => miniKarte(box, lat, lon, name, farbe)); });
+  }
+  const p = L.circleMarker([lat, lon], {radius: 8, color: "#fff", weight: 2, fillColor: farbe || "#6fb7ff", fillOpacity: 1}).addTo(m);
+  p.bindTooltip(esc(name), {permanent: true, direction: "top", offset: [0, -8], className: "mmtip"});
+  ortMarker(m);
+  const d = km(ORT.lat, ORT.lon, lat, lon);
+  if (d > 0.3) {
+    L.polyline([[ORT.lat, ORT.lon], [lat, lon]], {color: "#ffffff", weight: 1.5, opacity: .6, dashArray: "4 5"}).addTo(m);
+    m.fitBounds([[ORT.lat, ORT.lon], [lat, lon]], {padding: [26, 26], maxZoom: 12});
+  } else m.setView([lat, lon], 12);
+  setTimeout(() => m.invalidateSize(), 60);
+}
+/* Karte groß: Vollbild-Ebene mit verschiebbarer, zoombarer Karte; Schließen mit ×, Hintergrund oder Zurück-Taste */
+function karteGross(titel, bauen) {
+  document.querySelector(".kgross")?.remove();
+  const ov = document.createElement("div"); ov.className = "kgross";
+  ov.innerHTML = `<div class="kg-in" role="dialog" aria-modal="true" aria-label="${esc(titel)}"><div class="kg-h"><b>${esc(titel)}</b><button type="button" class="kg-x" aria-label="Schließen">×</button></div><div class="kg-map"></div></div>`;
+  document.body.appendChild(ov); document.body.classList.add("noscroll");
+  const zu = () => { kartenWeg(ov); ov.remove(); document.body.classList.remove("noscroll"); removeEventListener("keydown", esc_); };
+  const esc_ = e => { if (e.key === "Escape") zu(); };
+  const offen = Date.now();   // der Klick, der das Fenster geöffnet hat, darf es nicht gleich wieder schließen
+  ov.addEventListener("click", e => { if (e.target.closest(".kg-x") || (e.target === ov && Date.now() - offen > 450)) zu(); });
+  addEventListener("keydown", esc_);
+  ov.querySelector(".kg-x").focus();
+  const el = ov.querySelector(".kg-map");
+  requestAnimationFrame(() => { bauen(el); setTimeout(() => el._map?.invalidateSize(), 120); });
+}
+function grossKnopf(titel, bauen) {   // Knopf oben rechts in den großen Kartenansichten
+  const b = document.createElement("button"); b.type = "button"; b.className = "kg-btn"; b.textContent = "⤢ Vollbild";
+  b.addEventListener("click", () => karteGross(titel, bauen));
+  return b;
+}
+/* Wert-Marken: kleine farbige Schilder mit Wert, wie bei hochwertigen Wetterkarten */
+function wertMarke(m, lat, lon, text, farbe, titel, onTap, dunkel) {
+  const ic = L.divIcon({className: "vm", html: `<span style="background:${farbe};color:${dunkel ? "#0b1220" : "#fff"}">${text}</span>`, iconSize: null});
+  const mk = L.marker([lat, lon], {icon: ic, title: titel, riseOnHover: true}).addTo(m);
+  if (onTap) mk.on("click", onTap);
+  return mk;
+}
+/* Temperaturfläche: Inverse-Distanz-Gewichtung zwischen den Stationen (Näherung), als halbdurchsichtiges Bild */
+function waermeFlaeche(pts, b) {
+  const W = 160, H = Math.round(160 * (b.n - b.s) / ((b.e - b.w) * Math.cos(((b.n + b.s) / 2) * Math.PI / 180)));
+  const c = document.createElement("canvas"); c.width = W; c.height = H;
+  const g = c.getContext("2d"), img = g.createImageData(W, H);
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const lat = b.n - (y + .5) / H * (b.n - b.s), lon = b.w + (x + .5) / W * (b.e - b.w);
+    let sw = 0, sv = 0, nah = 1e9;
+    for (const p of pts) {
+      const dx = (lon - p.lon) * Math.cos(lat * Math.PI / 180), dy = lat - p.lat, d2 = dx * dx + dy * dy + 1e-6;
+      const w = 1 / (d2 * d2); sw += w; sv += w * p.t; nah = Math.min(nah, d2);
+    }
+    const col = tcol(sv / sw).match(/\d+/g).map(Number), i = (y * W + x) * 4;
+    const fern = Math.sqrt(nah) * 111;                      // km zur nächsten Station: dort ausblenden
+    img.data[i] = col[0]; img.data[i + 1] = col[1]; img.data[i + 2] = col[2];
+    img.data[i + 3] = Math.round(150 * Math.max(0, Math.min(1, 1.6 - fern / 25)));
+  }
+  g.putImageData(img, 0, 0);
+  return c.toDataURL();
+}
+let TK_HEAT = (() => { try { return localStorage.getItem("wetter-heat") !== "0"; } catch { return true; } })();
+function tempKarte() {
+  const box = $("st-karte");
+  const pts = STN.filter(r => r.now && r.lat != null && r.dist != null && r.dist <= RADIUS / 1000);
+  kartenWeg(box);
+  box.innerHTML = `<div class="kv-bar"><label class="chk"><input type="checkbox" id="heat-chk" ${TK_HEAT ? "checked" : ""}> Temperaturfläche (Näherung)</label></div>
+    <div class="bigmap"></div><div class="note">Schilder = gemessene Temperatur jetzt, ${pts.length} Stationen DE und CZ. Die Fläche ist zwischen den Stationen geschätzt; im Bergland weicht sie ab, weil die Höhe stark mitspielt.</div>`;
+  if (!pts.length) return;
+  const mapEl = box.querySelector(".bigmap");
+  mapEl.before(grossKnopf("Temperaturen um " + ORT.name, el => tempKarteBauen(el, pts)));
+  tempKarteBauen(mapEl, pts);
+}
+function tempKarteBauen(el, pts) {
+  const m = grundkarte(el); if (!m) return;
+  const lats = pts.map(p => p.lat).concat(ORT.lat), lons = pts.map(p => p.lon).concat(ORT.lon);
+  const b = {s: Math.min(...lats) - .05, n: Math.max(...lats) + .05, w: Math.min(...lons) - .08, e: Math.max(...lons) + .08};
+  const heat = L.imageOverlay(waermeFlaeche(pts.map(p => ({lat: p.lat, lon: p.lon, t: p.now.t})), b), [[b.s, b.w], [b.n, b.e]], {opacity: .85, className: "heat"});
+  if (TK_HEAT) heat.addTo(m);
+  for (const p of pts) wertMarke(m, p.lat, p.lon, `${f1(p.now.t)}°`, tcol(p.now.t), `${p.name} (${p.land || ""})`, () =>
+    L.popup({closeButton: false}).setLatLng([p.lat, p.lon]).setContent(`<b>${esc(p.name)}</b><br>${f1(p.now.t)} °C · ${hhmm(p.now.at)} Uhr<br>${p.land || ""}${p.hoehe != null ? " · " + Math.round(p.hoehe) + " m" : ""} · ${Math.round(p.dist)} km`).openOn(m), true);
+  ortMarker(m);
+  m.fitBounds([[b.s, b.w], [b.n, b.e]], {padding: [6, 6]});
+  setTimeout(() => m.invalidateSize(), 60);
+  const chk = document.getElementById("heat-chk");
+  if (chk && !el.closest(".kgross")) chk.onchange = e => {
+    TK_HEAT = e.target.checked; try { localStorage.setItem("wetter-heat", TK_HEAT ? "1" : "0"); } catch {}
+    TK_HEAT ? heat.addTo(m) : heat.remove();
+  };
+}
+/* Liste | Karte bei Gewässer und Strahlung */
+const ANSICHT = {pegel: "liste", odl: "liste"};
+function ansichtSchalter(bereich) {
+  return `<div class="seg ansicht" data-bereich="${bereich}"><button type="button" data-v="liste" aria-pressed="${ANSICHT[bereich] === "liste"}">Liste</button><button type="button" data-v="karte" aria-pressed="${ANSICHT[bereich] === "karte"}">Karte</button></div>`;
+}
+function ansichtAnwenden(bereich) {
+  const root = $(bereich); if (!root) return;
+  const lv = root.querySelector(".lv"), kv = root.querySelector(".kv"); if (!lv || !kv) return;
+  const karte = ANSICHT[bereich] === "karte";
+  lv.hidden = karte; kv.hidden = !karte;
+  root.querySelectorAll(".ansicht button").forEach(b => b.setAttribute("aria-pressed", b.dataset.v === ANSICHT[bereich]));
+  kartenWeg(kv);
+  kv.querySelector(".kg-btn")?.remove();
+  if (karte) {
+    const bau = bereich === "pegel" ? pegelKarte : odlKarte, el = kv.querySelector(".bigmap");
+    el.before(grossKnopf(bereich === "pegel" ? "Gewässer" : "Strahlung", bau));
+    bau(el);
+  }
+}
+function zurListe(bereich, sel) {   // Tipp auf "Details" im Kartenschild: zur Liste wechseln und Zeile aufklappen
+  const ov = document.querySelector(".kgross"); if (ov) { kartenWeg(ov); ov.remove(); document.body.classList.remove("noscroll"); }
+  ANSICHT[bereich] = "liste"; ansichtAnwenden(bereich);
+  const row = $(bereich).querySelector(sel); if (!row) return;
+  const det = row.closest("details"); if (det) det.open = true;
+  row.click(); row.scrollIntoView({behavior: "smooth", block: "center"});
+}
+function pegelKarte(el) {
+  const LG = ARC.pegelLage || {}, st = (window.PEGEL_DATA?.stations || []).filter(s => LG[s.id]);
+  const m = grundkarte(el); if (!m || !st.length) return;
+  for (const s of st) {
+    const tr = pTrend(s), sp = SPEICHER[s.id];
+    let farbe = "#4f86c6", txt = s.level != null ? `${Math.round(s.level)}` : f1(s.flow);
+    if (sp && s.level != null) { const z = sp.zeile(s.level, sp.wert(s.level)); txt = z.big; farbe = "#3c7d8f"; }
+    else if (tr && tr.d >= 5) farbe = "#c98a2b";
+    if (s.stage > 0) farbe = ["#e3c13b", "#e88a2e", "#d9473b", "#9c3fc9"][Math.min(4, s.stage) - 1];
+    const L_ = LG[s.id];
+    wertMarke(m, L_.lat, L_.lon, txt, farbe, s.name, () => L.popup({closeButton: false}).setLatLng([L_.lat, L_.lon]).setContent(
+      `<b>${esc(s.name)}</b> <small>${esc(s.river)}</small><br>${sp && s.level != null ? sp.zeile(s.level, sp.wert(s.level)).big : s.level != null ? Math.round(s.level) + " cm" : f1(s.flow) + " m³/s"}${tr && Math.abs(tr.d) >= 2 ? ` · ${tr.d > 0 ? "▲" : "▼"} ${Math.abs(Math.round(tr.d))} cm` : ""}${s.stage > 0 ? ` · Meldestufe ${s.stage}` : ""}<br>${Math.round(km(ORT.lat, ORT.lon, L_.lat, L_.lon))} km · <a href="#" data-zu="${esc(s.id)}">Details ›</a>`).openOn(m), farbe === "#e3c13b");
+  }
+  m.on("popupopen", e => e.popup.getElement().querySelector("[data-zu]")?.addEventListener("click", ev => { ev.preventDefault(); m.closePopup(); zurListe("pegel", `.pgx[data-id="${ev.target.dataset.zu}"]`); }));
+  ortMarker(m);
+  // Ausschnitt: die 10 nächsten Pegel um den Ort; weitere sieht man beim Verschieben/Herauszoomen
+  const nah = st.map(s => [LG[s.id].lat, LG[s.id].lon]).sort((a, b) => km(ORT.lat, ORT.lon, ...a) - km(ORT.lat, ORT.lon, ...b)).slice(0, 10);
+  m.fitBounds(nah.concat([[ORT.lat, ORT.lon]]), {padding: [24, 24]}); setTimeout(() => m.invalidateSize(), 60);
+}
+function odlFarbe(s) {
+  const r = s.mittel7 ? s.wert / s.mittel7 : 1;
+  return s.wert >= 0.6 || r > 3 ? "#d9473b" : r > 1.5 ? "#c9a227" : "#3f9d6b";
+}
+function odlKarte(el) {
+  const all = [...(ARC.odlAkt?.orte?.[ortKey()] || []), ...(ARC.odlAkt?.cz?.[ortKey()] || []).map(s => ({...s, cc: "CZ"})), ...(ARC.odlAkt?.weitere?.[ortKey()] || [])]
+    .filter(s => s.lat != null && s.wert != null);
+  const m = grundkarte(el); if (!m || !all.length) return;
+  for (const s of all) wertMarke(m, s.lat, s.lon, fmt3(s.wert), odlFarbe(s), s.name, () => L.popup({closeButton: false}).setLatLng([s.lat, s.lon]).setContent(
+    `<b>${esc(s.name)}</b> ${s.cc === "CZ" ? "<small>CZ</small>" : ""}<br>${fmt3(s.wert)} µSv/h${s.mittel7 ? ` · Wochenmittel ${fmt3(s.mittel7)}` : ""}<br>${Math.round(s.km)} km${ODLV.sonden[s.kenn] ? ` · <a href="#" data-zu="${esc(s.kenn)}">Details ›</a>` : ""}`).openOn(m));
+  m.on("popupopen", e => e.popup.getElement().querySelector("[data-zu]")?.addEventListener("click", ev => { ev.preventDefault(); m.closePopup(); zurListe("odl", `.odx[data-kenn="${ev.target.dataset.zu}"]`); }));
+  ortMarker(m);
+  const nah = all.slice().sort((a, b) => a.km - b.km).slice(0, 10).map(s => [s.lat, s.lon]);
+  m.fitBounds(nah.concat([[ORT.lat, ORT.lon]]), {padding: [24, 24]}); setTimeout(() => m.invalidateSize(), 60);
+}
+function initKarten() {
+  document.addEventListener("click", e => {
+    const b = e.target.closest(".ansicht button[data-v]"); if (!b) return;
+    const bereich = b.closest(".ansicht").dataset.bereich; ANSICHT[bereich] = b.dataset.v; ansichtAnwenden(bereich);
+  });
+}
+
+/* Temperaturverlauf einer Station: Deutschland direkt beim DWD (Bright Sky), Tschechien aus der eigenen Mitschrift */
+const STV = {range: "7", cache: {}};
+async function stStunden(r, tage) {
+  const key = (r.wsi || JSON.stringify(r.bsid)) + "|" + tage;
+  if (STV.cache[key]) return STV.cache[key];
+  const bis = Date.now(), von = bis - tage * 864e5;
+  let pts = [];
+  if (r.land === "CZ" && r.wsi) {
+    const txt = await fetchText(ARCHIV + `chmi/${r.wsi}.csv`);
+    pts = txt.trim().split("\n").slice(1).map(l => { const [t, v] = l.split(";"); return {t: new Date(t + "Z"), v: parseFloat(v)}; });
+  } else if (r.bsid) {
+    const teile = [];
+    for (let a = von; a < bis; a += 31 * 864e5) teile.push([a, Math.min(bis, a + 31 * 864e5)]);
+    const res = await pool(teile, 4, async ([a, b]) => {
+      const j = await getJSON("/weather", {...r.bsid, date: new Date(a).toISOString(), last_date: new Date(b).toISOString()});
+      const obs = new Set((j.sources || []).filter(x => x.observation_type !== "forecast").map(x => x.id));
+      return (j.weather || []).filter(w => w.temperature != null && obs.has(w.source_id) && isMeasured(w, "temperature")).map(w => ({t: new Date(w.timestamp), v: w.temperature}));
+    });
+    const m = new Map(); for (const arr of res) for (const p of arr || []) m.set(+p.t, p); pts = [...m.values()];
+  }
+  pts = pts.filter(p => !isNaN(p.v) && +p.t >= von && +p.t <= bis).sort((a, b) => a.t - b.t);
+  return STV.cache[key] = pts;
+}
+async function stVerlauf(box, r) {
+  if (!box || !r) return;
+  const range = STV.range;
+  const seg = `<div class="seg">${[["7", "7 Tage"], ["30", "30 Tage"], ["365", "1 Jahr"]].map(([k, t]) => `<button type="button" data-r="${k}" aria-pressed="${range === k}">${t}</button>`).join("")}</div>`;
+  const foot = r.land === "CZ" ? `<div class="note">Eigene Mitschrift der Stundenwerte des ČHMÚ, gesammelt seit 08.11.2026. Der Verlauf füllt sich Tag für Tag.</div>` : `<div class="note">Stundenwerte des Deutschen Wetterdienstes (über Bright Sky).</div>`;
+  box.innerHTML = seg + '<div class="load">Lade Verlauf …</div>';
+  let pts = [];
+  try { pts = await stStunden(r, +range); } catch {}
+  if (!box.isConnected || STV.range !== range) return;
+  if (pts.length < 3) { box.innerHTML = seg + `<div class="note">${r.land === "CZ" ? "Noch zu wenige Werte in der eigenen Mitschrift." : "Verlauf gerade nicht abrufbar."}</div>` + foot; return; }
+  const yF = v => nf(v, 0), tag = d => new Intl.DateTimeFormat("de-DE", {timeZone: TZ, weekday: "short", day: "numeric", month: "numeric"}).format(d);
+  const vals = pts.map(p => p.v), mn = Math.min(...vals), mx = Math.max(...vals);
+  const lmin = pts[vals.indexOf(mn)], lmax = pts[vals.indexOf(mx)];
+  const sum = `<p class="rb-sum">Tiefst <b>${f1(mn)}°</b> ${range === "7" ? tag(lmin.t) : dShort(dayKey(lmin.t))} · Höchst <b>${f1(mx)}°</b> ${range === "7" ? tag(lmax.t) : dShort(dayKey(lmax.t))}</p>`;
+  if (range === "7") {
+    const n = pts.length, span = (pts.at(-1).t - pts[0].t) / 864e5, step = Math.max(1, Math.round(n / Math.max(1, span) * (span > 3 ? 2 : 1)));
+    box.innerHTML = seg + sum + '<div class="rbc"></div>' + foot;
+    drawChart(box.querySelector(".rbc"), {n, h: 160, aria: `Temperatur ${r.name}`, yFmt: yF,
+      xLabel: i => { const k = n - 1 - i; return k === 0 ? "jetzt" : (k % step === 0 && i > n * 0.08 && k > n * 0.12 ? tag(pts[i].t).replace(/\.$/, "") : null); },
+      layers: [{type: "line", vals, color: "#f2a65a", width: 1.8, dots: n < 12}],
+      tip: i => `<b>${tag(pts[i].t)} ${hhmm(pts[i].t)}</b><span class="tt" style="color:#f2a65a">${f1(vals[i])} °C</span>`});
+    return;
+  }
+  const by = new Map();
+  for (const p of pts) { const k = dayKey(p.t); const a = by.get(k) || []; a.push(p.v); by.set(k, a); }
+  const today = dayKey(new Date()), dates = [];
+  for (let i = +range - 1; i >= 0; i--) dates.push(addDays(today, -i));
+  const rows = dates.map(d => { const a = by.get(d); return a && a.length >= 6 ? {min: Math.min(...a), max: Math.max(...a), mittel: a.reduce((x, y) => x + y, 0) / a.length} : null; });
+  const ok = rows.filter(Boolean);
+  if (ok.length < 2) { box.innerHTML = seg + '<div class="note">Für diesen Zeitraum liegen noch zu wenige Tageswerte vor.</div>' + foot; return; }
+  const erster = dates[rows.findIndex(Boolean)];
+  box.innerHTML = seg + sum.replace("</p>", (r.land === "CZ" && erster > dates[0] ? ` · Werte ab ${dShort(erster)}` : "") + "</p>") + `<div class="rbc"></div>
+    <div class="legend"><span><i style="background:#f2a65a"></i>Tagesmittel</span><span><i style="background:#f2a65a;opacity:.3"></i>Tief bis Hoch</span></div>` + foot;
+  drawChart(box.querySelector(".rbc"), {n: dates.length, h: 160, aria: `Tageswerte Temperatur ${r.name}`, yFmt: yF,
+    xLabel: i => (i % Math.ceil(dates.length / 6) === 0) ? dShort(dates[i]) : null,
+    layers: [{type: "range", lo: rows.map(x => x ? x.min : null), hi: rows.map(x => x ? x.max : null), color: "rgba(242,166,90,.3)"},
+             {type: "line", vals: rows.map(x => x ? x.mittel : null), color: "#f2a65a", width: 2, dots: ok.length < 15}],
+    tip: i => `<b>${dShort(dates[i])}</b>${rows[i] ? `<span class="tt" style="color:#f2a65a">Mittel ${f1(rows[i].mittel)} °C</span><span>${f1(rows[i].min)} bis ${f1(rows[i].max)} °C</span>` : "<span>kein Wert</span>"}`});
+}
+
 function initTabs() {
   $("st-tabs").addEventListener("click", e => {
     const b = e.target.closest("button[data-p]"); if (!b) return;
     document.querySelectorAll("#st-tabs button").forEach(x => { x.setAttribute("aria-selected", x === b); $(x.dataset.p).hidden = x !== b; });
+    if (b.dataset.p === "st-karte") tempKarte();
   });
+  const card = $("st-tabs").closest(".card");
+  const auf = row => {
+    const offen = row.nextElementSibling?.classList.contains("st-det");
+    card.querySelectorAll(".st-det").forEach(x => { kartenWeg(x); x.remove(); });
+    card.querySelectorAll(".sti[aria-expanded]").forEach(x => x.removeAttribute("aria-expanded"));
+    card.querySelectorAll(".stg.auf").forEach(x => x.classList.remove("auf"));
+    if (offen) return;
+    row.closest(".stg")?.classList.add("auf");
+    const r = STN[+row.dataset.si]; if (!r) return;
+    row.setAttribute("aria-expanded", "true");
+    const d = document.createElement("div"); d.className = "st-det";
+    d.innerHTML = `<div class="vl-body"></div>`
+      + (r.lat != null ? `<div class="subh">Lage</div><div class="minimap"></div><a class="maplink" href="${kartenUrl(r.lat, r.lon, r.name)}" target="_blank" rel="noopener">In Karten-App öffnen ↗</a>` : "")
+      + `<div class="note">${r.land === "CZ" ? "Tschechischer Wetterdienst ČHMÚ" : "Deutscher Wetterdienst (über Bright Sky)"}${r.hoehe != null ? " · " + Math.round(r.hoehe) + " m ü. NN" : ""}${r.dist != null ? " · " + Math.round(r.dist) + " km von " + esc(ORT.name) : ""}</div>`;
+    row.after(d); d.dataset.si = row.dataset.si;
+    stVerlauf(d.querySelector(".vl-body"), r);
+    if (r.lat != null) miniKarte(d.querySelector(".minimap"), r.lat, r.lon, r.name, tcol(r[row.dataset.f]?.t ?? r.now?.t));
+  };
+  card.addEventListener("click", e => {
+    const b = e.target.closest(".st-det .seg button[data-r]");
+    if (b) { STV.range = b.dataset.r; const d = b.closest(".st-det"); stVerlauf(d.querySelector(".vl-body"), STN[+d.dataset.si]); }
+  });
+  card.addEventListener("click", e => { if (e.target.closest(".st-det")) return; const row = e.target.closest(".sti[data-si]"); if (row) auf(row); });
+  card.addEventListener("keydown", e => { const row = e.target.closest(".sti[data-si]"); if (row && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); auf(row); } });
+  initKarten();
 }
 
 /* ---------- Bergsilhouette Bayerischer Wald: weiche Rücken, Dunst, Fichtenwald, Großer Arber mit Radarkuppeln ---------- */
