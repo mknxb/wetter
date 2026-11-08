@@ -312,6 +312,7 @@ h2 small{font:500 .72rem var(--f-body);letter-spacing:.04em;text-transform:none;
 .sti .pill{font-size:.8rem;padding:2px 6px;min-width:0;width:auto;justify-self:end}
 .minimap{height:170px;border-radius:12px;overflow:hidden;margin:6px 0 4px;border:1px solid var(--line)}
 .bigmap{height:min(62vh,440px);border-radius:14px;overflow:hidden;margin-top:8px;border:1px solid var(--line)}
+.minimap,.bigmap{position:relative;z-index:0;isolation:isolate;-webkit-mask-image:-webkit-radial-gradient(white,black);transform:translateZ(0)}
 .minimap .leaflet-control-attribution,.bigmap .leaflet-control-attribution{font-size:9px;background:rgba(11,18,32,.6);color:#aab}
 .minimap .leaflet-control-attribution a,.bigmap .leaflet-control-attribution a{color:#cde}
 .maplink{display:inline-block;font-size:.78rem;color:var(--accent);margin:2px 0 8px;text-decoration:none}
@@ -1211,7 +1212,7 @@ function pgOpen(row) {
   row.setAttribute("aria-expanded", "true");
   const box = document.createElement("div"); box.className = "pg-vl"; box.dataset.id = s.id;
   const lg = ARC.pegelLage?.[s.id];
-  box.innerHTML = (lg ? `<div class="minimap"></div><a class="maplink" href="${kartenUrl(lg.lat, lg.lon, s.name)}" target="_blank" rel="noopener">In Karten-App öffnen ↗</a>` : "") + `<div class="vl-body"></div>`;
+  box.innerHTML = `<div class="vl-body"></div>` + (lg ? `<div class="subh">Lage</div><div class="minimap"></div><a class="maplink" href="${kartenUrl(lg.lat, lg.lon, s.name)}" target="_blank" rel="noopener">In Karten-App öffnen ↗</a>` : "");
   row.after(box); pgVerlauf(box.querySelector(".vl-body"), s);
   if (lg) miniKarte(box.querySelector(".minimap"), lg.lat, lg.lon, s.name, s.stage > 0 ? "#e88a2e" : "#4f86c6");
 }
@@ -2034,8 +2035,8 @@ function odlOpen(kenn, keep) {
   if (!row || !s) { ODLV.open = null; odlEinordnung(); return; }
   ODLV.open = kenn; row.setAttribute("aria-expanded", "true"); odlEinordnung();
   const box = document.createElement("div"); box.className = "odl-vl";
-  box.innerHTML = (s.lat != null ? `<div class="minimap"></div><a class="maplink" href="${kartenUrl(s.lat, s.lon, s.name)}" target="_blank" rel="noopener">In Karten-App öffnen ↗</a>` : "")
-    + `<div class="vl-body"></div>` + (s.wert != null ? `<div class="vl-skala"><div class="subh">Einordnung: ${fmt3(s.wert)} µSv/h</div>${odlSkala(s.wert)}</div>` : "");
+  box.innerHTML = `<div class="vl-body"></div>` + (s.wert != null ? `<div class="vl-skala"><div class="subh">Einordnung: ${fmt3(s.wert)} µSv/h</div>${odlSkala(s.wert)}</div>` : "")
+    + (s.lat != null ? `<div class="subh">Lage</div><div class="minimap"></div><a class="maplink" href="${kartenUrl(s.lat, s.lon, s.name)}" target="_blank" rel="noopener">In Karten-App öffnen ↗</a>` : "");
   row.after(box); odlVerlauf(box.querySelector(".vl-body"), s);
   if (s.lat != null) miniKarte(box.querySelector(".minimap"), s.lat, s.lon, s.name, odlFarbe(s));
 }
