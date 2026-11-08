@@ -327,7 +327,8 @@ h2 small{font:500 .72rem var(--f-body);letter-spacing:.04em;text-transform:none;
 .st-werte{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:.78rem;color:var(--mu)}.st-werte b{color:var(--tx,#eef3fb)}.st-werte small{font-size:.66rem}
 .leaflet-popup-content-wrapper,.leaflet-popup-tip{background:#121b2e;color:#eef3fb}.leaflet-popup-content{font-size:.82rem;margin:8px 12px}.leaflet-popup-content a{color:var(--accent)}
 .minimap.tapbar{cursor:zoom-in}
-.map-hint{position:absolute;right:8px;top:8px;z-index:500;font-size:.68rem;padding:3px 7px;border-radius:8px;background:rgba(11,18,32,.75);color:#dfe8f6;pointer-events:none}
+.map-tap{position:absolute;inset:0;z-index:1100;background:transparent;border:0;padding:0;cursor:zoom-in;-webkit-tap-highlight-color:transparent}
+.map-tap span{position:absolute;right:8px;top:8px;font:500 .68rem var(--f-body);padding:3px 7px;border-radius:8px;background:rgba(11,18,32,.75);color:#dfe8f6}
 .kg-btn{float:right;margin:8px 0 -4px;background:none;border:1px solid var(--line);border-radius:10px;color:var(--accent);font:600 .75rem var(--f-body);padding:5px 9px;cursor:pointer}
 .kgross{position:fixed;inset:0;z-index:2000;background:rgba(4,8,18,.72);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:max(12px,env(safe-area-inset-top)) 10px max(12px,env(safe-area-inset-bottom))}
 .kg-in{width:min(980px,100%);height:min(86vh,760px);display:flex;flex-direction:column;background:#0f1729;border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5)}
@@ -365,7 +366,7 @@ footer a{color:var(--accent)}
   <svg class="ridge" id="ridge" viewBox="0 0 1200 360" preserveAspectRatio="xMidYMax slice" aria-hidden="true"></svg>
   <div class="hero-in">
     <div class="topbar">
-      <span class="brand"><span class="testbadge">Testseite</span> Bayerischer Wald · Böhmerwald</span>
+      <span class="brand"><span class="testbadge">Testseite · Stand 08.11. 20:15</span> Bayerischer Wald · Böhmerwald</span>
       <span class="stand"><span id="stand">lädt …</span>
         <button class="icon-btn" id="reload" type="button" aria-label="Aktualisieren"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg></button></span>
     </div>
@@ -2500,21 +2501,9 @@ function miniKarte(el, lat, lon, name, farbe) {
   const gross = !!el.closest(".kgross");
   const m = grundkarte(el, {zoom: false, drag: false}); if (!m) return;
   if (!gross) {
-    el.classList.add("tapbar");
-    el.insertAdjacentHTML("beforeend", '<span class="map-hint">⤢ vergrößern</span>');
-    let zuletzt = 0;
-    const gross_ = () => { if (Date.now() - zuletzt < 600) return; zuletzt = Date.now(); karteGross(name, box => miniKarte(box, lat, lon, name, farbe)); };
-    // Leaflet schluckt Klicks auf die Kartenfläche teilweise: deshalb Karten-Ereignis und DOM-Ereignis (Marker, Hinweis) abfangen
-    m.on("click", gross_);
-    el.addEventListener("click", e => { if (!e.target.closest(".leaflet-control-attribution")) gross_(); });
-    // Touch: eigener Tipp-Erkenner (Leaflet unterdrückt auf Handys das click-Ereignis)
-    let t0 = null;
-    el.addEventListener("pointerdown", e => { t0 = {x: e.clientX, y: e.clientY, t: Date.now()}; }, {capture: true, passive: true});
-    el.addEventListener("pointerup", e => {
-      if (!t0 || e.target.closest(".leaflet-control-attribution")) return;
-      if (Math.hypot(e.clientX - t0.x, e.clientY - t0.y) < 10 && Date.now() - t0.t < 600) gross_();
-      t0 = null;
-    }, {capture: true, passive: true});
+    // Durchsichtige Schaltfläche über der ganzen kleinen Karte: Leaflet bekommt den Tipp gar nicht erst
+    el.insertAdjacentHTML("beforeend", '<button type="button" class="map-tap" aria-label="Karte vergrößern"><span>⤢ vergrößern</span></button>');
+    el.querySelector(".map-tap").addEventListener("click", e => { e.stopPropagation(); karteGross(name, box => miniKarte(box, lat, lon, name, farbe)); });
   }
   const p = L.circleMarker([lat, lon], {radius: 8, color: "#fff", weight: 2, fillColor: farbe || "#6fb7ff", fillOpacity: 1}).addTo(m);
   p.bindTooltip(esc(name), {permanent: true, direction: "top", offset: [0, -8], className: "mmtip"});
