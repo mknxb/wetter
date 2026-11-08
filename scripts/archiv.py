@@ -661,8 +661,9 @@ def teil_chmi(status):
         if min(km(la, lo, lat, lon) for _, la, lo in ORTE.values()) > 105:
             continue
         stationen.append({"wsi": wsi, "name": name, "lat": lat, "lon": lon, "hoehe": hoehe})
-    grenze = (NOW - timedelta(hours=12)).strftime("%Y-%m-%dT%H:%M")
-    tage = [NOW] + ([NOW - timedelta(days=1)] if NOW.hour < 13 else [])
+    grenze = (NOW - timedelta(hours=24)).strftime("%Y-%m-%dT%H:%M")
+    g12 = (NOW - timedelta(hours=12)).strftime("%Y-%m-%dT%H:%M")
+    tage = [NOW, NOW - timedelta(days=1)]
     out, fehl = [], 0
     for s in stationen:
         werte = []
@@ -683,10 +684,13 @@ def teil_chmi(status):
         if not werte:
             fehl += 1
             continue
-        mn, mx = min(werte, key=lambda w: w[1]), max(werte, key=lambda w: w[1])
-        out.append(dict(s, t=werte[-1][1], at=werte[-1][0] + "Z", min=mn[1], min_at=mn[0] + "Z", max=mx[1], max_at=mx[0] + "Z"))
+        w12 = [w for w in werte if w[0] >= g12] or werte[-1:]
+        mn, mx = min(w12, key=lambda w: w[1]), max(w12, key=lambda w: w[1])
+        mn24, mx24 = min(werte, key=lambda w: w[1]), max(werte, key=lambda w: w[1])
+        out.append(dict(s, t=werte[-1][1], at=werte[-1][0] + "Z", min=mn[1], min_at=mn[0] + "Z", max=mx[1], max_at=mx[0] + "Z",
+                        min24=mn24[1], min24_at=mn24[0] + "Z", max24=mx24[1], max24_at=mx24[0] + "Z"))
     save_json("chmi-temp.json", {"stand": NOW.isoformat(), "stationen": out})
-    return f"{len(out)} tschechische Stationen mit Temperatur, {fehl} ohne Werte"
+    return f"{len(out)} tschechische Stationen mit Temperatur (12 h und 24 h), {fehl} ohne Werte"
 
 
 def teil_probe(status):
