@@ -1,6 +1,6 @@
 # IT-Dokumentation Wetter Bayerwald
 
-Stand 30.10.2026 · Matthias Brem · Kopie der IT-Dokumentation aus Claude Docs (Architekturdiagramm nur dort)
+Stand 08.11.2026 · Matthias Brem · Kopie der IT-Dokumentation aus Claude Docs (Architekturdiagramm nur dort)
 
 ## Überblick
 
@@ -54,7 +54,7 @@ Jede Änderung im Zweig `main` geht ohne Build-Schritt live: GitHub Pages veröf
 | `index.html` | Live-Seite: HTML, CSS und JavaScript in einer Datei | Hand (Claude) |
 | `test/index.html` | Testseite für neue Funktionen; seit 27.10.2026 21:10 gleicher Stand wie Live (Pfade mit ../, Kennzeichen „Testseite“) | Hand (Claude) |
 | `manifest.webmanifest` | App-Name „Bayerwald“, Farben, Symbole für die Installation | Hand |
-| `sw.js` | Service Worker (Cache `bayerwald-v``6`): Seite offline öffnen, Netz zuerst | Hand |
+| `sw.js` | Service Worker (Cache `bayerwald-v``8`): Seite offline öffnen, Netz zuerst | Hand |
 | `icon-192.png`, `icon-512.png`, `apple-touch-icon.png` | App-Symbol (Mond über Bergkämmen) | Hand |
 | `scripts/pegel.py` | holt die Pegel von HND Bayern | Hand |
 | `scripts/extra.py` | holt UV, Pollen, Kp-Index, Biowetter, Schneehöhe Arber | Hand |
@@ -105,6 +105,7 @@ Seit 27.10.2026 schreibt `scripts/archiv.py` bei jedem Lauf ein eigenes Archiv i
 | odl-aktuell.json | je Ort bis zu 6 BfS-Sonden im Umkreis von 60 km mit 7-Tage-Stundenverlauf und Wochenmittel, dazu unter cz die 4 nächsten tschechischen Sonden | BfS WFS und EURDEP; alle 30 min |
 | odl/<kennung>.csv | Tagesmittel je Sonde (DE: vom BfS, Jahre zurück; CZ: aus eigener Mitschrift) | täglich bzw. alle 30 min |
 | odl-cz/<id>.csv | eigene Mitschrift der tschechischen Stundenwerte (EURDEP liefert nur den letzten Wert) | alle 30 min, seit 27.10.2026 |
+| chmi/<wsi>.csv | eigene Mitschrift der Stundentemperaturen tschechischer ČHMÚ-Stationen (Quelle liefert nur 2 Tage) für den Verlauf in den Stationsdetails | alle 30 min, seit 08.11.2026 |
 
 Klimanormale 1991–2020 (pro Kalendertag, ±7 Tage geglättet) und alle Rückblick-Werte rechnet die Seite selbst aus `tage/<ort>.csv`.
 
@@ -121,7 +122,7 @@ Die Seite lädt alle Bereiche parallel, zeichnet sie alle 10 Minuten neu und bei
 | Die nächsten Tage | 7 Tage (ab Tag 5 blasser) mit Tief, Hoch, Temperaturbalken, Regen, Böen | Regensymbol ab 0,5 mm am Tag (0,1 mm je 3 h), Schnee bei Höchstwert unter 1 °C. Böen nur aus eigenen Werten, nicht von Nachbarstationen. |
 | Warnungen | DWD-Warnungen | zuerst für den gewählten Ort, darunter „In der Umgebung“ für die 5 nächsten Orte |
 | Gewässer | zwei Pegel je Ort (Blaibach: Kötzting und Chamerau), Regenmengen 24 h und 3 Tage, alle Pegel der Region aufklappbar. Pegel antippen → Verlauf 7 Tage, 30 Tage, 1 Jahr mit Mittelwasser und Meldestufe 1. Talsperre Frauenau als Füllstand in % (Näherung, 100 % = Stauziel 767 m), Drachensee als cm zum Dauerstau 405,00 m und belegter Rückhalteraum | Hinweis bei Meldestufe 1 bis 4. Frühwarnung bei Anstieg um 15 cm oder mehr in rund 3 h am Oberlauf (Weißer, Schwarzer, Großer, Kleiner Regen, Teisnach, Aitnach). |
-| Kälteste Orte | Jetzt und Tiefstwert 12 h, je Top 10/8 | Stationen im Umkreis 100 km, Meldung jünger als 6 h, nur echte Messwerte (keine Vorhersage, keine Ersatzwerte). |
+| Kälteste Orte | Kälteste und wärmste je 8: Jetzt, 12 h, 24 h, Karte; Details mit Verlauf 7/30/365 Tage | Stationen im Umkreis 100 km, Meldung jünger als 6 h, nur echte Messwerte (keine Vorhersage, keine Ersatzwerte). |
 | Strahlung | Status (normal, nach Regen, erhöht), bis zu 6 BfS-Sonden (60 km) mit Abweichung vom Wochenmittel und 24-h-Änderung, 4 tschechische Sonden. Sonde antippen → Verlauf 7 Tage (Stundenwerte), 30 Tage, 1 Jahr (Tagesmittel) und Einordnungsskala | Werte in µSv/h aus dem Archiv (EURDEP-nSv/h umgerechnet). Natürlich 0,05–0,2; nach Regen bis etwa 3-fach. Erhöht: mehr als 3-fach ohne Regen oder über 24 h an mehreren Sonden. Logarithmische Skala: 1 mSv/Jahr ≈ 0,11 µSv/h zusätzlich; Aufenthalt in Gebäuden ab ≈ 60, Evakuierung ab ≈ 600 µSv/h (NDWV, 7 Tage). |
 | Rückblick | Temperatur: 30 Tage (Tief/Hoch über dem Normalband) oder 12 Monate (Abweichung), Rekorde, Wärmestreifen Bayern seit 1881. Regen: Tage, Wochen, Monate (mit Normal), Jahr kumuliert gegen Vorjahr und Normal, Hinweis auf Trockenphasen | Aus dem Archiv tage/<ort>.csv; heute aus Messung und Vorhersage. Diagramme zum Nachfahren mit Finger oder Maus. Strahlung und Gewässer stehen als Verlauf direkt in ihren Karten. |
 | App | Installierbar als „Bayerwald“, startet im Vollbild | Manifest + Service Worker; HTML aus dem Netz, bei Funkloch aus dem Zwischenspeicher; Live-Daten nie zwischengespeichert. |
@@ -225,6 +226,8 @@ Die Live-Seite entstand am 26.10.2026; seitdem kamen Radar, Strahlung, Pegel, 11
 
 | Datum | Seite | Änderung |
 | --- | --- | --- |
+| 08.11.2026 20:40 | Live + Daten | Kälteste/wärmste Orte mit Reitern Jetzt / 12 h / 24 h / Karte (Werte als Marken, Heatmap zuschaltbar); Ort antippen → Verlauf 7 Tage (Stundenkurve) / 30 Tage / 1 Jahr (Tagesspanne + Mittel), darunter Lagekarte. DE-Verlauf direkt von Bright Sky, CZ aus eigener ČHMÚ-Mitschrift chmi/<wsi>.csv (ab 08.11.2026). Pegel und Strahlung mit Ansicht Liste/Karte, Lagekarten in den Details (Pegelkoordinaten aus HND-Stammdaten, pegel-lage.json); jede Karte per Tipp im Vollbild verschieb- und zoombar. Cache bayerwald-v8 |
+| 31.10.2026 12:45 | Live + Daten | Kälteste und wärmste Orte in zwei Spalten (Reiter Jetzt / Letzte 12 Stunden), 100 km um den gewählten Ort; tschechische Stationen jetzt aus ČHMÚ Open Data (opendata.chmi.cz, 10-Minuten-Werte, stündlich aktualisiert, rund 50 Temperaturstationen in der Region, Archivdatei chmi-temp.json); Tipp auf laufende Pegel- oder Sondenzeile öffnet deren Details; Cache bayerwald-v7 |
 | 30.10.2026 19:42 | Live | „Die nächsten Tage“ mit 7 Tagen (ab Tag 5 blasser, unsicherer); Schriften und Leaflet lokal unter assets/ (keine Abrufe mehr bei Google Fonts und cdnjs); Gewässer: Rubrik „Seen und Speicher“ fest oben, Flusspegel nach Entfernung zum Ort (Lage aus pegel-lage.json), 3 fest + durchlaufende Liste; Strahlung: DE- und CZ-Sonden bis 100 km nach Entfernung, 3 fest + durchlaufende Liste; Listen mit Finger anhalten, wischen spult; Cache bayerwald-v6 |
 | 29.10.2026 18:51 | Daten | Tschechische Strahlung aus dem SÚRO-Frühwarnnetz (MonRaS) statt EURDEP (beim BfS entfallen). 7 Messstellen in der Region (u. a. Klatovy, Přimda, Churáňov, Plzeň, Strakonice, Kocelovice). Keine dokumentierte Schnittstelle: öffentliche Tabelle wird wie im Browser abgefragt. Tschechien wird auch bei BfS-Störung aktualisiert. |
 | 28.10.2026 21:45 | Daten | Archiv: wieder bis zu 6 Strahlungssonden je Ort; Zwischenstand nach jedem Teil, Laufzeit je Teil in status.json. Tschechische Werte fehlen seit 27.10.: BfS meldet „Feature type opendata:eurdep_latestValue unknown“; mehrere Abfragevarianten eingebaut, Abwarten vereinbart |
