@@ -326,6 +326,16 @@ h2 small{font:500 .72rem var(--f-body);letter-spacing:.04em;text-transform:none;
 .st-det{grid-column:1/-1;padding:6px 0 10px;border-top:1px dashed var(--line)}
 .st-werte{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:.78rem;color:var(--mu)}.st-werte b{color:var(--tx,#eef3fb)}.st-werte small{font-size:.66rem}
 .leaflet-popup-content-wrapper,.leaflet-popup-tip{background:#121b2e;color:#eef3fb}.leaflet-popup-content{font-size:.82rem;margin:8px 12px}.leaflet-popup-content a{color:var(--accent)}
+.minimap.tapbar{cursor:zoom-in}
+.map-hint{position:absolute;right:8px;top:8px;z-index:500;font-size:.68rem;padding:3px 7px;border-radius:8px;background:rgba(11,18,32,.75);color:#dfe8f6;pointer-events:none}
+.kg-btn{float:right;margin:8px 0 -4px;background:none;border:1px solid var(--line);border-radius:10px;color:var(--accent);font:600 .75rem var(--f-body);padding:5px 9px;cursor:pointer}
+.kgross{position:fixed;inset:0;z-index:2000;background:rgba(4,8,18,.72);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:max(12px,env(safe-area-inset-top)) 10px max(12px,env(safe-area-inset-bottom))}
+.kg-in{width:min(980px,100%);height:min(86vh,760px);display:flex;flex-direction:column;background:#0f1729;border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.kg-h{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid var(--line)}
+.kg-h b{font-size:.92rem}
+.kg-x{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:rgba(255,255,255,.06);color:#fff;font-size:1.4rem;line-height:1;cursor:pointer}
+.kg-map{flex:1;min-height:0;position:relative;isolation:isolate}
+body.noscroll{overflow:hidden}
 .pall{margin-top:10px}.pall summary{cursor:pointer;color:var(--accent);font-size:.85rem;font-weight:600;padding:6px 0}
 
 /* Strahlung */
@@ -2471,21 +2481,29 @@ function kartenUrl(lat, lon, name) {
 }
 function grundkarte(el, opts = {}) {
   if (typeof L === "undefined") { el.innerHTML = '<div class="note">Karte nicht verfügbar.</div>'; return null; }
-  const m = L.map(el, {zoomControl: opts.zoom !== false, attributionControl: true, scrollWheelZoom: false, dragging: opts.drag ?? !L.Browser.mobile, tap: false, ...opts.leaflet});
+  const gross = !!el.closest(".kgross");
+  const m = L.map(el, {zoomControl: gross || opts.zoom !== false, attributionControl: true, scrollWheelZoom: gross, dragging: gross || (opts.drag ?? !L.Browser.mobile),
+    touchZoom: gross || !L.Browser.mobile, doubleClickZoom: gross || !L.Browser.mobile, tap: false, ...opts.leaflet});
   L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {maxZoom: 14, className: "darktiles",
     attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(m);
   el._map = m; MAPS.add(m);
   return m;
 }
 function kartenWeg(root) {   // Karten in einem Bereich sauber abbauen, bevor er neu gezeichnet wird
-  (root || document).querySelectorAll(".minimap, .bigmap").forEach(el => { if (el._map) { el._map.remove(); MAPS.delete(el._map); el._map = null; } });
+  (root || document).querySelectorAll(".minimap, .bigmap, .kg-map").forEach(el => { if (el._map) { el._map.remove(); MAPS.delete(el._map); el._map = null; } });
 }
 function ortMarker(m) {
   return L.circleMarker([ORT.lat, ORT.lon], {radius: 6, color: "#fff", weight: 2, fillColor: "#0b1220", fillOpacity: 1})
     .bindTooltip(esc(ORT.name), {permanent: false}).addTo(m);
 }
 function miniKarte(el, lat, lon, name, farbe) {
-  const m = grundkarte(el, {zoom: false, drag: true}); if (!m) return;
+  const gross = !!el.closest(".kgross");
+  const m = grundkarte(el, {zoom: false, drag: false}); if (!m) return;
+  if (!gross) {
+    el.classList.add("tapbar");
+    el.insertAdjacentHTML("beforeend", '<span class="map-hint">⤢ vergrößern</span>');
+    el.addEventListener("click", () => karteGross(name, box => miniKarte(box, lat, lon, name, farbe)));
+  }
   const p = L.circleMarker([lat, lon], {radius: 8, color: "#fff", weight: 2, fillColor: farbe || "#6fb7ff", fillOpacity: 1}).addTo(m);
   p.bindTooltip(esc(name), {permanent: true, direction: "top", offset: [0, -8], className: "mmtip"});
   ortMarker(m);
@@ -2495,6 +2513,25 @@ function miniKarte(el, lat, lon, name, farbe) {
     m.fitBounds([[ORT.lat, ORT.lon], [lat, lon]], {padding: [26, 26], maxZoom: 12});
   } else m.setView([lat, lon], 12);
   setTimeout(() => m.invalidateSize(), 60);
+}
+/* Karte groß: Vollbild-Ebene mit verschiebbarer, zoombarer Karte; Schließen mit ×, Hintergrund oder Zurück-Taste */
+function karteGross(titel, bauen) {
+  document.querySelector(".kgross")?.remove();
+  const ov = document.createElement("div"); ov.className = "kgross";
+  ov.innerHTML = `<div class="kg-in" role="dialog" aria-modal="true" aria-label="${esc(titel)}"><div class="kg-h"><b>${esc(titel)}</b><button type="button" class="kg-x" aria-label="Schließen">×</button></div><div class="kg-map"></div></div>`;
+  document.body.appendChild(ov); document.body.classList.add("noscroll");
+  const zu = () => { kartenWeg(ov); ov.remove(); document.body.classList.remove("noscroll"); removeEventListener("keydown", esc_); };
+  const esc_ = e => { if (e.key === "Escape") zu(); };
+  ov.addEventListener("click", e => { if (e.target === ov || e.target.closest(".kg-x")) zu(); });
+  addEventListener("keydown", esc_);
+  ov.querySelector(".kg-x").focus();
+  const el = ov.querySelector(".kg-map");
+  requestAnimationFrame(() => { bauen(el); setTimeout(() => el._map?.invalidateSize(), 120); });
+}
+function grossKnopf(titel, bauen) {   // Knopf oben rechts in den großen Kartenansichten
+  const b = document.createElement("button"); b.type = "button"; b.className = "kg-btn"; b.textContent = "⤢ Vollbild";
+  b.addEventListener("click", () => karteGross(titel, bauen));
+  return b;
 }
 /* Wert-Marken: kleine farbige Schilder mit Wert, wie bei hochwertigen Wetterkarten */
 function wertMarke(m, lat, lon, text, farbe, titel, onTap, dunkel) {
@@ -2531,7 +2568,12 @@ function tempKarte() {
   box.innerHTML = `<div class="kv-bar"><label class="chk"><input type="checkbox" id="heat-chk" ${TK_HEAT ? "checked" : ""}> Temperaturfläche (Näherung)</label></div>
     <div class="bigmap"></div><div class="note">Schilder = gemessene Temperatur jetzt, ${pts.length} Stationen DE und CZ. Die Fläche ist zwischen den Stationen geschätzt; im Bergland weicht sie ab, weil die Höhe stark mitspielt.</div>`;
   if (!pts.length) return;
-  const m = grundkarte(box.querySelector(".bigmap")); if (!m) return;
+  const mapEl = box.querySelector(".bigmap");
+  mapEl.before(grossKnopf("Temperaturen um " + ORT.name, el => tempKarteBauen(el, pts)));
+  tempKarteBauen(mapEl, pts);
+}
+function tempKarteBauen(el, pts) {
+  const m = grundkarte(el); if (!m) return;
   const lats = pts.map(p => p.lat).concat(ORT.lat), lons = pts.map(p => p.lon).concat(ORT.lon);
   const b = {s: Math.min(...lats) - .05, n: Math.max(...lats) + .05, w: Math.min(...lons) - .08, e: Math.max(...lons) + .08};
   const heat = L.imageOverlay(waermeFlaeche(pts.map(p => ({lat: p.lat, lon: p.lon, t: p.now.t})), b), [[b.s, b.w], [b.n, b.e]], {opacity: .85, className: "heat"});
@@ -2541,10 +2583,11 @@ function tempKarte() {
   ortMarker(m);
   m.fitBounds([[b.s, b.w], [b.n, b.e]], {padding: [6, 6]});
   setTimeout(() => m.invalidateSize(), 60);
-  box.querySelector("#heat-chk").addEventListener("change", e => {
+  const chk = document.getElementById("heat-chk");
+  if (chk && !el.closest(".kgross")) chk.onchange = e => {
     TK_HEAT = e.target.checked; try { localStorage.setItem("wetter-heat", TK_HEAT ? "1" : "0"); } catch {}
     TK_HEAT ? heat.addTo(m) : heat.remove();
-  });
+  };
 }
 /* Liste | Karte bei Gewässer und Strahlung */
 const ANSICHT = {pegel: "liste", odl: "liste"};
@@ -2558,9 +2601,15 @@ function ansichtAnwenden(bereich) {
   lv.hidden = karte; kv.hidden = !karte;
   root.querySelectorAll(".ansicht button").forEach(b => b.setAttribute("aria-pressed", b.dataset.v === ANSICHT[bereich]));
   kartenWeg(kv);
-  if (karte) (bereich === "pegel" ? pegelKarte : odlKarte)(kv.querySelector(".bigmap"));
+  kv.querySelector(".kg-btn")?.remove();
+  if (karte) {
+    const bau = bereich === "pegel" ? pegelKarte : odlKarte, el = kv.querySelector(".bigmap");
+    el.before(grossKnopf(bereich === "pegel" ? "Gewässer" : "Strahlung", bau));
+    bau(el);
+  }
 }
 function zurListe(bereich, sel) {   // Tipp auf "Details" im Kartenschild: zur Liste wechseln und Zeile aufklappen
+  const ov = document.querySelector(".kgross"); if (ov) { kartenWeg(ov); ov.remove(); document.body.classList.remove("noscroll"); }
   ANSICHT[bereich] = "liste"; ansichtAnwenden(bereich);
   const row = $(bereich).querySelector(sel); if (!row) return;
   const det = row.closest("details"); if (det) det.open = true;
