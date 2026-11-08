@@ -4,7 +4,7 @@ Stand 08.11.2026 · Matthias Brem · Kopie der IT-Dokumentation aus Claude Docs 
 
 ## Überblick
 
-Die Wetter-App „Wetter Bayerwald“ ist eine statische Web-Seite ohne eigenen Server. Sie fragt Wetter-, Radar-, Strahlungs- und Pegeldaten aus öffentlichen Quellen live im Browser ab und startet mit Blaibach oder dem per Stern gemerkten Ort. Eine Kopie dieser Doku liegt im Repository als DOKUMENTATION.md.
+Die Wetter-App „Wetter Bayerwald“ ist eine statische Web-Seite ohne eigenen Server. Sie fragt Wetter-, Radar-, Strahlungs- und Pegeldaten aus öffentlichen Quellen live im Browser ab und startet mit Blaibach oder dem per Stern gemerkten Ort. Eine Kopie dieser Doku liegt im Repository als DOKUMENTATION.md und als dokumentation.pdf (in der App unten verlinkt).
 
 | Eigenschaft | Wert |
 | --- | --- |
@@ -54,7 +54,7 @@ Jede Änderung im Zweig `main` geht ohne Build-Schritt live: GitHub Pages veröf
 | `index.html` | Live-Seite: HTML, CSS und JavaScript in einer Datei | Hand (Claude) |
 | `test/index.html` | Testseite für neue Funktionen; seit 27.10.2026 21:10 gleicher Stand wie Live (Pfade mit ../, Kennzeichen „Testseite“) | Hand (Claude) |
 | `manifest.webmanifest` | App-Name „Bayerwald“, Farben, Symbole für die Installation | Hand |
-| `sw.js` | Service Worker (Cache `bayerwald-v``8`): Seite offline öffnen, Netz zuerst | Hand |
+| `sw.js` | Service Worker (Cache `bayerwald-v``9`): Seite offline öffnen, Netz zuerst | Hand |
 | `icon-192.png`, `icon-512.png`, `apple-touch-icon.png` | App-Symbol (Mond über Bergkämmen) | Hand |
 | `scripts/pegel.py` | holt die Pegel von HND Bayern | Hand |
 | `scripts/extra.py` | holt UV, Pollen, Kp-Index, Biowetter, Schneehöhe Arber | Hand |
@@ -139,11 +139,11 @@ Regeln der Kacheln „Heute im Bayerwald“:
 | Sternenhimmel | MOSMIX-Bewölkung 20 bis 4 Uhr, Mondphase und Mondstand um Mitternacht, Sternschnuppen-Termine | Bewölkung unter 30 % und Mond nicht hell | klar mit hellem Mond, oder Bewölkung unter 60 % |
 | UV-Index | DWD, Raum Regensburg (+ Arber) | ab 6 | ab 3 |
 | Pollen | DWD, Allgäu/Oberbayern/Bay. Wald | stärkste Art mittel oder höher | gering bis mittel |
-| Biowetter | DWD-Biowetter, Zone Niederbayern/Oberpfalz | ein Einfluss „hoch“ | ein Einfluss „gering“ |
+| Biowetter | DWD-Biowetter, Zone Niederbayern/Oberpfalz; dazu Gesundheitstipps Kneipp, ganzheitlich, TCM nach Wetter des Ortes | ein Einfluss „hoch“ | ein Einfluss „gering“ |
 | Polarlicht | NOAA Kp-Index, nächste 24 h, Bewölkung nachts | Kp ab 7 | Kp ab 6, oder Kp ab 7 bei starker Bewölkung |
 | Schnee Arber | DWD-Schneehöhe Großer Arber (Vortag), MOSMIX-Niederschlag bei Frost für 48 h | ab 5 cm Neuschnee oder ab 20 cm Schnee | etwas Schnee oder Neuschnee; Mai bis Oktober ohne Schnee ausgeblendet |
 
-Inversion, Alpenblick, Sternenhimmel und PV morgen sind Faustregeln aus Mess- und Vorhersagewerten, keine amtlichen Produkte. Das Biowetter ist ein DWD-Produkt und kein ärztlicher Rat.
+Inversion, Alpenblick, Sternenhimmel und PV morgen sind Faustregeln aus Mess- und Vorhersagewerten, keine amtlichen Produkte. Das Biowetter ist ein DWD-Produkt und kein ärztlicher Rat; die Gesundheitstipps sind eigene Faustregeln (Hausmittel, Erfahrungsheilkunde) mit Hinweis, bei Herz-, Gefäß- oder Blutdruckproblemen und in der Schwangerschaft ärztlich abzuklären.
 
 ## Sicherheit und Datenschutz
 
@@ -226,6 +226,7 @@ Die Live-Seite entstand am 26.10.2026; seitdem kamen Radar, Strahlung, Pegel, 11
 
 | Datum | Seite | Änderung |
 | --- | --- | --- |
+| 08.11.2026 21:00 | Live | Biowetter-Kachel mit „Tipps für heute/morgen“: je ein Tipp Kneipp, ganzheitlich und TCM, regelbasiert nach Temperatur, Regen, Feuchte, Böen, Sonnenstunden, Jahreszeit und DWD-Biowetter (Kreislauf, Rheuma); Hinweis „kein ärztlicher Rat“. Fußzeile verlinkt dokumentation.pdf (aus DOKUMENTATION.md erzeugt). Cache bayerwald-v9 |
 | 08.11.2026 20:40 | Live + Daten | Kälteste/wärmste Orte mit Reitern Jetzt / 12 h / 24 h / Karte (Werte als Marken, Heatmap zuschaltbar); Ort antippen → Verlauf 7 Tage (Stundenkurve) / 30 Tage / 1 Jahr (Tagesspanne + Mittel), darunter Lagekarte. DE-Verlauf direkt von Bright Sky, CZ aus eigener ČHMÚ-Mitschrift chmi/<wsi>.csv (ab 08.11.2026). Pegel und Strahlung mit Ansicht Liste/Karte, Lagekarten in den Details (Pegelkoordinaten aus HND-Stammdaten, pegel-lage.json); jede Karte per Tipp im Vollbild verschieb- und zoombar. Cache bayerwald-v8 |
 | 31.10.2026 12:45 | Live + Daten | Kälteste und wärmste Orte in zwei Spalten (Reiter Jetzt / Letzte 12 Stunden), 100 km um den gewählten Ort; tschechische Stationen jetzt aus ČHMÚ Open Data (opendata.chmi.cz, 10-Minuten-Werte, stündlich aktualisiert, rund 50 Temperaturstationen in der Region, Archivdatei chmi-temp.json); Tipp auf laufende Pegel- oder Sondenzeile öffnet deren Details; Cache bayerwald-v7 |
 | 30.10.2026 19:42 | Live | „Die nächsten Tage“ mit 7 Tagen (ab Tag 5 blasser, unsicherer); Schriften und Leaflet lokal unter assets/ (keine Abrufe mehr bei Google Fonts und cdnjs); Gewässer: Rubrik „Seen und Speicher“ fest oben, Flusspegel nach Entfernung zum Ort (Lage aus pegel-lage.json), 3 fest + durchlaufende Liste; Strahlung: DE- und CZ-Sonden bis 100 km nach Entfernung, 3 fest + durchlaufende Liste; Listen mit Finger anhalten, wischen spult; Cache bayerwald-v6 |
