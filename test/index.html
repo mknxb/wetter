@@ -304,7 +304,7 @@ h2 small{font:500 .72rem var(--f-body);letter-spacing:.04em;text-transform:none;
 .rr em{font-style:normal;font-size:.72rem;color:var(--mu);text-align:right}.rr em.up{color:var(--amber)}.rr em.dn{color:var(--accent)}
 .stg{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
 @media (max-width:640px){.stg.auf{grid-template-columns:1fr;gap:14px}}
-.st-det .seg{margin-top:10px}
+.st-det .seg{margin-top:2px}
 .stc-h{font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;font-weight:700;padding:4px 0 6px}
 .stc.kalt .stc-h{color:var(--cold)}.stc.warm .stc-h{color:var(--warm)}
 .sti{display:grid;grid-template-columns:1.2em minmax(0,1fr) auto;align-items:center;gap:6px;padding:6px 0;border-top:1px solid var(--line)}
@@ -368,7 +368,7 @@ footer a{color:var(--accent)}
   <svg class="ridge" id="ridge" viewBox="0 0 1200 360" preserveAspectRatio="xMidYMax slice" aria-hidden="true"></svg>
   <div class="hero-in">
     <div class="topbar">
-      <span class="brand"><span class="testbadge">Testseite · Stand 08.11. 20:45</span> Bayerischer Wald · Böhmerwald</span>
+      <span class="brand"><span class="testbadge">Testseite · Stand 08.11. 20:25</span> Bayerischer Wald · Böhmerwald</span>
       <span class="stand"><span id="stand">lädt …</span>
         <button class="icon-btn" id="reload" type="button" aria-label="Aktualisieren"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg></button></span>
     </div>
@@ -2740,9 +2740,7 @@ function initTabs() {
     const r = STN[+row.dataset.si]; if (!r) return;
     row.setAttribute("aria-expanded", "true");
     const d = document.createElement("div"); d.className = "st-det";
-    const z = (k, l) => r[k] ? `<span>${l} <b>${f1(r[k].t)}°</b> <small>${hhmm(r[k].at)}</small></span>` : "";
-    d.innerHTML = `<div class="st-werte">${z("now", "jetzt")}${z("min", "Tief 12 h")}${z("max", "Hoch 12 h")}${z("min24", "Tief 24 h")}${z("max24", "Hoch 24 h")}</div>`
-      + `<div class="vl-body"></div>`
+    d.innerHTML = `<div class="vl-body"></div>`
       + (r.lat != null ? `<div class="subh">Lage</div><div class="minimap"></div><a class="maplink" href="${kartenUrl(r.lat, r.lon, r.name)}" target="_blank" rel="noopener">In Karten-App öffnen ↗</a>` : "")
       + `<div class="note">${r.land === "CZ" ? "Tschechischer Wetterdienst ČHMÚ" : "Deutscher Wetterdienst (über Bright Sky)"}${r.hoehe != null ? " · " + Math.round(r.hoehe) + " m ü. NN" : ""}${r.dist != null ? " · " + Math.round(r.dist) + " km von " + esc(ORT.name) : ""}</div>`;
     row.after(d); d.dataset.si = row.dataset.si;
