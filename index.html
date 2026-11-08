@@ -144,6 +144,12 @@ h2 small{font:500 .72rem var(--f-body);letter-spacing:.04em;text-transform:none;
 .sg-more{grid-column:1 / -1;border:1px dashed var(--line);border-radius:14px;background:none;color:var(--accent);font-weight:600;font-size:.82rem;padding:9px;cursor:pointer}
 .sig-detail{margin-top:10px;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.05);font-size:.88rem;line-height:1.5;color:var(--fg)}
 .sig-detail b{color:var(--accent);margin-right:4px}
+.gt{margin-top:10px;padding-top:8px;border-top:1px dashed var(--line)}
+.gt-h{font:600 .72rem var(--f-body);letter-spacing:.12em;text-transform:uppercase;color:var(--mu);margin-bottom:6px}
+.gt p{margin:0 0 6px;display:grid;grid-template-columns:92px 1fr;gap:8px}
+.gt p span{font-weight:600;color:var(--accent)}
+.gt small{display:block;font-size:.72rem;color:var(--mu);line-height:1.4}
+@media (max-width:480px){.gt p{grid-template-columns:1fr;gap:1px}}
 
 
 /* Schritt 2: Rückblick, Regen, Strahlung */
@@ -468,8 +474,9 @@ footer a{color:var(--accent)}
     <li>Pegel und Speicher: <a href="https://www.hnd.bayern.de" target="_blank" rel="noopener">Hochwassernachrichtendienst Bayern</a> (LfU)</li>
     <li>Strahlung: <a href="https://odlinfo.bfs.de" target="_blank" rel="noopener">BfS-Messnetz ODL</a>; Tschechien: Frühwarnnetz der Strahlenschutzbehörde <a href="https://www.suro.cz/aplikace/monras/tabulky/svz" target="_blank" rel="noopener">SÚRO</a> (MonRaS)</li>
     <li>Polarlicht (Kp-Index): <a href="https://www.swpc.noaa.gov" target="_blank" rel="noopener">NOAA SWPC</a> · Karte: © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>-Mitwirkende</li>
-    <li>Eigene Berechnungen: Waldbrandindex (FWI), Sonne und Mond, Signale; eigenes Archiv für Pegel und Strahlung</li>
+    <li>Eigene Berechnungen: Waldbrandindex (FWI), Sonne und Mond, Signale; eigenes Archiv für Pegel, Strahlung und tschechische Temperaturen</li>
   </ul>
+  <p>Wie die App aufgebaut ist und rechnet: <a href="dokumentation.pdf" target="_blank" rel="noopener">Dokumentation (PDF) ↗</a></p>
   <p>Live-Werte alle 10 Minuten, Pegel, Strahlung und Archiv alle 30 Minuten über GitHub. Keine amtliche Warnung, maßgeblich sind <a href="https://www.dwd.de/warnungen" target="_blank" rel="noopener">dwd.de</a> und <a href="https://www.hnd.bayern.de" target="_blank" rel="noopener">hnd.bayern.de</a>.</p>
 </footer>
 
@@ -1691,18 +1698,66 @@ function bioLevel(v) {
   if (/gering|mäßig|schwach|leicht/.test(s)) return 1;
   return 0;
 }
+/* Gesundheitstipps zum Tag: Kneipp, ganzheitlich, Traditionelle Chinesische Medizin (TCM).
+   Regeln nach Wetter des gewählten Ortes (heute bzw. ab 18 Uhr morgen) und DWD-Biowetter; Hausmittel, kein ärztlicher Rat. */
+function gesundTipps(eff) {
+  if (!LAST) return "";
+  const jetzt = new Date(), morgen = hourOf(jetzt) >= 18, tag = morgen ? new Date(+jetzt + 864e5) : jetzt, k = dayKey(tag);
+  const rs = LAST.recs.filter(r => dayKey(new Date(r.timestamp)) === k);
+  if (rs.length < 8) return "";
+  const num = f => rs.map(r => r[f]).filter(v => v != null);
+  const tx = Math.max(...num("temperature")), tn = Math.min(...num("temperature"));
+  const rh = num("relative_humidity"), feucht = rh.length ? rh.reduce((a, b) => a + b, 0) / rh.length : null;
+  const boe = Math.max(0, ...num("wind_gust_speed")), regen = num("precipitation").reduce((a, b) => a + b, 0);
+  const sonne = num("sunshine").reduce((a, b) => a + b, 0) / 60, mon = +k.slice(5, 7);
+  const schnee = rs.some(r => /snow|sleet/.test(r.condition || "")) || (regen > 0.5 && tx <= 1);
+  const wirk = n => eff.some(e => e.l > 0 && n.test(e.n));
+  const kreisNied = wirk(/niedriger Blutdruck/), rheuma = wirk(/Rheuma|rheumatisch/i), befinden = eff.some(e => e.l > 0);
+  // Kneipp
+  let kn;
+  if (rheuma) kn = "Bei Gelenk- und Rheumabeschwerden lieber Wärme als Kälte: ansteigendes Fußbad oder ein warmes Heublumensäckchen.";
+  else if (kreisNied) kn = "Kalter Knieguss am Morgen (von den Zehen bis übers Knie, rund 20 Sekunden) bringt einen trägen Kreislauf in Schwung.";
+  else if (schnee) kn = "Schneetreten: einige Sekunden barfuß im frischen Schnee, danach Füße abstreifen, warme Socken an und bewegen.";
+  else if (tx < 6) kn = "Wechselfußbad am Abend: 5 Minuten warm, 10 Sekunden kalt, zweimal wiederholen, kalt aufhören. Wärmt kalte Füße nachhaltig.";
+  else if (tx < 16) kn = "Kaltes Armbad (beide Arme bis zur Mitte des Oberarms, 20 bis 30 Sekunden) am Vormittag statt der zweiten Tasse Kaffee.";
+  else if (tx < 26) kn = regen < 0.5 ? "Tautreten am Morgen: ein bis zwei Minuten barfuß durchs nasse Gras, danach Füße warm laufen." : "Wassertreten in der Badewanne oder am Bach (Storchengang, bis es kalt zieht, etwa 30 Sekunden) belebt müde Beine.";
+  else kn = "Bei Hitze kühlt ein kaltes Armbad oder ein Wadenwickel am Abend und hilft beim Einschlafen.";
+  // Ganzheitlich
+  let gz;
+  if (tx >= 27) gz = "Bewegung in die kühlen Morgenstunden legen, regelmäßig trinken, mittags Schatten und Ruhe.";
+  else if (befinden) gz = "Wetterfühlige Tage ruhiger planen: genug trinken, frische Luft, moderate Bewegung statt Höchstleistung, früh ins Bett.";
+  else if (sonne < 2 && (mon >= 10 || mon <= 3)) gz = "Kurze, trübe Tage: mittags mindestens 30 Minuten raus ans Tageslicht. Das stützt Stimmung und Schlaf-Wach-Rhythmus.";
+  else if (sonne >= 4) gz = `Rund ${Math.round(sonne)} Sonnenstunden: ein Spaziergang am Vormittag tankt Licht und Bewegung zugleich.`;
+  else gz = "Gleichmäßiger Tagesrhythmus: feste Essens- und Schlafzeiten, zwischendurch kurz an die frische Luft.";
+  // TCM
+  const zeit = mon <= 2 || mon === 12 ? ["Winter", "Niere", "Kraft sparen, früh schlafen, Rücken und Füße warm halten"]
+    : mon <= 5 ? ["Frühling", "Leber", "viel Bewegung, frisches Grün wie Bärlauch und Sprossen, sauer in Maßen"]
+    : mon <= 7 ? ["Sommer", "Herz", "leicht essen, bittere Salate, Gemüt nicht überhitzen"]
+    : mon === 8 ? ["Spätsommer", "Milz", "gekochtes, warmes Essen, Kürbis, Hirse, regelmäßige Mahlzeiten"]
+    : ["Herbst", "Lunge", "Atmung pflegen, Birne, Mandeln, Honig, gedünstetes Gemüse"];
+  let tc;
+  if (tx >= 27) tc = "Hitze gilt in der TCM als Belastung für das Herz: kühlende Lebensmittel wie Gurke, Melone, Pfefferminztee; scharf Gebratenes und Alkohol meiden.";
+  else if (boe >= 45) tc = `Böen bis ${Math.round(boe)} km/h: Wind gilt in der TCM als Türöffner für Erkältungen. Nacken und Hals mit Schal schützen.`;
+  else if (tx < 8) tc = "Kälte: warme, gekochte Speisen wie Suppen und Eintöpfe, dazu Ingwer, Zimt oder Fenchel. Wenig Rohkost und Eiskaltes.";
+  else if (regen >= 2 || (feucht != null && feucht >= 88)) tc = "Feuchtigkeit belastet nach TCM die Mitte (Milz): Warmes und leicht Verdauliches wie Hirse, Reis, Karotten; wenig Süßes und Milchprodukte.";
+  else if (feucht != null && feucht < 55) tc = "Trockene Luft schwächt nach TCM die Lunge: Birne (auch gedünstet), Honig, Mandeln und warmes Wasser über den Tag.";
+  else tc = `${zeit[0]} ist in der TCM die Zeit der ${zeit[1]}: ${zeit[2]}.`;
+  return `<div class="gt"><div class="gt-h">Tipps für ${morgen ? "morgen" : "heute"}</div>
+    <p><span>Kneipp</span>${esc(kn)}</p><p><span>Ganzheitlich</span>${esc(gz)}</p><p><span>TCM</span>${esc(tc)}</p>
+    <small>Hausmittel und Erfahrungsheilkunde, kein ärztlicher Rat. Kalte Anwendungen nur bei warmem Körper; bei Herz-, Gefäß- oder Blutdruckproblemen und in der Schwangerschaft vorher ärztlich abklären.</small></div>`;
+}
 function sigBio() {
   const z = EXTRA?.bio?.zone;
-  if (!z) return {key:"bio", title:"Biowetter", state:"na", short:"keine Daten", detail:""};
+  if (!z) { const g = gesundTipps([]); return {key:"bio", title:"Biowetter", state:"na", short: g ? "Gesundheitstipps" : "keine Daten", detail: g ? "DWD-Biowetter gerade nicht verfügbar." + g : ""}; }
   const useToday = hourOf(new Date()) < 14 && z.today_afternoon;
   const per = useToday ? z.today_afternoon : (z.tomorrow_morning || z.today_afternoon);
   const when = useToday ? "Heute Nachmittag" : "Morgen Vormittag";
-  if (!per) return {key:"bio", title:"Biowetter", state:"na", short:"keine Daten", detail:""};
+  if (!per) { const g = gesundTipps([]); return {key:"bio", title:"Biowetter", state:"na", short: g ? "Gesundheitstipps" : "keine Daten", detail: g ? "DWD-Biowetter gerade nicht verfügbar." + g : ""}; }
   const eff = (per.effect || []).map(e => ({n: String(e.name || "").replace(/^Wettereinfluss auf (das |die |den )?/, "").replace(/ ?\((hypotone|hypertone) Form\)/, m => m.includes("hypo") ? " (niedriger Blutdruck)" : " (hoher Blutdruck)"), v: e.value, l: bioLevel(e.value)}));
   const worst = eff.slice().sort((a, b) => b.l - a.l)[0];
   const recs = [...new Set((per.recomms || []).map(r => r.value).filter(Boolean))];
   const list = eff.filter(e => e.l > 0).map(e => `${e.n}: ${e.v}`).join("; ");
-  const detail = `${when}: ${list ? esc(list) + "." : "kein nennenswerter Wettereinfluss."}${recs.length ? " Empfehlung: " + esc(recs.slice(0, 2).join(". ")) + "." : ""} Region ${esc(z.name || "")}. Quelle: DWD-Biowetter, kein ärztlicher Rat.`;
+  const detail = `${when}: ${list ? esc(list) + "." : "kein nennenswerter Wettereinfluss."}${recs.length ? " Empfehlung: " + esc(recs.slice(0, 2).join(". ")) + "." : ""} Region ${esc(z.name || "")}. Quelle: DWD-Biowetter.` + gesundTipps(eff);
   if (!worst || worst.l === 0) return {key:"bio", title:"Biowetter", state:"off", short:"kaum Einfluss", detail};
   const short = worst.n.replace(/allgemeine Befinden/, "Befinden").replace(/Herz- und Kreislaufgeschehen/, "Kreislauf").replace(/ ?\(.*\)/, "").replace(/entzündliche |degenerative /, "").replace(/rheumatische Beschwerden/, "Rheuma").replace(/^Thermische Belastung$/, "Wärmebelastung");
   return {key:"bio", title:"Biowetter", state: worst.l >= 2 ? "on" : "maybe", short: `${short} ${worst.l >= 2 ? "stark" : "leicht"}`, detail};
