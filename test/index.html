@@ -125,6 +125,10 @@ h2 small{font:500 .72rem var(--f-body);letter-spacing:.04em;text-transform:none;
 .load{color:var(--mu);font-size:.85rem}
 .err{color:#f2c46b;font-size:.85rem}
 
+.umsch{display:flex;gap:6px;align-items:center}
+.umsch .tg{display:inline-flex;border:1px solid rgba(255,255,255,.28);border-radius:999px;overflow:hidden}
+.umsch .tg button{border:0;background:none;color:rgba(255,255,255,.75);font:700 .7rem/1 var(--f-body);letter-spacing:.1em;padding:7px 10px;cursor:pointer;text-transform:uppercase}
+.umsch .tg button[aria-pressed="true"]{background:rgba(255,255,255,.88);color:#0c1426}
 .testbadge{display:inline-block;padding:3px 8px;margin-right:8px;border-radius:6px;background:var(--amber);color:#1a1200;letter-spacing:.08em}
 /* Heute im Bayerwald */
 .sigs{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
@@ -374,7 +378,9 @@ footer a{color:var(--accent)}
   <svg class="ridge" id="ridge" viewBox="0 0 1200 360" preserveAspectRatio="xMidYMax slice" aria-hidden="true"></svg>
   <div class="hero-in">
     <div class="topbar">
-      <span class="brand"><span class="testbadge">Testseite · Stand 08.11. 20:55</span> Bayerischer Wald · Böhmerwald</span>
+      <span class="brand"><span class="testbadge">Testseite · Stand 23.11. 21:30</span> <span id="brand-txt">Bayerischer Wald · Böhmerwald</span></span>
+      <span class="umsch"><span class="tg" id="region-tg" role="group" aria-label="Region"><button type="button" data-region="by" aria-pressed="true">Bayerwald</button><button type="button" data-region="hu" aria-pressed="false">Magyarország</button></span>
+        <span class="tg" id="lang-tg" role="group" aria-label="Sprache"><button type="button" data-lang="de" aria-pressed="true">DE</button><button type="button" data-lang="hu" aria-pressed="false">HU</button></span></span>
       <span class="stand"><span id="stand">lädt …</span>
         <button class="icon-btn" id="reload" type="button" aria-label="Aktualisieren"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg></button></span>
     </div>
@@ -389,7 +395,7 @@ footer a{color:var(--accent)}
 
 <main>
   <section class="card wide">
-    <h2>Heute im Bayerwald</h2>
+    <h2 id="h-heute">Heute im Bayerwald</h2>
     <div class="sigs" id="sig"><div class="load">Werte werden zusammengetragen …</div></div>
     <div class="sig-detail" id="sig-detail" hidden></div>
   </section>
@@ -403,7 +409,7 @@ footer a{color:var(--accent)}
 
 
   <section class="card wide">
-    <h2>Regenradar <small>DWD · letzte Stunde und 2 h Vorhersage</small></h2>
+    <h2>Regenradar <small id="rad-quelle">DWD · letzte Stunde und 2 h Vorhersage</small></h2>
     <p class="rad-sum" id="rad-sum">Lade Radarbilder …</p>
     <div class="radar"><div id="radarmap"></div></div>
     <div class="rad-ctl">
@@ -411,7 +417,7 @@ footer a{color:var(--accent)}
       <input type="range" id="rad-slider" min="0" max="0" value="0" aria-label="Zeitpunkt">
       <span class="rad-time" id="rad-time">–</span>
     </div>
-    <div class="rscale">
+    <div class="rscale" id="rscale">
       <span style="--c:rgb(155,231,255)">0,1</span><span style="--c:rgb(79,195,247)">0,5</span><span style="--c:rgb(42,138,246)">1</span><span style="--c:rgb(34,197,94)">2</span><span style="--c:rgb(234,179,8)">5</span><span style="--c:rgb(249,115,22)">10</span><span style="--c:rgb(239,68,68)">20</span><span style="--c:rgb(192,38,211)">40 mm/h</span>
     </div>
   </section>
@@ -424,15 +430,15 @@ footer a{color:var(--accent)}
 
   <aside class="side">
     <section class="card">
-      <h2>Warnungen <small>DWD</small></h2>
+      <h2>Warnungen <small id="warn-quelle">DWD</small></h2>
       <div id="warn"><div class="load">Lade Warnungen …</div></div>
     </section>
-    <section class="card">
+    <section class="card" id="card-pegel">
       <h2>Gewässer <small>Regen, Chamb, Donau</small></h2>
       <div id="pegel"><div class="load">Lade Pegel …</div></div>
     </section>
     <section class="card">
-      <h2>Kälteste und wärmste Orte <small>100 km um den Ort, DE und CZ</small></h2>
+      <h2>Kälteste und wärmste Orte <small id="st-quelle">100 km um den Ort, DE und CZ</small></h2>
       <div class="tabs" role="tablist" id="st-tabs">
         <button type="button" role="tab" data-p="st-jetzt" aria-selected="true">Jetzt</button>
         <button type="button" role="tab" data-p="st-12h" aria-selected="false">12 h</button>
@@ -445,12 +451,12 @@ footer a{color:var(--accent)}
       <div id="st-karte" hidden></div>
     </section>
     <section class="card">
-      <h2>Strahlung <small>BfS-Messnetz</small></h2>
+      <h2>Strahlung <small id="odl-quelle">BfS-Messnetz</small></h2>
       <div id="odl"><div class="load">Lade Messwerte …</div></div>
       <div id="odl-cz"></div>
       <div id="odl-spark"></div>
       <div id="odl-skala" class="odl-sk"></div>
-      <div class="note">Granitböden wie im Bayerischen Wald liefern eher höhere natürliche Werte. Quelle: BfS-Messnetz (ODL), Werte über den eigenen Abholdienst.</div>
+      <div class="note" id="odl-note">Granitböden wie im Bayerischen Wald liefern eher höhere natürliche Werte. Quelle: BfS-Messnetz (ODL), Werte über den eigenen Abholdienst.</div>
     </section>
   </aside>
 
@@ -467,7 +473,12 @@ footer a{color:var(--accent)}
 
 <footer>
   <p><b>Quellen</b></p>
-  <ul class="quellen">
+  <ul class="quellen" id="quellen-hu" hidden>
+    <li>Messwerte, Strahlung (Gamma-Dosisleistung): <a href="https://odp.met.hu" target="_blank" rel="noopener">HungaroMet Nonprofit Zrt.</a> (offene Daten, 10-Minuten-Werte, über den eigenen Abholdienst)</li>
+    <li>Vorhersage: DWD-MOSMIX über <a href="https://brightsky.dev" target="_blank" rel="noopener">Bright Sky</a> · Regenradar: <a href="https://www.rainviewer.com" target="_blank" rel="noopener">RainViewer</a> · Warnungen: <a href="https://www.meteoalarm.org" target="_blank" rel="noopener">MeteoAlarm</a> (HungaroMet)</li>
+    <li>Polarlicht (Kp-Index): <a href="https://www.swpc.noaa.gov" target="_blank" rel="noopener">NOAA SWPC</a> · Karte: © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>-Mitwirkende</li>
+  </ul>
+  <ul class="quellen" id="quellen-by">
     <li>Wetter, Vorhersage, Radar, Warnungen: Deutscher Wetterdienst (DWD Open Data) über <a href="https://brightsky.dev" target="_blank" rel="noopener">Bright Sky</a>; tschechische Wetterstationen über den internationalen SYNOP-Austausch</li>
     <li>UV-Index, Pollenflug, Biowetter, Klima-Tageswerte seit 1991, Bayern-Jahresmittel seit 1881: <a href="https://opendata.dwd.de" target="_blank" rel="noopener">DWD Open Data</a></li>
     <li>Pegel und Speicher: <a href="https://www.hnd.bayern.de" target="_blank" rel="noopener">Hochwassernachrichtendienst Bayern</a> (LfU)</li>
@@ -476,7 +487,8 @@ footer a{color:var(--accent)}
     <li>Eigene Berechnungen: Waldbrandindex (FWI), Sonne und Mond, Signale; eigenes Archiv für Pegel, Strahlung und tschechische Temperaturen</li>
   </ul>
   <p>Wie die App aufgebaut ist und rechnet: <a href="../dokumentation.pdf" target="_blank" rel="noopener">Dokumentation (PDF) ↗</a></p>
-  <p>Live-Werte alle 10 Minuten, Pegel, Strahlung und Archiv alle 30 Minuten über GitHub. Keine amtliche Warnung, maßgeblich sind <a href="https://www.dwd.de/warnungen" target="_blank" rel="noopener">dwd.de</a> und <a href="https://www.hnd.bayern.de" target="_blank" rel="noopener">hnd.bayern.de</a>.</p>
+  <p id="fuss-hu" hidden>Messwerte alle 10 Minuten bei HungaroMet, über GitHub alle 30 Minuten. Keine amtliche Warnung, maßgeblich ist <a href="https://www.met.hu/idojaras/veszelyjelzes/" target="_blank" rel="noopener">met.hu</a>.</p>
+  <p id="fuss-by">Live-Werte alle 10 Minuten, Pegel, Strahlung und Archiv alle 30 Minuten über GitHub. Keine amtliche Warnung, maßgeblich sind <a href="https://www.dwd.de/warnungen" target="_blank" rel="noopener">dwd.de</a> und <a href="https://www.hnd.bayern.de" target="_blank" rel="noopener">hnd.bayern.de</a>.</p>
 </footer>
 
 <script>
@@ -485,9 +497,101 @@ const API = "https://api.brightsky.dev";
 const TZ = "Europe/Berlin";
 const RADIUS = 100000;          // m, Umkreis für Stationen
 const REFRESH = 10 * 60 * 1000; // 10 Minuten
-const START_ORT = "blaibach";   // beim Aufruf immer zuerst
+/* ---------- Region (Bayerwald / Ungarn) und Sprache (DE / HU) ---------- */
+const REGIONKEY = "wetter-region", LANGKEY = "wetter-sprache";
+const lsGet = k => { try { return localStorage.getItem(k); } catch { return null; } };
+const lsSet = (k, v) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); return true; } catch { return false; } };
+const LANG = lsGet(LANGKEY) === "hu" ? "hu" : "de";
+const LOC = LANG === "hu" ? "hu-HU" : "de-DE";
+const UHR = LANG === "hu" ? "" : " Uhr", UHR_H = LANG === "hu" ? ":00" : " Uhr";
+const START_JE = {by: "blaibach", hu: "budapest"};
+/* Übersetzungen Deutsch → Ungarisch. Schlüssel ist der deutsche Text; fehlt ein Eintrag, bleibt Deutsch stehen.
+   {0}, {1} … sind Platzhalter für Werte. */
+const HU_TXT = {
+  // Kopf, Überschriften, Ladehinweise
+  "Bayerischer Wald · Böhmerwald":"Bajor-erdő · Cseh-erdő", "Ungarn · Budapest · Balaton":"Magyarország · Budapest · Balaton",
+  "Heute im Bayerwald":"Ma a Bajor-erdőben", "Heute in Ungarn":"Ma Magyarországon",
+  "Nächste 36 Stunden":"Következő 36 óra", "Regenradar":"Csapadékradar", "Die nächsten Tage":"A következő napok",
+  "Warnungen":"Figyelmeztetések", "Gewässer":"Vizek", "Kälteste und wärmste Orte":"Leghidegebb és legmelegebb helyek",
+  "Strahlung":"Sugárzás", "Rückblick":"Visszatekintés", "Temperatur":"Hőmérséklet", "Regen":"Eső", "Jetzt":"Most", "Karte":"Térkép",
+  "lädt …":"betöltés …", "Lade …":"Betöltés …", "Lade Vorhersage …":"Előrejelzés betöltése …", "Lade Radarbilder …":"Radarképek betöltése …",
+  "Lade Warnungen …":"Figyelmeztetések betöltése …", "Lade Pegel …":"Vízállások betöltése …", "Frage Stationen ab …":"Állomások lekérdezése …",
+  "Lade Messwerte …":"Mérések betöltése …", "Lade Archiv …":"Archívum betöltése …", "Werte werden zusammengetragen …":"Adatok összegyűjtése …",
+  "Temperatur °C":"Hőmérséklet °C", "Regen mm/h":"Eső mm/óra", "Tipp: mit dem Finger über die Kurve fahren":"Tipp: húzza az ujját a görbe fölött",
+  "Quellen":"Források", "Aktualisieren":"Frissítés", "Abspielen":"Lejátszás", "Pause":"Szünet", "Zeitpunkt":"Időpont",
+  "Als Startort merken":"Megjegyzés kezdőhelyként",
+  "RainViewer · letzte 2 Stunden":"RainViewer · elmúlt 2 óra", "DWD · letzte Stunde und 2 h Vorhersage":"DWD · elmúlt óra és 2 órás előrejelzés",
+  "100 km um den Ort, DE und CZ":"100 km-en belül, DE és CZ", "100 km um den Ort, HungaroMet":"100 km-en belül, HungaroMet",
+  "HungaroMet-Messnetz":"HungaroMet mérőhálózat", "BfS-Messnetz":"BfS mérőhálózat",
+  // aktuelles Wetter
+  "sonnig":"napos", "klar":"derült", "wolkig":"felhős", "bedeckt":"borult", "Nebel":"köd", "windig":"szeles", "Schneeregen":"havas eső",
+  "Schnee":"hó", "Hagel":"jégeső", "Gewitter":"zivatar", "stark bewölkt":"erősen felhős", "heiter":"gyengén felhős", "trocken":"száraz",
+  "Messstation":"Mérőállomás", "km entfernt":"km-re", "Wolken lt. DWD-Vorhersage":"felhőzet a DWD előrejelzése szerint",
+  "gleichbleibend":"változatlan", "steigend, +{0}° in 3 h":"emelkedő, +{0}° 3 óra alatt", "fallend, {0}° in 3 h":"csökkenő, {0}° 3 óra alatt",
+  "leicht steigend":"enyhén emelkedő", "leicht fallend":"enyhén csökkenő", "steigend":"emelkedő", "fallend":"csökkenő",
+  "stark steigend":"erősen emelkedő", "stark fallend":"erősen csökkenő", "in 3 h":"3 óra alatt",
+  "Wetterverschlechterung, Wind möglich":"romló idő, szél lehetséges", "eher unbeständiger":"inkább változékony", "Wetterbesserung wahrscheinlich":"javuló idő valószínű",
+  "Wind":"Szél", "Böen":"Széllökés", "Regen heute":"Eső ma", "letzte Stunde":"elmúlt óra", "keine Messung":"nincs mérés",
+  "Feuchte":"Páratartalom", "Luftdruck":"Légnyomás", "Sonne":"Nap", "Mond":"Hold",
+  "Neumond":"újhold", "zunehmende Sichel":"növő sarló", "erstes Viertel":"első negyed", "zunehmender Mond":"növő hold", "Vollmond":"telihold",
+  "abnehmender Mond":"fogyó hold", "letztes Viertel":"utolsó negyed", "abnehmende Sichel":"fogyó sarló",
+  // Vorhersage
+  "jetzt":"most", "heute":"ma", "Heute":"Ma", "mm Regen":"mm eső", "Keine Vorhersagedaten.":"Nincs előrejelzés.",
+  "Ab dem 5. Tag ist die Vorhersage deutlich unsicherer (blasser dargestellt).":"Az 5. naptól az előrejelzés jóval bizonytalanabb (halványabban jelölve).",
+  // Radar
+  "Es regnet gerade":"Most esik", "Kein Regen":"Nincs eső", "Vorhersage":"Előrejelzés", "Messung":"Mérés",
+  "Regen ab etwa {0} in {1} erwartet.":"Eső várható kb. {0}-tól itt: {1}.", "in {0} in den nächsten 2 Stunden.":"itt: {0} a következő 2 órában.",
+  "Für Ungarn gibt es Radarbilder der letzten 2 Stunden, aber keine Radar-Vorhersage.":"Magyarországra az elmúlt 2 óra radarképei érhetők el, radar-előrejelzés nincs.",
+  "Laut Vorhersage Regen ab etwa {0} in {1}.":"Az előrejelzés szerint eső kb. {0}-tól itt: {1}.",
+  "Laut Vorhersage kein Regen in {0} in den nächsten 3 Stunden.":"Az előrejelzés szerint nem lesz eső itt: {0} a következő 3 órában.",
+  // Stationen
+  "Kälteste":"Leghidegebb", "Wärmste":"Legmelegebb", "Tiefstwerte 12 h":"Minimum 12 óra", "Höchstwerte 12 h":"Maximum 12 óra",
+  "Tiefstwerte 24 h":"Minimum 24 óra", "Höchstwerte 24 h":"Maximum 24 óra", "keine Daten":"nincs adat", "Keine Stationsdaten verfügbar.":"Nincs állomásadat.",
+  "In Karten-App öffnen ↗":"Megnyitás térképen ↗", "Lage":"Elhelyezkedés", "Lade Verlauf …":"Idősor betöltése …", "Verlauf gerade nicht abrufbar.":"Az idősor most nem érhető el.",
+  "Stundenwerte von HungaroMet, verfügbar für die letzten 24 Stunden.":"A HungaroMet óránkénti értékei, az elmúlt 24 órára.",
+  "HungaroMet (ungarischer Wetterdienst)":"HungaroMet (magyar meteorológiai szolgálat)", "km von":"km-re innen:",
+  "7 Tage":"7 nap", "30 Tage":"30 nap", "1 Jahr":"1 év", "Tiefst":"Min.", "Höchst":"Max.",
+  // Warnungen
+  "Keine Warnungen für {0}.":"Nincs figyelmeztetés: {0}.", "In der Umgebung":"A környéken", "bis auf Weiteres":"további intézkedésig",
+  "Warnungen gerade nicht abrufbar.":"A figyelmeztetések most nem érhetők el.", "Amtliche Warnungen":"Hivatalos figyelmeztetések",
+  // Strahlung
+  "µSv/h, 10-Minuten-Mittel · % = Abweichung vom 24-Stunden-Mittel":"µSv/h, 10 perces átlag · % = eltérés a 24 órás átlagtól",
+  "Messstellen nach Entfernung zu {0}":"Mérőhelyek távolság szerint ({0})", "Alle {0} weiteren Messstellen als Liste":"További {0} mérőhely listája",
+  "Gamma-Dosisleistung an den Wetterstationen von HungaroMet (10-Minuten-Mittel). Natürliche Werte liegen meist zwischen 0,05 und 0,2 µSv/h, nach Regen etwas höher.":
+    "Gamma-dózisteljesítmény a HungaroMet meteorológiai állomásain (10 perces átlag). A természetes értékek általában 0,05 és 0,2 µSv/h között vannak, eső után kicsit magasabbak.",
+  "Keine Strahlungswerte in der Nähe.":"Nincs sugárzási adat a közelben.",
+  // Signale (Titel und Kurztext)
+  "Radl-Fenster":"Kerékpáros ablak", "Morgenfrost":"Reggeli fagy", "PV morgen":"Napelem holnap", "Sternenhimmel":"Csillagos ég",
+  "Polarlicht":"Sarki fény", "Inversion":"Inverzió", "Fernsicht":"Távolba látás", "Waldbrand":"Erdőtűz", "UV-Index":"UV-index", "Pollen":"Pollen",
+  "Biowetter":"Biometeorológia", "Schnee":"Hó", "kein Fenster":"nincs ablak", "frostfrei":"fagymentes", "Scheibe kratzen":"jégkaparás",
+  "Reif möglich":"dér lehetséges", "Bodenfrost möglich":"talajmenti fagy lehetséges", "klar und dunkel":"derült és sötét",
+  "klar, Mond hell":"derült, erős holdfény", "teils klar":"részben derült", "bewölkt":"felhős", "sehr gut":"nagyon jó", "gut":"jó",
+  "mäßig":"közepes", "schwach":"gyenge", "Weniger anzeigen":"Kevesebb", "Alle {0} anzeigen":"Mind a(z) {0} mutatása",
+  "Details nur auf Deutsch.":"A részletek egyelőre csak németül.",
+  // Steuerung
+  "Stand {0}":"Frissítve {0}", "Daten gerade nicht abrufbar ({0}). Nächster Versuch in 10 Minuten.":"Az adatok most nem érhetők el ({0}). Új próbálkozás 10 perc múlva.",
+  "{0} ist dein Startort":"{0} a kezdőhelyed", "{0} als Startort merken":"{0} megjegyzése kezdőhelyként", "{0} ist schon Startort":"{0} már kezdőhely",
+  "Startort wieder {0}":"Kezdőhely ismét: {0}", "Startort: {0}":"Kezdőhely: {0}", "Merken hier nicht möglich (privates Surfen?)":"Itt nem menthető (privát böngészés?)",
+  "Extras gerade nicht verfügbar.":"Az extrák most nem érhetők el.", "ruhig":"nyugodt", "Chance!":"Esély!", "nur Fotos":"csak fotón", "morgen":"holnap"
+};
+function TR(de, ...a) {
+  let s = LANG === "hu" && HU_TXT[de] != null ? HU_TXT[de] : de;
+  a.forEach((v, i) => { s = s.split("{" + i + "}").join(v); });
+  return s;
+}
+function uebersetzeSeite() {   // feste Texte im HTML (Überschriften, Reiter, Ladehinweise, Beschriftungen)
+  if (LANG !== "hu") return;
+  const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {acceptNode: n => n.parentElement?.closest("script,style,footer") ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT});
+  const nodes = []; while (w.nextNode()) nodes.push(w.currentNode);
+  for (const n of nodes) { const t = n.nodeValue.trim(); if (t && HU_TXT[t] != null) n.nodeValue = n.nodeValue.replace(t, HU_TXT[t]); }
+  document.querySelectorAll("[aria-label],[title]").forEach(el => {
+    for (const a of ["aria-label", "title"]) { const v = el.getAttribute(a); if (v && HU_TXT[v] != null) el.setAttribute(a, HU_TXT[v]); }
+  });
+  document.documentElement.lang = "hu";
+}
 
-const ORTE = {
+
+const ORTE_BY = {
   blaibach:  {name:"Blaibach",       lat:49.1636, lon:12.8086},
   koetzting: {name:"Bad Kötzting",   lat:49.1767, lon:12.8547},
   cham:      {name:"Cham",           lat:49.2183, lon:12.6650},
@@ -499,21 +603,41 @@ const ORTE = {
   regen:     {name:"Regen",          lat:48.9700, lon:13.1270},
   deggendorf:{name:"Deggendorf",     lat:48.8353, lon:12.9644}
 };
+// Ungarn: Warngebiete für MeteoAlarm (Komitate und Großregionen, englisch und ungarisch, je nachdem wie der Feed sie nennt)
+const ORTE_HU = {
+  budapest:      {name:"Budapest",        lat:47.4979, lon:19.0402, h:110, megye:["Budapest","Pest","Central Hungary","Közép-Magyarország"]},
+  veszprem:      {name:"Veszprém",        lat:47.0930, lon:17.9093, h:250, megye:["Veszprém","Central Transdanubia","Közép-Dunántúl"]},
+  balatonfured:  {name:"Balatonfüred",    lat:46.9590, lon:17.8890, h:130, megye:["Veszprém","Central Transdanubia","Közép-Dunántúl"]},
+  siofok:        {name:"Siófok",          lat:46.9047, lon:18.0490, h:110, megye:["Somogy","Southern Transdanubia","Dél-Dunántúl"]},
+  szekesfehervar:{name:"Székesfehérvár",  lat:47.1860, lon:18.4221, h:115, megye:["Fejér","Central Transdanubia","Közép-Dunántúl"]}
+};
+const ORTE_ALL = {...ORTE_BY, ...ORTE_HU};
+function regionVonOrt() {   // Region aus ?ort= bzw. ?lat=&lon=, sonst gemerkte Region
+  const p = new URLSearchParams(location.search), k = p.get("ort");
+  if (ORTE_HU[k]) return "hu";
+  if (ORTE_BY[k]) return "by";
+  if (p.get("lat") && p.get("lon")) return +p.get("lon") > 16 ? "hu" : "by";
+  return lsGet(REGIONKEY) === "hu" ? "hu" : "by";
+}
+const REGION = regionVonOrt();
+const HU = REGION === "hu";
+const ORTE = HU ? ORTE_HU : ORTE_BY;
+const START_ORT = START_JE[REGION];   // beim Aufruf immer zuerst
 // Gebiete, für die DWD-Warnungen abgefragt werden
 const WARNPUNKTE = ["blaibach","cham","walderbach","zwiesel","regen","arber","deggendorf"];
 
 /* ---------- Hilfen ---------- */
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const nf1 = new Intl.NumberFormat("de-DE",{minimumFractionDigits:1,maximumFractionDigits:1});
+const nf1 = new Intl.NumberFormat(LOC,{minimumFractionDigits:1,maximumFractionDigits:1});
 const f1 = v => v == null || isNaN(v) ? "–" : nf1.format(v);
 const f0 = v => v == null || isNaN(v) ? "–" : String(Math.round(v));
-const hhmm = d => new Intl.DateTimeFormat("de-DE",{timeZone:TZ,hour:"2-digit",minute:"2-digit"}).format(d);
+const hhmm = d => new Intl.DateTimeFormat(LOC,{timeZone:TZ,hour:"2-digit",minute:"2-digit"}).format(d);
 const dayKey = d => new Intl.DateTimeFormat("en-CA",{timeZone:TZ,year:"numeric",month:"2-digit",day:"2-digit"}).format(d);
-const wd = d => new Intl.DateTimeFormat("de-DE",{timeZone:TZ,weekday:"short"}).format(d).replace(".","");
-const dm = d => new Intl.DateTimeFormat("de-DE",{timeZone:TZ,day:"2-digit",month:"2-digit"}).format(d).replace(/\.$/, "");
+const wd = d => new Intl.DateTimeFormat(LOC,{timeZone:TZ,weekday:"short"}).format(d).replace(".","");
+const dm = d => LANG === "hu" ? dayKey(d).slice(5).replace("-", ".") : new Intl.DateTimeFormat("de-DE",{timeZone:TZ,day:"2-digit",month:"2-digit"}).format(d).replace(/\.$/, "");
 const hourOf = d => +new Intl.DateTimeFormat("en-GB",{timeZone:TZ,hour:"2-digit",hourCycle:"h23"}).format(d);
-const RICHT = ["N","NO","O","SO","S","SW","W","NW"];
+const RICHT = LANG === "hu" ? ["É","ÉK","K","DK","D","DNy","Ny","ÉNy"] : ["N","NO","O","SO","S","SW","W","NW"];
 const dir = deg => deg == null ? "" : RICHT[Math.round(deg / 45) % 8];
 
 async function getJSON(path, params, timeout = 15000) {
@@ -588,9 +712,9 @@ const TEXT = {"clear-day":"sonnig","clear-night":"klar","partly-cloudy-day":"wol
 function condText(w) {
   if (w.icon === "cloudy" || w.icon?.startsWith("partly")) {
     const cc = w.cloud_cover;
-    if (cc != null) return cc >= 95 ? "bedeckt" : cc >= 70 ? "stark bewölkt" : cc >= 30 ? "wolkig" : "heiter";
+    if (cc != null) return TR(cc >= 95 ? "bedeckt" : cc >= 70 ? "stark bewölkt" : cc >= 30 ? "wolkig" : "heiter");
   }
-  return TEXT[w.icon] || (w.condition === "dry" ? "trocken" : "–");
+  return TR(TEXT[w.icon] || (w.condition === "dry" ? "trocken" : "–"));
 }
 // Symbol einer Zeitspanne: das "schlimmste" Wetter, sonst das häufigste
 const RANG = ["thunderstorm","hail","snow","sleet","rain"];
@@ -625,7 +749,7 @@ function tcol(t, a = 1) {
 
 /* ---------- Ort ---------- */
 /* Startort: jeder Nutzer kann per Stern seinen Ort merken (nur auf diesem Gerät gespeichert) */
-const STARTKEY = "wetter-startort";
+const STARTKEY = HU ? "wetter-startort-hu" : "wetter-startort";
 function startOrt() { try { const k = localStorage.getItem(STARTKEY); return ORTE[k] ? k : null; } catch { return null; } }
 function setStartOrt(k) { try { k ? localStorage.setItem(STARTKEY, k) : localStorage.removeItem(STARTKEY); return true; } catch { return false; } }
 function currentOrt() {
@@ -669,6 +793,10 @@ function skyFor(icon, now, sun, cc) {
 // Luftdrucktendenz über 3 Stunden, Einteilung wie im Wetterdienst üblich
 function pressTrend(w, recs, now) {
   if (w.pressure_msl == null) return "";
+  if (HU) {   // Ungarn: nur Werte derselben HungaroMet-Station vergleichen, keine fremde Station oder Vorhersage
+    if (HU_P3 == null) return "";
+    recs = [{timestamp: new Date(now.getTime() - 3 * 36e5).toISOString(), pressure_msl: HU_P3}];
+  }
   const t3 = now.getTime() - 3 * 36e5;
   const past = recs.filter(r => r.pressure_msl != null && Math.abs(Date.parse(r.timestamp) - t3) <= 50 * 6e4)
     .sort((a, b) => Math.abs(Date.parse(a.timestamp) - t3) - Math.abs(Date.parse(b.timestamp) - t3))[0];
@@ -678,7 +806,7 @@ function pressTrend(w, recs, now) {
   const cls = a < 0.5 ? "" : d > 0 ? "up" : a >= 3.5 ? "warn" : "dn";
   const arrow = a < 0.5 ? "→" : d > 0 ? "▲" : "▼";
   const tip = d <= -3.5 ? "Wetterverschlechterung, Wind möglich" : d <= -1.5 ? "eher unbeständiger" : d >= 1.5 ? "Wetterbesserung wahrscheinlich" : "";
-  return `<em class="pt3 ${cls}" title="${tip}">${arrow} ${d > 0 ? "+" : ""}${f1(d)} hPa in 3 h · ${word}</em>`;
+  return `<em class="pt3 ${cls}" title="${TR(tip)}">${arrow} ${d > 0 ? "+" : ""}${f1(d)} hPa ${TR("in 3 h")} · ${TR(word)}</em>`;
 }
 /* Bewölkung für den Ort: Viele kleine Stationen (z. B. Weiding) messen keine Wolken; Bright Sky nimmt dann
    den Wert einer anderen, oft weit entfernten Station. Liegt die mehr als 15 km weg, gilt die DWD-Vorhersage
@@ -713,16 +841,16 @@ function renderCurrent(cur, recs, now, wxSources) {
   // heller Mond über dem Horizont: Himmel etwas heller, weniger Sterne, Wolken silbern angeleuchtet
   const moonlit = (now < sun.rise || now > sun.set) && MOON && MOON.fraction > 0.4 && moonAlt(now, ORT.lat, ORT.lon) > 0.08;   // Bogenmaß, ≈ 5°
   $("hero").dataset.moon = moonlit ? (MOON.fraction > 0.8 ? "2" : "1") : "0";
-  const dist = src?.distance != null ? ` · ${Math.round(src.distance / 1000)} km entfernt` : "";
-  $("cur-src").textContent = `Messstation ${kurz(src?.station_name) || ORT.name}${dist} · ${hhmm(new Date(w.timestamp))} Uhr`;
+  const dist = src?.distance != null ? ` · ${Math.round(src.distance / 1000)} ${TR("km entfernt")}` : "";
+  $("cur-src").textContent = `${TR("Messstation")} ${kurz(src?.station_name) || ORT.name}${dist} · ${hhmm(new Date(w.timestamp))}${UHR}`;
   $("cur-src").title = cl.txt || "";
-  if (cl.txt && /Vorhersage/.test(cl.txt)) $("cur-src").textContent += " · Wolken lt. DWD-Vorhersage";
+  if (cl.txt && /Vorhersage/.test(cl.txt)) $("cur-src").textContent += " · " + TR("Wolken lt. DWD-Vorhersage");
   const past = recs.filter(r => new Date(r.timestamp) <= new Date(now - 2.5 * 36e5) && r.temperature != null).pop();
-  let trend = `<span class="chip"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8h11M9 4l4 4-4 4"/></svg>gleichbleibend</span>`;
+  let trend = `<span class="chip"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8h11M9 4l4 4-4 4"/></svg>${TR("gleichbleibend")}</span>`;
   if (past && w.temperature != null) {
     const d = w.temperature - past.temperature;
-    if (d > 0.7) trend = `<span class="chip up"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12L13 4M7 4h6v6"/></svg>steigend, +${f1(d)}° in 3 h</span>`;
-    else if (d < -0.7) trend = `<span class="chip down"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4l10 8M7 12h6V6"/></svg>fallend, ${f1(d)}° in 3 h</span>`;
+    if (d > 0.7) trend = `<span class="chip up"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12L13 4M7 4h6v6"/></svg>${TR("steigend, +{0}° in 3 h", f1(d))}</span>`;
+    else if (d < -0.7) trend = `<span class="chip down"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4l10 8M7 12h6V6"/></svg>${TR("fallend, {0}° in 3 h", f1(d))}</span>`;
   }
   const wind = w.wind_speed_10 ?? w.wind_speed_30 ?? w.wind_speed_60;
   const wdir = w.wind_direction_10 ?? w.wind_direction_30 ?? w.wind_direction_60;
@@ -734,12 +862,12 @@ function renderCurrent(cur, recs, now, wxSources) {
       <div class="cond"><span class="ico">${icon(w.icon)}</span><b>${esc(condText(w))}</b>${trend}<span id="klima-chip"></span></div>
     </div>
     <div class="stats">
-      <div class="stat"><small>Wind</small><b>${arrow}${f0(wind)} <span>km/h ${dir(wdir)}</span></b><em>Böen ${f0(gust)} km/h</em></div>
-      <div class="stat"><small>Regen heute</small><b>${RAIN?.ok ? nf(RAIN.today) : "–"} <span>mm</span></b><em>${RAIN?.ok ? `letzte Stunde ${nf(RAIN.hour ?? 0)} mm` : "keine Messung"}</em></div>
-      <div class="stat"><small>Feuchte</small><b>${f0(w.relative_humidity)} <span>%</span></b></div>
-      <div class="stat"><small>Luftdruck</small><b>${f0(w.pressure_msl)} <span>hPa</span></b>${pressTrend(w, recs, now)}</div>
-      <div class="stat"><small>Sonne</small><b>${hhmm(sun.rise)}<span>–</span>${hhmm(sun.set)}</b></div>
-      <div class="stat"><small>Mond</small><b>${moonIcon(MOON.phase)}${Math.round(MOON.fraction * 100)} <span>%</span></b><em>${MOON.name}</em><em>↑ ${MOON.rise ? hhmm(MOON.rise) : "–"} · ↓ ${MOON.set ? hhmm(MOON.set) : "–"}</em></div>
+      <div class="stat"><small>${TR("Wind")}</small><b>${arrow}${f0(wind)} <span>km/h ${dir(wdir)}</span></b><em>${TR("Böen")} ${f0(gust)} km/h</em></div>
+      <div class="stat"><small>${TR("Regen heute")}</small><b>${RAIN?.ok ? nf(RAIN.today) : "–"} <span>mm</span></b><em>${RAIN?.ok ? `${TR("letzte Stunde")} ${nf(RAIN.hour ?? 0)} mm` : TR("keine Messung")}</em></div>
+      <div class="stat"><small>${TR("Feuchte")}</small><b>${f0(w.relative_humidity)} <span>%</span></b></div>
+      <div class="stat"><small>${TR("Luftdruck")}</small><b>${f0(w.pressure_msl)} <span>hPa</span></b>${pressTrend(w, recs, now)}</div>
+      <div class="stat"><small>${TR("Sonne")}</small><b>${hhmm(sun.rise)}<span>–</span>${hhmm(sun.set)}</b></div>
+      <div class="stat"><small>${TR("Mond")}</small><b>${moonIcon(MOON.phase)}${Math.round(MOON.fraction * 100)} <span>%</span></b><em>${TR(MOON.name)}</em><em>↑ ${MOON.rise ? hhmm(MOON.rise) : "–"} · ↓ ${MOON.set ? hhmm(MOON.set) : "–"}</em></div>
     </div>`;
 }
 
@@ -759,7 +887,7 @@ function renderChart(recs, now) {
   const t0 = new Date(now); t0.setMinutes(0, 0, 0);
   const t1 = new Date(t0.getTime() + 36 * 36e5);
   const pts = recs.map(r => ({...r, _t: new Date(r.timestamp)})).filter(r => r._t >= t0 && r._t <= t1 && r.temperature != null);
-  if (pts.length < 2) { box.innerHTML = '<div class="err">Keine Vorhersagedaten.</div>'; return; }
+  if (pts.length < 2) { box.innerHTML = `<div class="err">${TR("Keine Vorhersagedaten.")}</div>`; return; }
   const L = 30, R = 12, T = 24, B = 30, RB = 38; // RB = Höhe des Regenbands
   const T_ = pts.map(p => p.temperature);
   let lo = Math.floor(Math.min(...T_) - 1), hi = Math.ceil(Math.max(...T_) + 1);
@@ -787,7 +915,7 @@ function renderChart(recs, now) {
     if (h % 6 !== 0) continue;
     const X = x(p._t);
     ax += `<line x1="${X}" x2="${X}" y1="${T}" y2="${H - B}" stroke="rgba(150,180,230,${h === 0 ? .28 : .08})"/>`;
-    ax += `<text x="${X}" y="${H - B + 16}" text-anchor="middle">${h === 0 ? wd(p._t) : String(h).padStart(2, "0") + " Uhr"}</text>`;
+    ax += `<text x="${X}" y="${H - B + 16}" text-anchor="middle">${h === 0 ? wd(p._t) : String(h).padStart(2, "0") + UHR_H}</text>`;
   }
   const P = pts.map(p => [+x(p._t).toFixed(1), +y(p.temperature).toFixed(1)]);
   const line = smooth(P);
@@ -809,7 +937,7 @@ function renderChart(recs, now) {
     <path d="${line}" fill="none" stroke="url(#tl)" stroke-width="3" stroke-linecap="round"/>
     ${mark(iMax, true)}${iMin !== iMax ? mark(iMin, false) : ""}
     <circle cx="${P[0][0]}" cy="${P[0][1]}" r="5" fill="#fff" stroke="#0c1426" stroke-width="2"/>
-    <text x="${P[0][0] + 8}" y="${T - 8}" fill="#fff" style="fill:#eef3fb;font-weight:600">jetzt</text>
+    <text x="${P[0][0] + 8}" y="${T - 8}" fill="#fff" style="fill:#eef3fb;font-weight:600">${TR("jetzt")}</text>
     <g class="scrub" id="scrub" visibility="hidden">
       <line id="scrub-l" y1="${T}" y2="${H - B}" stroke="rgba(238,243,251,.55)" stroke-width="1"/>
       <circle id="scrub-c" r="5.5" fill="#fff" stroke="#0c1426" stroke-width="2"/>
@@ -827,10 +955,10 @@ function renderChart(recs, now) {
     $("scrub-l").setAttribute("x1", X); $("scrub-l").setAttribute("x2", X);
     $("scrub-c").setAttribute("cx", X); $("scrub-c").setAttribute("cy", Y); $("scrub-c").setAttribute("fill", tcol(p.temperature));
     sg.setAttribute("visibility", "visible");
-    const day = dayKey(p._t) === dayKey(new Date()) ? "heute" : wd(p._t);
-    tip.innerHTML = `<b>${day} ${hhmm(p._t)} Uhr</b><span class="tt" style="color:${tcol(p.temperature)}">${f1(p.temperature)} °C</span>`
-      + `<span>${p.precipitation > 0.04 ? f1(p.precipitation) + " mm Regen" : "trocken"}${p.precipitation_probability != null ? " · " + p.precipitation_probability + " %" : ""}</span>`
-      + `<span>Wind ${dir(p.wind_direction)} ${f0(p.wind_speed)} km/h${p.wind_gust_speed != null ? ", Böen " + f0(p.wind_gust_speed) : ""}</span>`;
+    const day = dayKey(p._t) === dayKey(new Date()) ? TR("heute") : wd(p._t);
+    tip.innerHTML = `<b>${day} ${hhmm(p._t)}${UHR}</b><span class="tt" style="color:${tcol(p.temperature)}">${f1(p.temperature)} °C</span>`
+      + `<span>${p.precipitation > 0.04 ? f1(p.precipitation) + " " + TR("mm Regen") : TR("trocken")}${p.precipitation_probability != null ? " · " + p.precipitation_probability + " %" : ""}</span>`
+      + `<span>${TR("Wind")} ${dir(p.wind_direction)} ${f0(p.wind_speed)} km/h${p.wind_gust_speed != null ? ", " + TR("Böen") + " " + f0(p.wind_gust_speed) : ""}</span>`;
     tip.hidden = false;
     const px = X / W * r.width, tw = tip.offsetWidth;
     tip.style.left = Math.max(0, Math.min(r.width - tw, px - tw / 2)) + "px";
@@ -857,7 +985,7 @@ function renderTiles(recs, now) {
     const rain = b.reduce((s, r) => s + (r.precipitation || 0), 0);
     const ws = b.map(r => r.wind_speed).filter(v => v != null);
     const mid = b[Math.floor(b.length / 2)];
-    const lab = i === 0 ? "jetzt" : (dayKey(a0) === today ? "" : wd(a0) + " ") + hhmm(a0).slice(0, 2) + " Uhr";
+    const lab = i === 0 ? TR("jetzt") : (dayKey(a0) === today ? "" : wd(a0) + " ") + hhmm(a0).slice(0, 2) + UHR_H;
     out.push(`<div class="tile"><div class="h">${lab}</div>${icon(rainIcon(b, rain, 0.1) || spanIcon(b, false))}
       <div class="t" style="color:${tcol(Math.max(...T_))}">${f0(Math.max(...T_))}°</div>
       <div class="r">${rain >= 0.1 ? f1(rain) + " mm" : ""}</div>
@@ -887,7 +1015,7 @@ function renderDays(recs, now, curT) {
   const gLo = Math.min(...days.map(d => d.lo)), gHi = Math.max(...days.map(d => d.hi)), span = Math.max(1, gHi - gLo);
   const pos = v => ((v - gLo) / span * 100).toFixed(1);
   $("days").innerHTML = days.map((d, i) => {
-    const label = i === 0 ? "Heute" : new Intl.DateTimeFormat("de-DE",{timeZone:TZ,weekday:"long"}).format(d.a[0]._d);
+    const label = i === 0 ? TR("Heute") : new Intl.DateTimeFormat(LOC,{timeZone:TZ,weekday:"long"}).format(d.a[0]._d);
     const dot = i === 0 && curT != null ? `<b style="left:${pos(Math.max(d.lo, Math.min(d.hi, curT)))}%"></b>` : "";
     return `<div class="day${i >= 4 ? " fern" : ""}">
       <div class="n">${label}<small>${dm(d.a[0]._d)}.</small></div>
@@ -895,9 +1023,9 @@ function renderDays(recs, now, curT) {
       <div class="lo">${f0(d.lo)}°</div>
       <div class="bar"><i style="left:${pos(d.lo)}%;right:${(100 - pos(d.hi)).toFixed(1)}%;background:linear-gradient(90deg,${tcol(d.lo)},${tcol(d.hi)})"></i>${dot}</div>
       <div class="hi">${f0(d.hi)}°</div>
-      <div class="rn"><b>${d.rain >= 0.1 ? f1(d.rain) + " mm" : "trocken"}</b><br>${d.pp} % · Böen ${f0(d.gu)}</div>
+      <div class="rn"><b>${d.rain >= 0.1 ? f1(d.rain) + " mm" : TR("trocken")}</b><br>${d.pp} % · ${TR("Böen")} ${f0(d.gu)}</div>
     </div>`;
-  }).join("") + (days.length > 4 ? '<div class="note">Ab dem 5. Tag ist die Vorhersage deutlich unsicherer (blasser dargestellt).</div>' : "");
+  }).join("") + (days.length > 4 ? `<div class="note">${TR("Ab dem 5. Tag ist die Vorhersage deutlich unsicherer (blasser dargestellt).")}</div>` : "");
 }
 
 function land(s) {
@@ -968,6 +1096,9 @@ async function loadStations() {
       min: tv(c.min, c.min_at), max: tv(c.max, c.max_at), min24: tv(c.min24 ?? c.min, c.min24_at ?? c.min_at), max24: tv(c.max24 ?? c.max, c.max24_at ?? c.max_at)}))
     .filter(c => c.dist <= RADIUS / 1000);
   if (cz.length) ok = ok.filter(x => x.land !== "CZ").concat(cz);
+  renderStationen(ok);
+}
+function renderStationen(ok) {
   STN = ok;
   // Nach Name zusammenfassen, falls zwei Quellen dieselbe Station liefern
   const uniq = arr => { const seen = new Set(); return arr.filter(x => !seen.has(x.name) && seen.add(x.name)); };
@@ -977,9 +1108,9 @@ async function loadStations() {
   const maxs = uniq(ok.filter(x => x.max).sort((a, b) => b.max.t - a.max.t)).slice(0, 8);
   const min24 = uniq(ok.filter(x => x.min24).sort((a, b) => a.min24.t - b.min24.t)).slice(0, 8);
   const max24 = uniq(ok.filter(x => x.max24).sort((a, b) => b.max24.t - a.max24.t)).slice(0, 8);
-  $("st-jetzt").innerHTML = stSpalten(cold, warm, "now", "now", "Kälteste", "Wärmste");
-  $("st-12h").innerHTML = stSpalten(mins, maxs, "min", "max", "Tiefstwerte 12 h", "Höchstwerte 12 h");
-  $("st-24h").innerHTML = stSpalten(min24, max24, "min24", "max24", "Tiefstwerte 24 h", "Höchstwerte 24 h");
+  $("st-jetzt").innerHTML = stSpalten(cold, warm, "now", "now", TR("Kälteste"), TR("Wärmste"));
+  $("st-12h").innerHTML = stSpalten(mins, maxs, "min", "max", TR("Tiefstwerte 12 h"), TR("Höchstwerte 12 h"));
+  $("st-24h").innerHTML = stSpalten(min24, max24, "min24", "max24", TR("Tiefstwerte 24 h"), TR("Höchstwerte 24 h"));
   if (!$("st-karte").hidden) tempKarte();
 }
 
@@ -1005,7 +1136,7 @@ function radarMap() {
   RAD.map = L.map("radarmap", {zoomControl:true, attributionControl:true, scrollWheelZoom:false, dragging:!L.Browser.mobile, tap:false})
     .setView([ORT.lat, ORT.lon], 9);
   L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {maxZoom:13, className:"darktiles",
-    attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> · Radar: DWD'}).addTo(RAD.map);
+    attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> · Radar: ' + (HU ? '<a href="https://www.rainviewer.com">RainViewer</a>' : 'DWD')}).addTo(RAD.map);
   return RAD.map;
 }
 async function loadRadar() {
@@ -1076,21 +1207,22 @@ async function loadRadar() {
     if (m >= 0.1) { hit = {t: frames[k].t, m, k}; break; }
   }
   $("rad-sum").innerHTML = hit
-    ? (hit.k === iNow ? `<b>Es regnet gerade</b> in ${esc(ORT.name)}.` : `<b>Regen ab etwa ${hhmm(hit.t)} Uhr</b> in ${esc(ORT.name)} erwartet.`)
-    : `<b>Kein Regen</b> in ${esc(ORT.name)} in den nächsten 2 Stunden.`;
+    ? (hit.k === iNow ? `<b>${TR("Es regnet gerade")}</b> in ${esc(ORT.name)}.` : TR("Regen ab etwa {0} in {1} erwartet.", `<b>${hhmm(hit.t)}${UHR}</b>`, esc(ORT.name)))
+    : `<b>${TR("Kein Regen")}</b> ${TR("in {0} in den nächsten 2 Stunden.", esc(ORT.name))}`;
   if (!matchMedia("(prefers-reduced-motion: reduce)").matches && !RAD.playing) togglePlay(true);
 }
 function showFrame(k) {
   const f = RAD.frames[k]; if (!f) return;
   RAD.i = k; $("rad-slider").value = k;
-  if (RAD.overlay) RAD.overlay.setUrl(f.url);
+  if (RAD.overlay && f.url) RAD.overlay.setUrl(f.url);
+  if (RAD.layers) RAD.layers.forEach((l, i) => l.setOpacity(i === k ? .8 : 0));
   const fc = f.t > Date.now();
-  $("rad-time").innerHTML = `${hhmm(f.t)} Uhr <span class="tag ${fc ? "fc" : ""}">${fc ? "Vorhersage" : "Messung"}</span>`;
+  $("rad-time").innerHTML = `${hhmm(f.t)}${UHR} <span class="tag ${fc ? "fc" : ""}">${TR(fc ? "Vorhersage" : "Messung")}</span>`;
 }
 function togglePlay(on) {
   RAD.playing = on ?? !RAD.playing;
   clearInterval(RAD.timer);
-  $("rad-play").setAttribute("aria-label", RAD.playing ? "Pause" : "Abspielen");
+  $("rad-play").setAttribute("aria-label", TR(RAD.playing ? "Pause" : "Abspielen"));
   $("rad-play").innerHTML = RAD.playing
     ? '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>'
     : '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 5v14l12-7z"/></svg>';
@@ -1134,8 +1266,8 @@ async function loadODL(force) {
   $("odl").innerHTML = st.map((s, i) => `<div class="od">
       <div class="nm"><b>${esc(s.name)}</b><small>${Math.round(s.d)} km · ${s.h != null ? Math.round(s.h) + " m" : ""}</small></div>
       <div class="ob"><i style="width:${(s.v / vmax * 100).toFixed(0)}%"></i></div>
-      <span class="ov">${s.v.toLocaleString("de-DE",{minimumFractionDigits:3,maximumFractionDigits:3})}</span>
-    </div>`).join("") + `<div class="unit">µSv/h, Stundenmittel bis ${hhmm(new Date(st[0].end))} Uhr</div>`;
+      <span class="ov">${s.v.toLocaleString(LOC,{minimumFractionDigits:3,maximumFractionDigits:3})}</span>
+    </div>`).join("") + `<div class="unit">µSv/h, Stundenmittel bis ${hhmm(new Date(st[0].end))}${UHR}</div>`;
   ODL_AT = Date.now();
   loadCZ().catch(() => { $("odl-cz").innerHTML = '<div class="note">Tschechische Werte gerade nicht abrufbar.</div>'; });
   // Verlauf der nächstgelegenen Sonde, 7 Tage
@@ -1175,8 +1307,8 @@ async function loadCZ() {
   if (!cz.length) { $("odl-cz").innerHTML = '<div class="note">Für Tschechien kamen gerade keine Werte.</div>'; return; }
   const vmax = Math.max(0.2, ...cz.map(s => s.v));
   $("odl-cz").innerHTML = '<div class="subh"><span class="flag">CZ</span>Tschechien <small>EURDEP</small></div>' + cz.map(s => `<div class="od od2">
-      <div class="nm"><b>${esc(s.name)}</b><small>${Math.round(s.d)} km${s.end ? " · " + hhmm(new Date(s.end)) + " Uhr" : ""}</small></div>
-      <span class="ov">${s.v.toLocaleString("de-DE",{minimumFractionDigits:3,maximumFractionDigits:3})}</span>
+      <div class="nm"><b>${esc(s.name)}</b><small>${Math.round(s.d)} km${s.end ? " · " + hhmm(new Date(s.end)) + UHR : ""}</small></div>
+      <span class="ov">${s.v.toLocaleString(LOC,{minimumFractionDigits:3,maximumFractionDigits:3})}</span>
     </div>`).join("");
 }
 
@@ -1218,7 +1350,7 @@ function pRow(s, nr) {
   return `<div class="pg pgx" role="button" tabindex="0" data-id="${esc(s.id)}" aria-expanded="false"><div class="nm"><b>${nr ? `<span class="nr">${nr}</span>` : ""}${name} ${ms}</b><small>${PEGEL_KM[s.id] != null ? Math.round(PEGEL_KM[s.id]) + " km · " : ""}${SPEICHER[s.id] && s.level != null ? SPEICHER[s.id].zeile(s.level, SPEICHER[s.id].wert(s.level)).sub : esc(s.river) + (s.flow != null ? " · " + f1(s.flow) + " m³/s" : "") + (s.hint ? " · " + esc(s.hint) : "")}</small></div>
     <div class="pv">${SPEICHER[s.id] && s.level != null ? (z => `<b>${z.big}</b><span class="pt">${z.lbl}</span>`)(SPEICHER[s.id].zeile(s.level, SPEICHER[s.id].wert(s.level)))
       : /see|talsperre/i.test(s.name + s.river) && s.level > 100
-      ? `<b>${s.level.toLocaleString("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2})}</b> m ü. NN`
+      ? `<b>${s.level.toLocaleString(LOC,{minimumFractionDigits:2,maximumFractionDigits:2})}</b> m ü. NN`
       : s.level != null ? `<b>${Math.round(s.level)}</b> cm${tt}` : `<b>${f1(s.flow)}</b> m³/s`}</div></div>`;
 }
 /* Verlauf je Pegel: Zeile antippen, Diagramm klappt darunter auf */
@@ -1264,7 +1396,7 @@ async function pgVerlauf(box, s) {
     if (!box.isConnected || PGV.range !== range) return;
     if (pts.length < 3) { box.innerHTML = seg + '<div class="note">Noch zu wenige Werte für einen Verlauf.</div>' + foot; return; }
     const vals = pts.map(p => tf(p.v)), mn = Math.min(...vals), mx = Math.max(...vals);
-    const tag = d => new Intl.DateTimeFormat("de-DE", {timeZone: TZ, weekday: "short", day: "numeric", month: "numeric"}).format(d);
+    const tag = d => new Intl.DateTimeFormat(LOC, {timeZone: TZ, weekday: "short", day: "numeric", month: "numeric"}).format(d);
     const span = (pts.at(-1).t - pts[0].t) / 864e5, n = pts.length;
     box.innerHTML = seg + `<p class="rb-sum">jetzt ${yF(vals.at(-1))} ${unit} · Spanne ${yF(mn)} – ${yF(mx)} ${unit}${ms.MW && !see ? ` · Mittelwasser ${ms.MW} cm` : ""}</p><div class="rbc"></div>` + foot;
     const step = Math.max(1, Math.round(n / Math.max(1, span) * (span > 3 ? 2 : 1)));
@@ -1406,7 +1538,7 @@ async function loadPegel() {
   kartenWeg($("pegel"));
   $("pegel").innerHTML = banner + regenBlock() + (Object.keys(LG).length ? ansichtSchalter("pegel") : "") + `<div class="lv">` + seenBlock + mid + `</div>`
     + `<div class="kv" hidden><div class="bigmap"></div><div class="legend"><span><i style="background:#4f86c6"></i>normal</span><span><i style="background:#c98a2b"></i>steigt ab 5 cm</span><span><i style="background:#e88a2e"></i>Meldestufe</span><span><i style="background:#3c7d8f"></i>See/Speicher</span></div></div>`
-    + `<div class="unit">Stand ${hhmm(new Date(data.updated))} Uhr${age > 120 ? " · älter als 2 Stunden" : ""} · Quelle: Hochwassernachrichtendienst Bayern · Pegel antippen für den Verlauf</div>`;
+    + `<div class="unit">Stand ${hhmm(new Date(data.updated))}${UHR}${age > 120 ? " · älter als 2 Stunden" : ""} · Quelle: Hochwassernachrichtendienst Bayern · Pegel antippen für den Verlauf</div>`;
   initRoll($("pg-roll"));
   ansichtAnwenden("pegel");
 }
@@ -1418,7 +1550,7 @@ function spark(pts, name) {
   const y = v => T + (hi + pad - v) / (hi - lo + 2 * pad) * (H - T - B);
   const P = pts.map(p => [x(p.t).toFixed(1), y(p.v).toFixed(1)]);
   const line = "M" + P.map(p => p.join(",")).join("L");
-  const fmt = v => v.toLocaleString("de-DE",{minimumFractionDigits:3,maximumFractionDigits:3});
+  const fmt = v => v.toLocaleString(LOC,{minimumFractionDigits:3,maximumFractionDigits:3});
   const last = P[P.length - 1];
   return `<div class="sp-h">${esc(name)}, letzte 7 Tage <span>${fmt(lo)} – ${fmt(hi)}</span></div>
     <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Verlauf der Strahlung in ${esc(name)}, letzte 7 Tage">
@@ -1489,12 +1621,12 @@ function sigRadl() {
   }
   const best = d => runs.filter(x => dayKey(x.start._t) === d && x.n >= 2).sort((a, b) => b.n - a.n)[0];
   const today = best(dayKey(new Date())), tom = best(dayKey(new Date(now + 864e5)));
-  const span = x => `${hhmm(x.start._t).slice(0,2)}–${String(hourOf(x.end._t) + 1).padStart(2, "0")} Uhr`;
+  const span = x => `${hhmm(x.start._t).slice(0,2)}–${String(hourOf(x.end._t) + 1).padStart(2, "0")}${UHR_H}`;
   const tmax = x => Math.round(Math.max(...hrs.filter(r => r._t >= x.start._t && r._t <= x.end._t).map(r => r.temperature)));
   const crit = "Trocken (unter 30 % Regenrisiko), Böen unter 40 km/h, mindestens 4 °C, bei Tageslicht.";
-  if (today) return {key:"bike", title:"Radl-Fenster", state:"on", short:`heute ${span(today)}`,
+  if (today) return {key:"bike", title:"Radl-Fenster", state:"on", short:`${TR("heute")} ${span(today)}`,
     detail:`Bestes Fenster heute ${span(today)}, bis ${tmax(today)} °C.${tom ? ` Morgen: ${span(tom)}.` : ""} ${crit}`};
-  if (tom) return {key:"bike", title:"Radl-Fenster", state:"maybe", short:`morgen ${span(tom)}`,
+  if (tom) return {key:"bike", title:"Radl-Fenster", state:"maybe", short:`${TR("morgen")} ${span(tom)}`,
     detail:`Heute passt es nicht mehr. Morgen ${span(tom)}, bis ${tmax(tom)} °C. ${crit}`};
   return {key:"bike", title:"Radl-Fenster", state:"off", short:"kein Fenster", detail:`Heute und morgen kein trockenes Fenster von mindestens 2 Stunden. ${crit}`};
 }
@@ -1536,9 +1668,9 @@ function sigAurora() {
   }
   const sky = cloud == null ? "" : cloud < 40 ? " Der Himmel ist nachts überwiegend klar." : cloud < 75 ? " Nachts teils bewölkt." : " Nachts aber meist bewölkt.";
   const base = `Höchster Kp-Index in den nächsten 24 Stunden: ${f1(kp)}.${later != null ? ` Danach bis ${f1(later)}.` : ""}${sky} In Süddeutschland braucht es etwa Kp 7, für Fotos Richtung Norden reicht manchmal Kp 6. Quelle: NOAA.`;
-  if (kp >= 7) return {key:"aur", title:"Polarlicht", state: cloud != null && cloud >= 75 ? "maybe" : "on", short:`Chance! Kp ${f1(kp)}`, detail: base};
-  if (kp >= 6) return {key:"aur", title:"Polarlicht", state:"maybe", short:`Kp ${f1(kp)} · nur Fotos`, detail: base};
-  return {key:"aur", title:"Polarlicht", state:"off", short:`ruhig · Kp ${f1(kp)}`, detail: base};
+  if (kp >= 7) return {key:"aur", title:"Polarlicht", state: cloud != null && cloud >= 75 ? "maybe" : "on", short:`${TR("Chance!")} Kp ${f1(kp)}`, detail: base};
+  if (kp >= 6) return {key:"aur", title:"Polarlicht", state:"maybe", short:`Kp ${f1(kp)} · ${TR("nur Fotos")}`, detail: base};
+  return {key:"aur", title:"Polarlicht", state:"off", short:`${TR("ruhig")} · Kp ${f1(kp)}`, detail: base};
 }
 
 
@@ -1670,10 +1802,10 @@ function sigPV() {
   const sum = hrs.reduce((a, r) => a + r.solar, 0), clear = clearSkyKwh(tom), q = Math.min(1, sum / clear);
   let best = null;
   for (let i = 0; i + 2 < hrs.length; i++) { const s3 = hrs[i].solar + hrs[i + 1].solar + hrs[i + 2].solar; if (!best || s3 > best.s) best = {s: s3, h: hourOf(new Date(hrs[i].timestamp)) - 1}; }
-  const win = best && best.s > 0.05 ? `${String(best.h).padStart(2, "0")}–${String(best.h + 3).padStart(2, "0")} Uhr` : null;
+  const win = best && best.s > 0.05 ? `${String(best.h).padStart(2, "0")}–${String(best.h + 3).padStart(2, "0")}${UHR_H}` : null;
   const lvl = q >= 0.7 ? "sehr gut" : q >= 0.45 ? "gut" : q >= 0.2 ? "mäßig" : "schwach";
   const detail = `Vorhergesagte Sonneneinstrahlung morgen ${f1(sum)} kWh/m², das sind ${Math.round(q * 100)} % eines wolkenlosen Tages (${f1(clear)} kWh/m²).${win ? ` Stärkste drei Stunden: ${win}, gut für Waschmaschine, Spülmaschine oder Autoladen.` : ""} Quelle: DWD-MOSMIX über Bright Sky.`;
-  return {key:"pv", title:"PV morgen", state: q >= 0.7 ? "on" : q >= 0.45 ? "maybe" : "off", short: win && q >= 0.2 ? `${lvl} · ${win}` : lvl, detail};
+  return {key:"pv", title:"PV morgen", state: q >= 0.7 ? "on" : q >= 0.45 ? "maybe" : "off", short: win && q >= 0.2 ? `${TR(lvl)} · ${win}` : TR(lvl), detail};
 }
 
 function sigFrost() {
@@ -1804,7 +1936,7 @@ function ortKey() {   // eigener Standort (?lat=&lon=) → nächstgelegener beka
 }
 const cfg = () => ORT_CFG[ortKey()];
 const addDays = (d, n) => new Date(Date.parse(d + "T00:00:00Z") + n * 864e5).toISOString().slice(0, 10);
-const nf = (v, d = 1) => v == null || isNaN(v) ? "–" : v.toLocaleString("de-DE", {minimumFractionDigits: d, maximumFractionDigits: d});
+const nf = (v, d = 1) => v == null || isNaN(v) ? "–" : v.toLocaleString(LOC, {minimumFractionDigits: d, maximumFractionDigits: d});
 const sgn = (v, d = 1) => (v > 0 ? "+" : v < 0 ? "−" : "±") + nf(Math.abs(v), d);
 const MONATE = ["Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"];
 
@@ -2053,16 +2185,16 @@ async function loadWarningsOrt() {
   });
   for (const k of hier.keys()) umg.delete(k);
   const order = {extreme:0, severe:1, moderate:2, minor:3}, sort = m => [...m.values()].sort((a, b) => (order[a.severity] ?? 9) - (order[b.severity] ?? 9));
-  const fmt = d => d ? `${wd(new Date(d))} ${hhmm(new Date(d))}` : "bis auf Weiteres";
+  const fmt = d => d ? `${wd(new Date(d))} ${hhmm(new Date(d))}` : TR("bis auf Weiteres");
   const card = (a, extra) => `<div class="warn ${esc(a.severity)}"><b>${esc(a.headline_de || a.event_de)}</b><small>${fmt(a.onset)} – ${fmt(a.expires)}${extra ? " · " + esc(extra) : ""}</small></div>`;
   const ok = t => `<div class="ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M7.5 12.5l3 3 6-6.5"/></svg>${t}</div>`;
   const h = sort(hier), u = sort(umg);
-  $("warn").innerHTML = (h.length ? h.map(a => card(a)).join("") : ok(`Keine Warnungen für ${esc(ORT.name)}.`))
-    + (u.length ? `<div class="subh">In der Umgebung</div>` + u.map(a => card(a, [...a.orte].join(", "))).join("") : "");
+  $("warn").innerHTML = (h.length ? h.map(a => card(a)).join("") : ok(TR("Keine Warnungen für {0}.", esc(ORT.name))))
+    + (u.length ? `<div class="subh">${TR("In der Umgebung")}</div>` + u.map(a => card(a, [...a.orte].join(", "))).join("") : "");
 }
 
 /* ---------- Strahlung: Veränderung, Zustand, Einordnung ---------- */
-const fmt3 = v => v == null ? "–" : v.toLocaleString("de-DE", {minimumFractionDigits: 3, maximumFractionDigits: 3});
+const fmt3 = v => v == null ? "–" : v.toLocaleString(LOC, {minimumFractionDigits: 3, maximumFractionDigits: 3});
 function odlZustand(list) {
   const rain = (RAIN?.h3 ?? 0) >= 0.1 || (RAIN?.h24 ?? 0) >= 1;
   const z = list.filter(s => s.wert != null && s.mittel7).map(s => ({...s, q: s.wert / s.mittel7, hoch24: (s.stunden || []).slice(-24).every(p => p[1] > s.mittel7 * 1.3)}));
@@ -2117,7 +2249,7 @@ async function odlVerlauf(box, s) {
     const pts = (s.stunden || []).filter(x => x[1] != null).map(([t, v]) => ({t: new Date(t + "Z"), v}));
     if (pts.length < 3) { box.innerHTML = seg + '<div class="note">Noch zu wenige Stundenwerte für einen Verlauf.</div>' + seit; return; }
     const vals = pts.map(p => p.v), mn = Math.min(...vals), mx = Math.max(...vals), mean = vals.reduce((a, b) => a + b, 0) / vals.length;
-    const tag = d => new Intl.DateTimeFormat("de-DE", {timeZone: TZ, weekday: "short", day: "numeric", month: "numeric"}).format(d);
+    const tag = d => new Intl.DateTimeFormat(LOC, {timeZone: TZ, weekday: "short", day: "numeric", month: "numeric"}).format(d);
     box.innerHTML = seg + `<p class="rb-sum">Mittel ${fmt3(mean)} · Spanne ${fmt3(mn)} – ${fmt3(mx)} µSv/h</p><div class="rbc"></div>
       <div class="note">Stundenwerte. Kurze Spitzen kommen fast immer von Regen, der natürliche Radon-Folgeprodukte aus der Luft auswäscht; sie klingen nach wenigen Stunden ab. Grüner Bereich = natürlich (0,05–0,2).</div>` + seit;
     const lo = Math.min(0.05, mn) * 0.9, hi = Math.max(0.2, mx) * 1.08, n = pts.length;
@@ -2184,7 +2316,7 @@ async function loadODLOrt(force) {
   const rows = rest.map((s, i) => rollRow(s, i + 4)).join("");
   kartenWeg($("odl"));
   $("odl").innerHTML = (z ? `<div class="odl-z ${z.k}"><b>${z.t}</b> ${z.d}</div>` : "") + ansichtSchalter("odl") + `<div class="lv">`
-    + `<div class="unit odl-head">µSv/h, Stundenwert bis ${hhmm(new Date(near[0].ende))} Uhr · % = Abweichung vom Wochenmittel · antippen für Verlauf</div>`
+    + `<div class="unit odl-head">µSv/h, Stundenwert bis ${hhmm(new Date(near[0].ende))}${UHR} · % = Abweichung vom Wochenmittel · antippen für Verlauf</div>`
     + `<div class="grp"><div class="grp-h">Messsonden DE und CZ <small>nach Entfernung zu ${esc(ORT.name)}</small></div>` + fest.map((s, i) => row(s, i + 1)).join("")
     + (rest.length ? `<div class="roll roll3" id="odl-roll" data-auto="${rest.length > 3 ? 1 : 0}"><div class="roll-in">${rows}${rest.length > 3 ? rows : ""}</div></div>`
       + `<details class="pall" id="odl-all"><summary>Alle ${rest.length} weiteren Sonden als Liste</summary>${rest.map((s, i) => row(s, i + 4)).join("")}</details>` : "") + `</div>`
@@ -2414,13 +2546,15 @@ let SIGS = [], SIG_OPEN = null, SIG_ALL = false;
 function renderSignals() {
   const order = {on:0, maybe:1, off:2, na:3};
   const safe = f => { try { return f(); } catch { return null; } };
-  SIGS = [sigInversionOrt, sigFernsicht, sigRadl, sigFrost, sigFeuer, sigPV, sigSterne, sigUVOrt, sigPollenOrt, sigBio, sigAurora, sigSchneeOrt].map(safe).filter(Boolean)
+  const liste = HU ? [sigRadl, sigFrost, sigPV, sigSterne, sigAurora]
+    : [sigInversionOrt, sigFernsicht, sigRadl, sigFrost, sigFeuer, sigPV, sigSterne, sigUVOrt, sigPollenOrt, sigBio, sigAurora, sigSchneeOrt];
+  SIGS = liste.map(safe).filter(s => s && !(HU && s.state === "na"))
     .map((s, i) => ({...s, i})).sort((a, b) => order[a.state] - order[b.state] || a.i - b.i);
   const shown = SIG_ALL ? SIGS : SIGS.slice(0, 6);
   $("sig").innerHTML = shown.map(s => `<button type="button" class="sg ${s.state}" data-k="${s.key}" aria-expanded="${SIG_OPEN === s.key}" aria-controls="sig-detail">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${SIG_ICON[s.key]}</svg>
-      <small>${s.title}</small><b>${s.short}</b></button>`).join("")
-    + (SIGS.length > 6 ? `<button type="button" class="sg-more" aria-expanded="${SIG_ALL}">${SIG_ALL ? "Weniger anzeigen" : `Alle ${SIGS.length} anzeigen`}</button>` : "");
+      <small>${TR(s.title)}</small><b>${TR(s.short)}</b></button>`).join("")
+    + (SIGS.length > 6 ? `<button type="button" class="sg-more" aria-expanded="${SIG_ALL}">${SIG_ALL ? TR("Weniger anzeigen") : TR("Alle {0} anzeigen", SIGS.length)}</button>` : "");
   showSig(SIG_OPEN);
 }
 function showSig(k) {
@@ -2428,7 +2562,7 @@ function showSig(k) {
   const s = SIGS.find(x => x.key === k);
   document.querySelectorAll(".sg").forEach(b => b.setAttribute("aria-expanded", b.dataset.k === k));
   $("sig-detail").hidden = !s || !s.detail;
-  if (s) $("sig-detail").innerHTML = `<b>${s.title}</b> ${s.detail}`;
+  if (s) $("sig-detail").innerHTML = `<b>${TR(s.title)}</b> ${s.detail}${LANG === "hu" ? ` <em>(${TR("Details nur auf Deutsch.")})</em>` : ""}`;
 }
 
 
@@ -2436,7 +2570,7 @@ function stSpalten(links, rechts, fl, fr, tl, tr) {
   const spalte = (rows, f, titel, cls) => `<div class="stc ${cls}"><div class="stc-h">${titel}</div>${rows.length ? rows.map((r, i) => `<div class="sti" role="button" tabindex="0" data-si="${STN.indexOf(r)}" data-f="${f}">
       <span class="rk">${i + 1}</span>
       <span class="nm"><b title="${esc(r.name)}">${esc(r.name)}</b><small>${r.land ? r.land + " · " : ""}${r.hoehe != null ? Math.round(r.hoehe) + " m" : ""}${r.dist != null ? " · " + Math.round(r.dist) + " km" : ""}</small></span>
-      <span class="pill" style="background:${tcol(r[f].t)}">${f1(r[f].t)}°</span></div>`).join("") : '<div class="note">keine Daten</div>'}</div>`;
+      <span class="pill" style="background:${tcol(r[f].t)}">${f1(r[f].t)}°</span></div>`).join("") : `<div class="note">${TR("keine Daten")}</div>`}</div>`;
   return `<div class="stg">${spalte(links, fl, tl, "kalt")}${spalte(rechts, fr, tr, "warm")}</div>`;
 }
 function stTable(rows, f) {
@@ -2473,24 +2607,184 @@ async function loadWarnings() {
     <small>${fmt(a.onset)} – ${fmt(a.expires)} · ${esc([...a.orte].join(", "))}</small></div>`).join("");
 }
 
+
+/* ---------- Region Ungarn: Messwerte HungaroMet (hu.json vom Abholdienst), Radar RainViewer, Warnungen MeteoAlarm ---------- */
+let HUDATA = null, HU_P3 = null;
+async function loadHU() {
+  try { const r = await fetch("../hu.json?t=" + Date.now()); if (r.ok) HUDATA = await r.json(); } catch {}
+  return HUDATA;
+}
+const huStationen = () => HUDATA?.messnetz?.stationen || [];
+const mslp = (p, h, t) => p == null ? null : !h ? p : p * Math.pow(1 - 0.0065 * h / ((t ?? 10) + 0.0065 * h + 273.15), -5.257);
+function huStation(maxKm = 25) {   // nächste Station mit aktueller Temperatur; Höhenunterschied zählt mit (100 m ≈ 4 km)
+  const now = Date.now(), h = ORTE_HU[ORT.key]?.h ?? 150;
+  return huStationen().filter(x => x.t != null && now - Date.parse(x.t_at || x.at) < 90 * 6e4)
+    .map(x => ({...x, km: km(ORT.lat, ORT.lon, x.lat, x.lon)})).filter(x => x.km <= maxKm)
+    .sort((a, b) => (a.km + Math.abs((a.hoehe ?? h) - h) / 25) - (b.km + Math.abs((b.hoehe ?? h) - h) / 25))[0] || null;
+}
+async function loadForecastHU() {
+  const now = new Date();
+  const start = new Date(now.getTime() - 74 * 36e5), end = new Date(now.getTime() + 8 * 864e5);
+  const wx = await getJSON("/weather", {lat:ORT.lat, lon:ORT.lon, date:start.toISOString(), last_date:dayKey(end)});
+  const recs = wx.weather || [];
+  if (!recs.length) throw new Error("keine Vorhersage");
+  LAST = {recs, now};
+  // Stundenwert jetzt (Messung Budapest-Lőrinc oder DWD-MOSMIX) liefert Wolken und Wettersymbol
+  const base = recs.filter(r => Date.parse(r.timestamp) <= now.getTime() + 30 * 6e4).pop() || recs[0];
+  const st = huStation();
+  let cur;
+  if (st) {
+    const w = {timestamp: st.t_at || st.at, source_id: -1, temperature: st.t,
+      relative_humidity: st.rh ?? base.relative_humidity, pressure_msl: st.p != null ? mslp(st.p, st.hoehe, st.t) : base.pressure_msl,
+      wind_speed_10: st.wind ?? base.wind_speed, wind_direction_10: st.wdir ?? base.wind_direction, wind_gust_speed_10: st.boe ?? base.wind_gust_speed,
+      cloud_cover: base.cloud_cover, visibility: st.sicht ?? base.visibility, icon: base.icon, condition: base.condition,
+      fallback_source_ids: {cloud_cover: base.source_id}};
+    if (st.regen_1h >= 0.1 && !/rain|sleet|snow|hail|thunder/.test(w.icon || "")) w.icon = st.t < 1 ? "snow" : "rain";
+    HU_P3 = st.p3 != null && st.p != null ? mslp(st.p3, st.hoehe, st.t) : null;
+    cur = {weather: w, sources: [{id: -1, station_name: st.name, distance: st.km * 1000}, ...(wx.sources || [])]};
+    RAIN = {hour: st.regen_1h ?? null, today: st.regen_heute ?? null, h3: null, h24: st.regen_24h ?? null, h72: null, station: st.name, ok: st.regen_heute != null};
+  } else {
+    HU_P3 = null;
+    cur = {weather: {...base}, sources: wx.sources || []};
+    calcRain(recs, wx.sources, base, now);
+  }
+  renderCurrent(cur, recs, now, wx.sources);
+  renderChart(recs, now);
+  renderTiles(recs, now);
+  renderDays(recs, now, cur.weather?.temperature);
+}
+async function loadStationsHU() {
+  if (!HUDATA) await loadHU();
+  const now = Date.now(), tv = (t, at) => t != null ? {t, at: new Date(at)} : null;
+  const ok = huStationen().map(x => ({huid: x.id, name: x.name, land: "HU", hoehe: x.hoehe, dist: km(ORT.lat, ORT.lon, x.lat, x.lon), lat: x.lat, lon: x.lon, quelle: "HungaroMet",
+      now: x.t != null && now - Date.parse(x.t_at || x.at) < 3 * 36e5 ? {t: x.t, at: new Date(x.t_at || x.at)} : null,
+      min: tv(x.min, x.min_at), max: tv(x.max, x.max_at), min24: tv(x.min24, x.min24_at), max24: tv(x.max24, x.max24_at),
+      stunden: x.t_stunden || [], vis: x.sicht ?? null, rh: x.rh ?? null}))
+    .filter(x => x.dist <= RADIUS / 1000);
+  if (!ok.length) throw new Error(HUDATA ? "keine Stationen" : "hu.json fehlt");
+  renderStationen(ok);
+}
+async function loadRadarHU() {
+  const r = await fetch("https://api.rainviewer.com/public/weather-maps.json");
+  if (!r.ok) throw new Error("HTTP " + r.status);
+  const j = await r.json(), past = j.radar?.past || [];
+  if (!past.length) throw new Error("keine Radarbilder");
+  const map = radarMap();
+  if (!map) throw new Error("Karte nicht geladen");
+  if (!RAD.hu) { map.setView([ORT.lat, ORT.lon], 8); RAD.hu = true; } else map.setView([ORT.lat, ORT.lon], map.getZoom());
+  (RAD.layers || []).forEach(l => l.remove());
+  // freie RainViewer-Kacheln: höchstens Zoomstufe 7, Farbschema 2, geglättet
+  RAD.layers = past.map(f => L.tileLayer(`${j.host}${f.path}/256/{z}/{x}/{y}/2/1_1.png`, {opacity: 0, maxNativeZoom: 7, maxZoom: 13, zIndex: 5}).addTo(map));
+  RAD.frames = past.map(f => ({t: new Date(f.time * 1000)}));
+  RAD.iNow = RAD.frames.length - 1;
+  if (RAD.marker) RAD.marker.remove();
+  RAD.marker = L.circleMarker([ORT.lat, ORT.lon], {radius:6, color:"#0c1426", weight:2, fillColor:"#ffffff", fillOpacity:1})
+    .bindTooltip(ORT.name, {permanent:true, direction:"right", className:"maplabel"}).addTo(map);
+  setTimeout(() => map.invalidateSize(), 50);
+  $("rad-slider").max = RAD.frames.length - 1;
+  showFrame(RAD.iNow);
+  $("rad-sum").innerHTML = radSumHU();
+  if (!matchMedia("(prefers-reduced-motion: reduce)").matches && !RAD.playing) togglePlay(true);
+}
+function radSumHU() {   // keine Radar-Vorhersage für Ungarn: Regen in den nächsten 3 h aus der Stundenvorhersage
+  const note = `<br><small>${TR("Für Ungarn gibt es Radarbilder der letzten 2 Stunden, aber keine Radar-Vorhersage.")}</small>`;
+  if (!LAST) return TR("Für Ungarn gibt es Radarbilder der letzten 2 Stunden, aber keine Radar-Vorhersage.");
+  const now = Date.now();
+  const hit = LAST.recs.find(r => { const t = Date.parse(r.timestamp); return t > now - 30 * 6e4 && t <= now + 3 * 36e5 && r.precipitation >= 0.1; });
+  return (hit ? TR("Laut Vorhersage Regen ab etwa {0} in {1}.", `<b>${hhmm(new Date(Math.max(now, Date.parse(hit.timestamp) - 36e5)))}${UHR}</b>`, esc(ORT.name))
+    : TR("Laut Vorhersage kein Regen in {0} in den nächsten 3 Stunden.", esc(ORT.name))) + note;
+}
+function huStufe(a) {
+  const t = `${a.awareness_level || ""} ${a.severity || ""} ${a.title || ""}`;
+  return /red|piros|extreme/i.test(t) ? "extreme" : /orange|narancs|severe/i.test(t) ? "severe" : /yellow|sárga|moderate/i.test(t) ? "moderate" : "minor";
+}
+async function loadWarningsHU() {
+  if (!HUDATA) await loadHU();
+  const all = HUDATA?.warnungen;
+  if (!Array.isArray(all)) throw new Error(TR("Warnungen gerade nicht abrufbar."));
+  const now = Date.now();
+  const aktiv = all.filter(a => !(a.expires && Date.parse(a.expires) < now) && !/green|zöld|^1\s*;/i.test(a.awareness_level || "") && huStufe(a) !== "minor");
+  const trifft = (a, megye) => megye.some(m => new RegExp(`(^|[^\\p{L}])${m}([^\\p{L}]|$)`, "iu").test(`${a.areaDesc || ""} ${a.title || ""}`));
+  const hier = new Map(), umg = new Map(), mein = ORTE_HU[ORT.key]?.megye || [];
+  for (const a of aktiv) {
+    const key = `${a.event || a.title}|${a.areaDesc}|${a.onset}`;
+    if (trifft(a, mein)) hier.set(key, a);
+    else for (const [k, o] of Object.entries(ORTE_HU)) if (k !== ORT.key && trifft(a, o.megye)) { if (!umg.has(key)) umg.set(key, {...a, orte: new Set()}); umg.get(key).orte.add(o.name); }
+  }
+  for (const k of hier.keys()) umg.delete(k);
+  const order = {extreme:0, severe:1, moderate:2, minor:3}, sort = m => [...m.values()].sort((a, b) => order[huStufe(a)] - order[huStufe(b)]);
+  const fmt = d => d ? `${wd(new Date(d))} ${hhmm(new Date(d))}` : TR("bis auf Weiteres");
+  const card = (a, extra) => `<div class="warn ${huStufe(a)}"><b>${esc(a.headline || a.event || a.title)}</b><small>${fmt(a.onset || a.effective)} – ${fmt(a.expires)} · ${esc(a.areaDesc || "")}${extra ? " · " + esc(extra) : ""}</small></div>`;
+  const ok = t => `<div class="ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M7.5 12.5l3 3 6-6.5"/></svg>${t}</div>`;
+  const h = sort(hier), u = sort(umg);
+  $("warn").innerHTML = (h.length ? h.map(a => card(a)).join("") : ok(TR("Keine Warnungen für {0}.", esc(ORT.name))))
+    + (u.length ? `<div class="subh">${TR("In der Umgebung")}</div>` + u.map(a => card(a, [...a.orte].join(", "))).join("") : "")
+    + `<div class="note"><a href="https://www.met.hu/idojaras/veszelyjelzes/" target="_blank" rel="noopener">${TR("Amtliche Warnungen")}: met.hu ↗</a></div>`;
+}
+async function loadODLHU() {
+  if (!HUDATA) await loadHU();
+  const list = huStationen().filter(x => x.gamma != null)
+    .map(x => ({name: x.name, km: km(ORT.lat, ORT.lon, x.lat, x.lon), wert: x.gamma / 1000, mittel: x.gamma_mittel24 ? x.gamma_mittel24 / 1000 : null, at: x.at}))
+    .filter(x => x.km <= 150).sort((a, b) => a.km - b.km);
+  if (!list.length) { $("odl").innerHTML = `<div class="note">${TR("Keine Strahlungswerte in der Nähe.")}</div>`; return; }
+  const row = (x, i) => {
+    const p = x.mittel ? (x.wert / x.mittel - 1) * 100 : null;
+    return `<div class="od od2"><div class="nm"><b><span class="nr">${i}</span>${esc(x.name)}</b><small>${Math.round(x.km)} km · ${hhmm(new Date(x.at))}${UHR}</small></div>
+      <span class="ov">${fmt3(x.wert)}${p != null ? `<em class="${p > 15 ? "up" : p < -15 ? "dn" : ""}">${p >= 0 ? "+" : "−"}${Math.abs(Math.round(p))} %</em>` : ""}</span></div>`;
+  };
+  const fest = list.slice(0, 3), rest = list.slice(3);
+  $("odl").innerHTML = `<div class="unit odl-head">${TR("µSv/h, 10-Minuten-Mittel · % = Abweichung vom 24-Stunden-Mittel")}</div>`
+    + `<div class="grp"><div class="grp-h">${TR("Messstellen nach Entfernung zu {0}", esc(ORT.name))}</div>` + fest.map((x, i) => row(x, i + 1)).join("")
+    + (rest.length ? `<details class="pall"><summary>${TR("Alle {0} weiteren Messstellen als Liste", rest.length)}</summary>${rest.map((x, i) => row(x, i + 4)).join("")}</details>` : "") + `</div>`;
+  $("odl-cz").innerHTML = ""; $("odl-spark").innerHTML = ""; $("odl-skala").innerHTML = "";
+}
+function regionAnwenden() {   // Texte, sichtbare Bereiche und Schalter passend zu Region und Sprache
+  document.querySelectorAll("#region-tg button").forEach(b => b.setAttribute("aria-pressed", b.dataset.region === REGION));
+  document.querySelectorAll("#lang-tg button").forEach(b => b.setAttribute("aria-pressed", b.dataset.lang === LANG));
+  if (HU) {
+    $("brand-txt").textContent = "Ungarn · Budapest · Balaton";
+    $("h-heute").textContent = "Heute in Ungarn";
+    $("rad-quelle").textContent = "RainViewer · letzte 2 Stunden";
+    $("warn-quelle").textContent = "MeteoAlarm";
+    $("st-quelle").textContent = "100 km um den Ort, HungaroMet";
+    $("odl-quelle").textContent = "HungaroMet-Messnetz";
+    $("odl-note").textContent = "Gamma-Dosisleistung an den Wetterstationen von HungaroMet (10-Minuten-Mittel). Natürliche Werte liegen meist zwischen 0,05 und 0,2 µSv/h, nach Regen etwas höher.";
+    for (const id of ["card-pegel", "rueckblick", "rscale", "quellen-by", "fuss-by"]) $(id).hidden = true;
+    for (const id of ["quellen-hu", "fuss-hu"]) $(id).hidden = false;
+    document.title = document.title.replace("Bayerwald", "Ungarn");
+  }
+  uebersetzeSeite();
+  const wechsel = (key, val) => { lsSet(key, val); location.href = location.pathname; };   // neu laden: ohne ?ort=, mit gemerktem Startort
+  $("region-tg").addEventListener("click", e => { const b = e.target.closest("button[data-region]"); if (b && b.dataset.region !== REGION) wechsel(REGIONKEY, b.dataset.region); });
+  $("lang-tg").addEventListener("click", e => { const b = e.target.closest("button[data-lang]"); if (b && b.dataset.lang !== LANG) { lsSet(LANGKEY, b.dataset.lang === "hu" ? "hu" : null); location.reload(); } });
+}
+
 /* ---------- Steuerung ---------- */
 async function run(fn, els) {
   try { await fn(); for (const el of els) { $(el).classList.remove("fade"); void $(el).offsetWidth; $(el).classList.add("fade"); } }
-  catch (e) { for (const el of els) $(el).innerHTML = `<div class="err">Daten gerade nicht abrufbar (${esc(e.message || "Netzwerkfehler")}). Nächster Versuch in 10 Minuten.</div>`; }
+  catch (e) { for (const el of els) $(el).innerHTML = `<div class="err">${TR("Daten gerade nicht abrufbar ({0}). Nächster Versuch in 10 Minuten.", esc(e.message || "Netzwerkfehler"))}</div>`; }
 }
 let busy = false, lastRun = Date.now(), forceODL = false;
 async function refresh() {
   if (busy) return; busy = true; lastRun = Date.now();
   $("reload").classList.add("spin");
-  await Promise.all([run(loadForecast, ["cur","chart","hours","days"]), run(loadWarningsOrt, ["warn"]), run(loadStations, ["st-jetzt","st-12h"]),
-    run(loadRadar, ["rad-sum"]), loadExtra(), loadArchiv()]);
-  await Promise.all([run(loadPegel, ["pegel"]), run(() => loadODLOrt(forceODL), ["odl"])]);
-  try { if (LAST) $("klima-chip").innerHTML = klimaChip(LAST.recs, LAST.now); } catch {}
-  try { renderRueckblick(); } catch (e) { $("rb-body").innerHTML = '<div class="err">Rückblick gerade nicht verfügbar.</div>'; }
+  if (HU) {
+    await loadHU();
+    await Promise.all([run(loadForecastHU, ["cur","chart","hours","days"]), run(loadWarningsHU, ["warn"]), run(loadStationsHU, ["st-jetzt","st-12h"]),
+      run(loadRadarHU, ["rad-sum"]), loadExtra()]);
+    try { if (RAD.layers) $("rad-sum").innerHTML = radSumHU(); } catch {}
+    await run(loadODLHU, ["odl"]);
+  } else {
+    await Promise.all([run(loadForecast, ["cur","chart","hours","days"]), run(loadWarningsOrt, ["warn"]), run(loadStations, ["st-jetzt","st-12h"]),
+      run(loadRadar, ["rad-sum"]), loadExtra(), loadArchiv()]);
+    await Promise.all([run(loadPegel, ["pegel"]), run(() => loadODLOrt(forceODL), ["odl"])]);
+    try { if (LAST) $("klima-chip").innerHTML = klimaChip(LAST.recs, LAST.now); } catch {}
+    try { renderRueckblick(); } catch (e) { $("rb-body").innerHTML = '<div class="err">Rückblick gerade nicht verfügbar.</div>'; }
+  }
   forceODL = false;
-  try { renderSignals(); } catch (e) { $("sig").innerHTML = '<div class="err">Extras gerade nicht verfügbar.</div>'; }
+  try { renderSignals(); } catch (e) { $("sig").innerHTML = `<div class="err">${TR("Extras gerade nicht verfügbar.")}</div>`; }
   const n = new Date();
-  $("stand").textContent = `Stand ${hhmm(n)} Uhr`;
+  $("stand").textContent = TR("Stand {0}", hhmm(n) + UHR);
   $("reload").classList.remove("spin");
   busy = false;
 }
@@ -2505,17 +2799,17 @@ function initOrt() {
     const on = startOrt() === ORT.key || (!startOrt() && ORT.key === START_ORT);
     star.hidden = !ORTE[ORT.key];
     star.setAttribute("aria-pressed", on);
-    const t = on ? `${ORT.name} ist dein Startort` : `${ORTE[ORT.key]?.name || ""} als Startort merken`;
+    const t = on ? TR("{0} ist dein Startort", ORT.name) : TR("{0} als Startort merken", ORTE[ORT.key]?.name || "");
     star.setAttribute("aria-label", t); star.title = t;
   };
   const say = t => { hint.textContent = t; hint.classList.add("on"); clearTimeout(hintT); hintT = setTimeout(() => hint.classList.remove("on"), 2600); };
   star.addEventListener("click", () => {
     const cur = startOrt() || START_ORT;
     if (cur === ORT.key) {
-      if (ORT.key === START_ORT) { say(`${ORT.name} ist schon Startort`); return; }
-      setStartOrt(null); say(`Startort wieder ${ORTE[START_ORT].name}`);
-    } else if (setStartOrt(ORT.key === START_ORT ? null : ORT.key)) say(`Startort: ${ORT.name}`);
-    else say("Merken hier nicht möglich (privates Surfen?)");
+      if (ORT.key === START_ORT) { say(TR("{0} ist schon Startort", ORT.name)); return; }
+      setStartOrt(null); say(TR("Startort wieder {0}", ORTE[START_ORT].name));
+    } else if (setStartOrt(ORT.key === START_ORT ? null : ORT.key)) say(TR("Startort: {0}", ORT.name));
+    else say(TR("Merken hier nicht möglich (privates Surfen?)"));
     showStar();
   });
   showStar();
@@ -2523,7 +2817,7 @@ function initOrt() {
     if (!ORTE[sel.value]) return;
     ORT = {key: sel.value, ...ORTE[sel.value]};
     showStar();
-    for (const id of ["chart","days","st-jetzt"]) $(id).innerHTML = '<div class="load">Lade …</div>';
+    for (const id of ["chart","days","st-jetzt"]) $(id).innerHTML = `<div class="load">${TR("Lade …")}</div>`;
     $("hours").innerHTML = ""; $("st-12h").innerHTML = "";
     $("odl").innerHTML = '<div class="load">Lade …</div>'; $("odl-spark").innerHTML = ""; $("odl-cz").innerHTML = ""; $("odl-skala").innerHTML = ""; ODLV.open = null; forceODL = true;
     $("rb-body").innerHTML = '<div class="load">Lade Archiv …</div>'; $("pegel").innerHTML = '<div class="load">Lade …</div>';
@@ -2638,7 +2932,7 @@ function tempKarteBauen(el, pts) {
   const heat = L.imageOverlay(waermeFlaeche(pts.map(p => ({lat: p.lat, lon: p.lon, t: p.now.t})), b), [[b.s, b.w], [b.n, b.e]], {opacity: .85, className: "heat"});
   if (TK_HEAT) heat.addTo(m);
   for (const p of pts) wertMarke(m, p.lat, p.lon, `${f1(p.now.t)}°`, tcol(p.now.t), `${p.name} (${p.land || ""})`, () =>
-    L.popup({closeButton: false}).setLatLng([p.lat, p.lon]).setContent(`<b>${esc(p.name)}</b><br>${f1(p.now.t)} °C · ${hhmm(p.now.at)} Uhr<br>${p.land || ""}${p.hoehe != null ? " · " + Math.round(p.hoehe) + " m" : ""} · ${Math.round(p.dist)} km`).openOn(m), true);
+    L.popup({closeButton: false}).setLatLng([p.lat, p.lon]).setContent(`<b>${esc(p.name)}</b><br>${f1(p.now.t)} °C · ${hhmm(p.now.at)}${UHR}<br>${p.land || ""}${p.hoehe != null ? " · " + Math.round(p.hoehe) + " m" : ""} · ${Math.round(p.dist)} km`).openOn(m), true);
   ortMarker(m);
   m.fitBounds([[b.s, b.w], [b.n, b.e]], {padding: [6, 6]});
   setTimeout(() => m.invalidateSize(), 60);
@@ -2718,11 +3012,13 @@ function initKarten() {
 /* Temperaturverlauf einer Station: Deutschland direkt beim DWD (Bright Sky), Tschechien aus der eigenen Mitschrift */
 const STV = {range: "7", cache: {}};
 async function stStunden(r, tage) {
-  const key = (r.wsi || JSON.stringify(r.bsid)) + "|" + tage;
+  const key = (r.wsi || r.huid || JSON.stringify(r.bsid)) + "|" + tage;
   if (STV.cache[key]) return STV.cache[key];
   const bis = Date.now(), von = bis - tage * 864e5;
   let pts = [];
-  if (r.land === "CZ" && r.wsi) {
+  if (r.land === "HU") {
+    pts = (r.stunden || []).map(([t, v]) => ({t: new Date(t), v}));
+  } else if (r.land === "CZ" && r.wsi) {
     const txt = await fetchText(ARCHIV + `chmi/${r.wsi}.csv`);
     pts = txt.trim().split("\n").slice(1).map(l => { const [t, v] = l.split(";"); return {t: new Date(t + "Z"), v: parseFloat(v)}; });
   } else if (r.bsid) {
@@ -2741,17 +3037,17 @@ async function stStunden(r, tage) {
 async function stVerlauf(box, r) {
   if (!box || !r) return;
   const range = STV.range;
-  const seg = `<div class="seg">${[["7", "7 Tage"], ["30", "30 Tage"], ["365", "1 Jahr"]].map(([k, t]) => `<button type="button" data-r="${k}" aria-pressed="${range === k}">${t}</button>`).join("")}</div>`;
-  const foot = r.land === "CZ" ? `<div class="note">Eigene Mitschrift der Stundenwerte des ČHMÚ, gesammelt seit 08.11.2026. Der Verlauf füllt sich Tag für Tag.</div>` : `<div class="note">Stundenwerte des Deutschen Wetterdienstes (über Bright Sky).</div>`;
+  const seg = r.land === "HU" ? "" : `<div class="seg">${[["7", "7 Tage"], ["30", "30 Tage"], ["365", "1 Jahr"]].map(([k, t]) => `<button type="button" data-r="${k}" aria-pressed="${range === k}">${TR(t)}</button>`).join("")}</div>`;
+  const foot = r.land === "HU" ? `<div class="note">${TR("Stundenwerte von HungaroMet, verfügbar für die letzten 24 Stunden.")}</div>` : r.land === "CZ" ? `<div class="note">Eigene Mitschrift der Stundenwerte des ČHMÚ, gesammelt seit 08.11.2026. Der Verlauf füllt sich Tag für Tag.</div>` : `<div class="note">Stundenwerte des Deutschen Wetterdienstes (über Bright Sky).</div>`;
   box.innerHTML = seg + '<div class="load">Lade Verlauf …</div>';
   let pts = [];
   try { pts = await stStunden(r, +range); } catch {}
   if (!box.isConnected || STV.range !== range) return;
-  if (pts.length < 3) { box.innerHTML = seg + `<div class="note">${r.land === "CZ" ? "Noch zu wenige Werte in der eigenen Mitschrift." : "Verlauf gerade nicht abrufbar."}</div>` + foot; return; }
-  const yF = v => nf(v, 0), tag = d => new Intl.DateTimeFormat("de-DE", {timeZone: TZ, weekday: "short", day: "numeric", month: "numeric"}).format(d);
+  if (pts.length < 3) { box.innerHTML = seg + `<div class="note">${r.land === "CZ" ? "Noch zu wenige Werte in der eigenen Mitschrift." : TR("Verlauf gerade nicht abrufbar.")}</div>` + foot; return; }
+  const yF = v => nf(v, 0), tag = d => new Intl.DateTimeFormat(LOC, {timeZone: TZ, weekday: "short", day: "numeric", month: "numeric"}).format(d);
   const vals = pts.map(p => p.v), mn = Math.min(...vals), mx = Math.max(...vals);
   const lmin = pts[vals.indexOf(mn)], lmax = pts[vals.indexOf(mx)];
-  const sum = `<p class="rb-sum">Tiefst <b>${f1(mn)}°</b> ${range === "7" ? tag(lmin.t) : dShort(dayKey(lmin.t))} · Höchst <b>${f1(mx)}°</b> ${range === "7" ? tag(lmax.t) : dShort(dayKey(lmax.t))}</p>`;
+  const sum = `<p class="rb-sum">${TR("Tiefst")} <b>${f1(mn)}°</b> ${range === "7" ? tag(lmin.t) : dShort(dayKey(lmin.t))} · ${TR("Höchst")} <b>${f1(mx)}°</b> ${range === "7" ? tag(lmax.t) : dShort(dayKey(lmax.t))}</p>`;
   if (range === "7") {
     const n = pts.length, span = (pts.at(-1).t - pts[0].t) / 864e5, step = Math.max(1, Math.round(n / Math.max(1, span) * (span > 3 ? 2 : 1)));
     box.innerHTML = seg + sum + '<div class="rbc"></div>' + foot;
@@ -2796,8 +3092,8 @@ function initTabs() {
     row.setAttribute("aria-expanded", "true");
     const d = document.createElement("div"); d.className = "st-det";
     d.innerHTML = `<div class="vl-body"></div>`
-      + (r.lat != null ? `<div class="subh">Lage</div><div class="minimap"></div><a class="maplink" href="${kartenUrl(r.lat, r.lon, r.name)}" target="_blank" rel="noopener">In Karten-App öffnen ↗</a>` : "")
-      + `<div class="note">${r.land === "CZ" ? "Tschechischer Wetterdienst ČHMÚ" : "Deutscher Wetterdienst (über Bright Sky)"}${r.hoehe != null ? " · " + Math.round(r.hoehe) + " m ü. NN" : ""}${r.dist != null ? " · " + Math.round(r.dist) + " km von " + esc(ORT.name) : ""}</div>`;
+      + (r.lat != null ? `<div class="subh">${TR("Lage")}</div><div class="minimap"></div><a class="maplink" href="${kartenUrl(r.lat, r.lon, r.name)}" target="_blank" rel="noopener">${TR("In Karten-App öffnen ↗")}</a>` : "")
+      + `<div class="note">${r.land === "HU" ? TR("HungaroMet (ungarischer Wetterdienst)") : r.land === "CZ" ? "Tschechischer Wetterdienst ČHMÚ" : "Deutscher Wetterdienst (über Bright Sky)"}${r.hoehe != null ? " · " + Math.round(r.hoehe) + (LANG === "hu" ? " m tszf." : " m ü. NN") : ""}${r.dist != null ? " · " + Math.round(r.dist) + " " + TR("km von") + " " + esc(ORT.name) : ""}</div>`;
     row.after(d); d.dataset.si = row.dataset.si;
     stVerlauf(d.querySelector(".vl-body"), r);
     if (r.lat != null) miniKarte(d.querySelector(".minimap"), r.lat, r.lon, r.name, tcol(r[row.dataset.f]?.t ?? r.now?.t));
@@ -2929,7 +3225,7 @@ $("sig").addEventListener("click", e => {
 });
 $("rad-slider").addEventListener("input", e => { togglePlay(false); showFrame(+e.target.value); });
 document.addEventListener("visibilitychange", () => { if (!document.hidden && Date.now() - lastRun > REFRESH) refresh(); });
-initRidge(); initStars(); initOrt(); initTabs(); initRueckblick();
+regionAnwenden(); initRidge(); initStars(); initOrt(); initTabs(); initRueckblick();
 try { localStorage.removeItem("bayerwald-ha"); } catch {}   // früher gespeicherten Home-Assistant-Zugang entfernen
 refresh();
 setInterval(() => { if (!document.hidden) refresh(); }, REFRESH);

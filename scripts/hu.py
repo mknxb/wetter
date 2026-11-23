@@ -172,6 +172,13 @@ def stationen():
             st["regen_heute"] = round(sum(v for t, v in regen if t > mitternacht), 1)
             st["regen_1h"] = round(sum(v for t, v in regen if now - t <= timedelta(minutes=60)), 1)
             st["regen_24h"] = round(sum(v for t, v in regen), 1)
+        # Stationsluftdruck vor etwa 3 Stunden (fuer die Drucktendenz)
+        p3 = [(abs((now - t) - timedelta(hours=3)), num(r.get("p"))) for t, r in reihe]
+        p3 = [x for x in p3 if x[1] is not None and x[0] <= timedelta(minutes=20)]
+        if p3 and "p" in st:
+            st["p3"] = round(min(p3)[1], 1)
+        stunden = [(t, num(r.get("t"))) for t, r in reihe if t.minute == 0]
+        st["t_stunden"] = [[iso(t), round(v, 1)] for t, v in stunden if v is not None]
         g = [num(r.get("sg")) for t, r in reihe]
         g = [v for v in g if v is not None]
         if g and "gamma" in st:
