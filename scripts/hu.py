@@ -346,8 +346,40 @@ def norm(t):
     return " ".join(re.sub(r"[^a-z0-9-]+", " ", t).split())
 
 
+_VIZ_CTX = None
+
+
+def vizugy_ctx():
+    """vizugy.hu liefert das Zwischenzertifikat nicht mit (Browser holen es selbst nach). Hier genauso: Adresse aus dem
+    Serverzertifikat (Authority Information Access) lesen, Zwischenzertifikat laden und zusaetzlich vertrauen.
+    Die Pruefung bis zur Stammzertifizierungsstelle des Systems bleibt voll erhalten."""
+    global _VIZ_CTX
+    if _VIZ_CTX:
+        return _VIZ_CTX
+    import ssl, subprocess
+    leaf = subprocess.run(["openssl", "s_client", "-connect", "www.vizugy.hu:443", "-servername", "www.vizugy.hu"],
+                          input=b"", capture_output=True, timeout=30).stdout
+    aia = subprocess.run(["openssl", "x509", "-noout", "-ext", "authorityInfoAccess"], input=leaf, capture_output=True, timeout=10).stdout.decode()
+    m = re.search(r"CA Issuers - URI:(\S+)", aia)
+    if not m:
+        raise RuntimeError("Zwischenzertifikat nicht auffindbar")
+    der = get_bytes(m.group(1), timeout=30)
+    pem = der.decode() if der.startswith(b"-----") else ssl.DER_cert_to_PEM_cert(der)
+    ctx = ssl.create_default_context()
+    ctx.load_verify_locations(cadata=pem)
+    _VIZ_CTX = ctx
+    return ctx
+
+
 def vizugy_seite(guid):
-    return decode(get_bytes(VIZUGY.format(guid), timeout=30))
+    url = VIZUGY.format(guid)
+    try:
+        return decode(get_bytes(url, timeout=30))
+    except urllib.error.URLError as e:
+        if "CERTIFICATE_VERIFY_FAILED" not in str(e):
+            raise
+    with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=30, context=vizugy_ctx()) as r:
+        return decode(r.read())
 
 
 def guid_links(seite):
