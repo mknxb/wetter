@@ -320,7 +320,7 @@ def gewaesser():
         ids = stundenwerte(out, alt_ids(), fehler)
     except Exception as e:
         fehler.append(f"vizugy: {e}"[:200])
-    return {"pegel": out, "fehler": fehler, "vizugy": ids}
+    return {"pegel": out, "fehler": fehler, "vizugy": ids, **PROBE}
 
 
 # Stundenwerte je Pegel: vizugy.hu, Seite "Vízmérce" (OpGrafikon, OrasIdosor). Die Seiten haben eine GUID je Pegel;
@@ -331,6 +331,7 @@ VIZUGY_NAMEN = {"442025": ["esztergom"], "442527": ["nagymaros"], "442026": ["va
                 "442533": ["budafok", "budapest-budafok", "budapest budafok"], "442028": ["dunaujvaros"], "442550": ["siofok"],
                 "442633": ["tihany", "tihany-rev", "tihany rev", "tihanyi rev"], "442632": ["balatonakali"], "442558": ["agard"]}
 ROH = "hu-pegel-roh.json"
+PROBE = {}
 
 
 def alt_ids():
@@ -444,11 +445,18 @@ def stundenwerte(pegel, ids, fehler):
         if not guid or fehlschlaege >= 3:
             continue
         try:
-            werte, ms = reihe(seiten.get(guid) or vizugy_seite(guid))
+            seiten[guid] = seiten.get(guid) or vizugy_seite(guid)
+            werte, ms = reihe(seiten[guid])
         except Exception as e:
             fehlschlaege += 1
             fehler.append(f"vizugy {g['name']}: {e}"[:160])
             continue
+        if not werte and "probe" not in PROBE:   # Diagnose: Aufbau der Seite festhalten (voruebergehend)
+            sp = seiten.get(guid) or ""
+            i = max(0, sp.find("Időpont"))
+            PROBE["probe"] = {"laenge": len(sp), "allomas_links": sp.count("AllomasVOA"), "idopont": sp.count("Időpont"),
+                              "skripte": re.findall(r'src="([^"]+)"', sp)[:15], "ajax": re.findall(r'["\']([^"\']*(?:ajax|json|Idosor|getData)[^"\']*)["\']', sp, re.I)[:20],
+                              "titel": re.findall(r"<title>(.*?)</title>", sp, re.S)[:1], "ausschnitt": sp[i:i + 2500], "anfang": sp[:1500]}
         if ms:
             g["ms"] = ms
         if werte:
