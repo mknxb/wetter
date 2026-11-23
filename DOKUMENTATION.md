@@ -1,10 +1,10 @@
 # IT-Dokumentation Wetter Bayerwald
 
-Stand 08.11.2026 · Matthias Brem · Kopie der IT-Dokumentation aus Claude Docs (Architekturdiagramm nur dort)
+Stand 23.11.2026 · Matthias Brem · Kopie der IT-Dokumentation aus Claude Docs (Architekturdiagramm nur dort)
 
 ## Überblick
 
-Die Wetter-App „Wetter Bayerwald“ ist eine statische Web-Seite ohne eigenen Server. Sie fragt Wetter-, Radar-, Strahlungs- und Pegeldaten aus öffentlichen Quellen live im Browser ab und startet mit Blaibach oder dem per Stern gemerkten Ort. Eine Kopie dieser Doku liegt im Repository als DOKUMENTATION.md und als dokumentation.pdf (in der App unten verlinkt).
+Die Wetter-App „Wetter Bayerwald“ ist eine statische Web-Seite ohne eigenen Server. Sie fragt Wetter-, Radar-, Strahlungs- und Pegeldaten aus öffentlichen Quellen live im Browser ab und startet mit Blaibach oder dem per Stern gemerkten Ort. Seit 23.11.2026 gibt es zwei Regionen (Bayerwald und Ungarn) und zwei Sprachen (Deutsch und Ungarisch), oben rechts umschaltbar. Eine Kopie dieser Doku liegt im Repository als DOKUMENTATION.md und als dokumentation.pdf (in der App unten verlinkt).
 
 | Eigenschaft | Wert |
 | --- | --- |
@@ -14,7 +14,8 @@ Die Wetter-App „Wetter Bayerwald“ ist eine statische Web-Seite ohne eigenen 
 | Eigentümer | Matthias Brem, GitHub-Konto `mknxb` (vorher `matthiasbrem-create`) |
 | Hosting | GitHub Pages, Zweig `main`, Ordner `/` |
 | Nutzung | privat, als Web-Seite und als installierbare App (PWA) auf dem iPhone |
-| Region | Bayerischer Wald und Böhmerwald, Umkreis 100 km um den gewählten Ort |
+| Regionen | Bayerischer Wald und Böhmerwald (10 Orte); Ungarn: Budapest, Csomád, Veszprém, Balatonfüred, Siófok, Székesfehérvár; jeweils Umkreis 100 km um den gewählten Ort |
+| Sprachen | Deutsch, Ungarisch (Schalter DE/HU, gemerkt im Gerät unter `wetter-sprache`) |
 
 Vorbild war die Querformat-Ansicht von [df0zw.github.io/WETTER](https://df0zw.github.io/WETTER/). Anders als dort erzeugt kein Server ein Bild, sondern der Browser holt die Daten selbst und baut die Seite responsiv auf.
 
@@ -45,6 +46,26 @@ Sechs Anbieter liefern die Daten. Bright Sky, BfS und OpenStreetMap fragt der Br
 
 Eingebundene Bibliotheken: Leaflet 1.9.4 über cdnjs für die Radarkarte, Schriften Big Shoulders Display und Barlow über Google Fonts. Keine Quelle verlangt einen Zugangsschlüssel.
 
+## Region Ungarn und Sprache
+
+Region und Sprache sind zwei unabhängige Schalter oben rechts. Beide werden im Gerät gemerkt (localStorage `wetter-region`, `wetter-sprache`); ein Wechsel lädt die Seite neu. `?ort=budapest` usw. wählt die Region automatisch. Jede Region hat ihren eigenen Stern-Startort (`wetter-startort`, `wetter-startort-hu`).
+
+| Bereich | Quelle Ungarn | Abruf |
+| --- | --- | --- |
+| Aktuelle Messung | HungaroMet-Messnetz, nächste Station bis 25 km (Höhenunterschied zählt mit), 10-Minuten-Werte; Druck auf Meeresniveau umgerechnet; Tendenzen nur aus derselben Station | GitHub Actions → `hu.json` |
+| Vorhersage 36 h und 7 Tage | DWD-MOSMIX über Bright Sky (Punkte BUDAPEST, VESZPREM usw.) | Browser |
+| Regenradar | RainViewer (freie Kacheln: nur letzte 2 h, Zoom bis 7, keine Vorhersage); Satz „Regen ab …“ aus der Stundenvorhersage | Browser |
+| Warnungen | MeteoAlarm-Feed Ungarn (Großregionen), Texte übersetzt | GitHub Actions → `hu.json` |
+| Kälteste/wärmste Orte | rund 250 HungaroMet-Stationen, Tiefst/Höchst 12 h und 24 h, Verlauf 24 h | GitHub Actions → `hu.json` |
+| Gewässer | hydroinfo.hu (OVF): 6 Donaupegel Esztergom bis Dunaújváros, Balaton (Mittel, Siófok, Tihany, Balatonakali), Velencei-tó (Agárd); Stand, Änderung 24 h, Abfluss, Wassertemperatur; eigener Verlauf 45 Tage (Werte 7 und 19 Uhr) | GitHub Actions → `hu.json` |
+| Wassertemperatur Balaton | HungaroMet-Station Siófok (10 min), sonst hydroinfo (morgens) | GitHub Actions → `hu.json` |
+| Strahlung | Gamma-Dosisleistung an 17 HungaroMet-Stationen (nSv/h, angezeigt in µSv/h), Abweichung vom 24-h-Mittel | GitHub Actions → `hu.json` |
+| UV-Index, Pollen | Copernicus CAMS über Open-Meteo (Air-Quality-API), Tageshöchstwert je Ort; Pollen: Ambrosia (Ragweed), Gräser, Birke, Erle, Beifuß | Browser |
+| Kacheln „Heute in Ungarn“ | Balaton-Wassertemperatur (ab 18 °C erfrischend, ab 22 °C Badewetter), Pollen (Ambrosia ab 10/30 Pollen/m³ mittel/hoch), UV, Radl-Fenster, Morgenfrost, PV morgen, Sternenhimmel, Polarlicht | – |
+| Hintergrund | eigene Szenen je Ort: Budapest (Parlament, Donau, Kettenbrücke, Budaer Berge), Veszprém (Burgberg mit Feuerturm, Dom, Stephan-und-Gisela-Denkmal, Talbrücke), Balaton (Tihany mit Abtei, Badacsony, Leuchtturm), Velencei-tó (Székesfehérvár mit Kathedrale); nachts angestrahlt | im Browser gezeichnet |
+
+Ausgeblendet in Ungarn: Rückblick (kein Archiv). Die ungarischen Texte stehen in `HU_TXT` (Wörterbuch, Schlüssel = deutscher Text) und direkt im Code als `ZW(deutsch, ungarisch)`. Deutsche Datentexte (DWD-Warnungen, DWD-Biowetter-Empfehlungen) bleiben auch auf Ungarisch deutsch.
+
 ## Repository, Hosting und Deployment
 
 Jede Änderung im Zweig `main` geht ohne Build-Schritt live: GitHub Pages veröffentlicht den Stand nach 1 bis 2 Minuten.
@@ -58,6 +79,8 @@ Jede Änderung im Zweig `main` geht ohne Build-Schritt live: GitHub Pages veröf
 | `icon-192.png`, `icon-512.png`, `apple-touch-icon.png` | App-Symbol (Mond über Bergkämmen) | Hand |
 | `scripts/pegel.py` | holt die Pegel von HND Bayern | Hand |
 | `scripts/extra.py` | holt UV, Pollen, Kp-Index, Biowetter, Schneehöhe Arber | Hand |
+| `scripts/hu.py` | holt für Ungarn HungaroMet-Messnetz (10-min-CSV von odp.met.hu, letzte 24 h), Pegel von hydroinfo.hu, MeteoAlarm-Warnungen | Hand |
+| `hu.json` | Ungarn: Stationen, Pegel mit Verlauf, Warnungen; Fehler je Quelle unter `errors` | Abholdienst (`pegel-bot`) |
 | scripts/archiv.py | baut das Archiv im Zweig daten: DWD-Tageswerte je Ort seit 1991, Bayern-Jahresmittel, Pegelarchiv, Strahlung DE und CZ | Hand |
 | `.github/workflows/pegel.yml` | Zeitplan des Abholdienstes | Hand |
 | `pegel.json` | Pegelwerte mit 48-h-Verlauf | Abholdienst (`pegel-bot`) |
@@ -86,8 +109,9 @@ Ablauf eines Laufs:
 
 1. Repository auschecken, Python einrichten.
 2. `scripts/pegel.py`: lädt `www.hnd.bayern.de/pegel`, liest an den Pegelsymbolen die Attribute `data-wert` (Wasserstand cm), `data-wert2` (Abfluss m³/s), `data-ms` (Meldestufe), `data-datum`, `data-stoerung`. Berücksichtigt werden alle Pegelnummern mit Präfix `152` (Einzugsgebiet Regen und Chamb). Pro Pegel bleibt ein Verlauf von 48 h für die Tendenz. Findet es keinen Pegel, bricht der Lauf mit Fehler ab.
-3. `scripts/extra.py`: holt UV-Index, Pollenflug, Kp-Index, Biowetter und die Schneehöhe am Großen Arber (Station über das DWD-Verzeichnis der aktuellen Tageswerte gefunden). Jede Quelle ist unabhängig; fällt eine aus, bleibt deren letzter Stand erhalten und die Fehlermeldung steht in `extra.json` unter `errors`. Der Schritt darf scheitern, ohne den Lauf abzubrechen.
-4. Sind die Daten neu, committet `pegel-bot` beide Dateien („Daten TT.MM. HH:MM“) und pusht nach `main`.
+3. `scripts/hu.py` (Ungarn, darf scheitern, Zeitlimit 10 min): lädt die 10-Minuten-Dateien `HABP_10M_SYNOP_*.csv.zip` der letzten 24 h von `odp.met.hu`, die Fluss- und Seentabellen `dunhid_a.html` und `tohid.html` von hydroinfo.hu und den MeteoAlarm-Feed Ungarn. Fällt eine Quelle aus, bleibt deren letzter Stand erhalten.
+4. `scripts/extra.py`: holt UV-Index, Pollenflug, Kp-Index, Biowetter und die Schneehöhe am Großen Arber (Station über das DWD-Verzeichnis der aktuellen Tageswerte gefunden). Jede Quelle ist unabhängig; fällt eine aus, bleibt deren letzter Stand erhalten und die Fehlermeldung steht in `extra.json` unter `errors`. Der Schritt darf scheitern, ohne den Lauf abzubrechen.
+5. Sind die Daten neu, committet `pegel-bot` die Dateien `pegel.json`, `extra.json` und `hu.json` („Daten TT.MM. HH:MM“) und pusht nach `main`.
 
 Die Seite zeigt den Stand der Pegeldaten an und weist darauf hin, wenn er älter als 2 Stunden ist.
 
@@ -219,6 +243,10 @@ Das größte Betriebsrisiko ist das Auslesen der HND-Seite ohne offizielle Schni
 | Pegelarchiv | eigene Mitschrift erst seit 26.10.2026; HND bietet keine offene Langzeitreihe | Pegelverläufe anfangs kurz | füllt sich von selbst |
 | Füllstand Talsperre Frauenau | keine amtliche Inhaltslinie veröffentlicht; Näherung V ~ ((h − 700) / 67)^3,46, abgeglichen an einen Wert von alarmaa.de (753,30 m ≈ 8,96 Mio m³) | Prozentwert kann einige Punkte daneben liegen; Tendenz stimmt | Anzeige mit „ca.“; bei Gelegenheit Inhaltslinie beim WWA Deggendorf erfragen |
 | Faustregeln | Inversion, Alpenblick, Sternenhimmel und PV morgen sind Schätzungen | Fehlalarme möglich | an echten Tagen nachschärfen |
+| Ungarn: hydroinfo.hu | Tabellen ohne Schnittstelle werden ausgelesen; Alarmstufen nur aus der Zellfarbe erkannt | ändert OVF das Layout, bleiben die Pegel stehen | Fehler stehen in `hu.json` unter `errors`; Skript anpassen |
+| Ungarn: Radar | RainViewer frei nur Vergangenheit, Zoom bis 7 | unscharf beim Hineinzoomen, keine Radar-Vorhersage | Alternative wäre das HungaroMet-Radarbild (nicht georeferenziert) |
+| Ungarn: Pollen, UV | Modellwerte (CAMS), keine Messung | Abweichungen zu Pollenmessstellen möglich | hinnehmen |
+| Ungarn: Übersetzungen | von Claude erstellt | einzelne Formulierungen holprig | von Muttersprachler gegenlesen lassen |
 
 ## Änderungshistorie
 
@@ -226,6 +254,7 @@ Die Live-Seite entstand am 26.10.2026; seitdem kamen Radar, Strahlung, Pegel, 11
 
 | Datum | Seite | Änderung |
 | --- | --- | --- |
+| 23.11.2026 21:50 | Live + Daten | Region Ungarn und Sprache Ungarisch von der Testseite übernommen: Orte Budapest, Csomád, Veszprém, Balatonfüred, Siófok, Székesfehérvár; HungaroMet-Messnetz und Strahlung, Pegel Donau/Balaton/Velencei-tó mit Wassertemperatur (hydroinfo.hu), MeteoAlarm-Warnungen, RainViewer-Radar, UV und Pollen (CAMS/Open-Meteo), eigene Hintergrundszenen; Abholdienst `scripts/hu.py` → `hu.json`; Cache bayerwald-v10 |
 | 08.11.2026 21:00 | Live | Biowetter-Kachel mit „Tipps für heute/morgen“: je ein Tipp Kneipp, ganzheitlich und TCM, regelbasiert nach Temperatur, Regen, Feuchte, Böen, Sonnenstunden, Jahreszeit und DWD-Biowetter (Kreislauf, Rheuma); Hinweis „kein ärztlicher Rat“. Fußzeile verlinkt dokumentation.pdf (aus DOKUMENTATION.md erzeugt). Cache bayerwald-v9 |
 | 08.11.2026 20:40 | Live + Daten | Kälteste/wärmste Orte mit Reitern Jetzt / 12 h / 24 h / Karte (Werte als Marken, Heatmap zuschaltbar); Ort antippen → Verlauf 7 Tage (Stundenkurve) / 30 Tage / 1 Jahr (Tagesspanne + Mittel), darunter Lagekarte. DE-Verlauf direkt von Bright Sky, CZ aus eigener ČHMÚ-Mitschrift chmi/<wsi>.csv (ab 08.11.2026). Pegel und Strahlung mit Ansicht Liste/Karte, Lagekarten in den Details (Pegelkoordinaten aus HND-Stammdaten, pegel-lage.json); jede Karte per Tipp im Vollbild verschieb- und zoombar. Cache bayerwald-v8 |
 | 31.10.2026 12:45 | Live + Daten | Kälteste und wärmste Orte in zwei Spalten (Reiter Jetzt / Letzte 12 Stunden), 100 km um den gewählten Ort; tschechische Stationen jetzt aus ČHMÚ Open Data (opendata.chmi.cz, 10-Minuten-Werte, stündlich aktualisiert, rund 50 Temperaturstationen in der Region, Archivdatei chmi-temp.json); Tipp auf laufende Pegel- oder Sondenzeile öffnet deren Details; Cache bayerwald-v7 |
