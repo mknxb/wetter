@@ -1,4 +1,4 @@
-name: Daten abholen (Pegel, UV, Pollen, Polarlicht)
+name: Daten abholen (Pegel, UV, Pollen, Polarlicht, Ungarn)
 on:
   schedule:
     - cron: "7,37 * * * *"   # zweimal pro Stunde
@@ -19,6 +19,9 @@ jobs:
       - run: python scripts/pegel.py
       - run: python scripts/extra.py
         continue-on-error: true
+      - run: python scripts/hu.py
+        continue-on-error: true
+        timeout-minutes: 10
       - name: Archiv-Zweig holen
         run: |
           git config user.name "pegel-bot"
@@ -39,6 +42,7 @@ jobs:
         run: |
           git config user.name "pegel-bot"
           git config user.email "pegel-bot@users.noreply.github.com"
-          git add pegel.json extra.json 2>/dev/null || git add pegel.json
+          git add pegel.json
+          for f in extra.json hu.json; do [ -f "$f" ] && git add "$f"; done
           git diff --cached --quiet || git commit -m "Daten $(TZ=Europe/Berlin date '+%d.%m. %H:%M')"
           git pull --rebase -q && git push
