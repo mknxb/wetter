@@ -1,10 +1,12 @@
 """Holt Daten fuer die Region Ungarn der Wetterseite und schreibt sie nach hu.json:
 - 10-Minuten-Messwerte aller Automatikstationen von HungaroMet (odp.met.hu, offene Daten),
   dazu Tiefst-/Hoechstwerte 12 h und 24 h, Regen heute und letzte Stunde, Gamma-Ortsdosisleistung
+- Pegel Donau, Balaton und Velencei-to mit Wassertemperatur von hydroinfo.hu (OVF), eigener Verlauf 45 Tage
 - Unwetterwarnungen fuer Ungarn ueber MeteoAlarm (Atom-Feed)
 Jede Quelle ist unabhaengig: faellt eine aus, bleibt der Rest erhalten (Fehler unter "errors").
 Quelle der Messwerte: HungaroMet Nonprofit Zrt. (Nennung ist Nutzungsbedingung)."""
-import csv, io, json, re, sys, urllib.error, urllib.request, zipfile
+import csv, html, io, json, re, sys, urllib.error, urllib.request, zipfile
+from html.parser import HTMLParser
 import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
@@ -189,6 +191,131 @@ def stationen():
     return {"stationen": out, "dateien": len(want), "dateifehler": fehler}
 
 
+HYDRO = "https://www.hydroinfo.hu/tables/ENG/"
+# Pegel, die die App zeigt: Kennung der OVF/hydroinfo-Tabellen -> (Anzeigename, Gewaesser, Breite, Laenge)
+PEGEL = {
+    "442025": ("Esztergom", "Duna", 47.7970, 18.7410),
+    "442527": ("Nagymaros", "Duna", 47.7870, 18.9580),
+    "442026": ("Vác", "Duna", 47.7750, 19.1280),
+    "442027": ("Budapest (Vigadó tér)", "Duna", 47.4960, 19.0470),
+    "442533": ("Budafok", "Duna", 47.4200, 19.0400),
+    "442028": ("Dunaújváros", "Duna", 46.9640, 18.9400),
+    "442600": ("Balaton (Mittel)", "Balaton", 46.8500, 17.7500),
+    "442550": ("Siófok", "Balaton", 46.9090, 18.0480),
+    "442633": ("Tihany rév", "Balaton", 46.8930, 17.8920),
+    "442632": ("Balatonakali", "Balaton", 46.8820, 17.7520),
+    "442558": ("Agárd", "Velencei-tó", 47.1880, 18.5900),
+}
+
+
+class Tabelle(HTMLParser):
+    """Sammelt alle Tabellenzeilen als Listen von (Text, Attribute) je Zelle."""
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.rows, self.row, self.cell, self.attrs, self.text = [], None, None, None, []
+
+    def handle_starttag(self, tag, attrs):
+        if tag == "tr":
+            self.row = []
+        elif tag in ("td", "th") and self.row is not None:
+            self.cell, self.attrs = [], dict(attrs)
+        elif self.cell is not None and tag in ("font", "span", "b") and attrs:
+            self.attrs.update({"_" + k: v for k, v in attrs if v})
+
+    def handle_endtag(self, tag):
+        if tag in ("td", "th") and self.cell is not None and self.row is not None:
+            self.row.append((" ".join("".join(self.cell).split()), self.attrs or {}))
+            self.cell = None
+        elif tag == "tr" and self.row is not None:
+            if self.row:
+                self.rows.append(self.row)
+            self.row = None
+
+    def handle_data(self, d):
+        if self.cell is not None:
+            self.cell.append(d)
+        self.text.append(d)
+
+
+def tabelle(name):
+    p = Tabelle()
+    p.feed(decode(get_bytes(HYDRO + name)))
+    return p
+
+
+def ganz(v):
+    v = str(v).strip().replace(",", ".")
+    try:
+        return float(v)
+    except ValueError:
+        return None
+
+
+MONATE_EN = {m: i for i, m in enumerate(["january", "february", "march", "april", "may", "june", "july", "august",
+                                         "september", "october", "november", "december"], 1)}
+
+
+def stichtag(p):
+    m = re.search(r"Observed on:\s*(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})", " ".join(p.text))
+    if m and m.group(2).lower() in MONATE_EN:
+        return datetime(int(m.group(3)), MONATE_EN[m.group(2).lower()], int(m.group(1)))
+    return datetime.now(TZ).replace(tzinfo=None, hour=0, minute=0, second=0, microsecond=0)
+
+
+def farbe(attrs):
+    s = " ".join(str(v) for v in attrs.values()).lower()
+    for k, w in (("purple", "lila"), ("#ff00ff", "lila"), ("red", "rot"), ("#ff0000", "rot"), ("orange", "orange"), ("#ff9900", "orange"),
+                 ("#ffa500", "orange"), ("yellow", "gelb"), ("#ffff00", "gelb"), ("blue", "blau"), ("#00ffff", "blau"), ("#0000ff", "blau")):
+        if k in s:
+            return w
+    return None
+
+
+def gewaesser():
+    """Pegel Donau (Fluss-Tabelle) und Seen (Seen-Tabelle) von hydroinfo.hu (OVF).
+    Fluss: Kennung, Name, Fluss, Stand gestern frueh/abends, heute frueh, Aenderung 24 h, Abfluss m3/s, Wassertemperatur, Eis.
+    See:   Kennung, Name, See, Stand gestern frueh/abends, heute frueh, Aenderung 24 h, Wassertemperatur frueh, Eis."""
+    try:
+        alt = {g["id"]: g for g in json.load(open(OUT, encoding="utf-8")).get("gewaesser", {}).get("pegel", [])}
+    except Exception:
+        alt = {}
+    out, fehler = [], []
+    for datei, see in (("dunhid_a.html", False), ("tohid.html", True)):
+        try:
+            p = tabelle(datei)
+        except Exception as e:
+            fehler.append(f"{datei}: {e}")
+            continue
+        tag = stichtag(p)
+        for row in p.rows:
+            zellen = [c[0] for c in row]
+            if len(zellen) < 8 or not re.fullmatch(r"\d{6}", zellen[0]) or zellen[0] not in PEGEL or any(g["id"] == zellen[0] for g in out):
+                continue
+            name, wasser, lat, lon = PEGEL[zellen[0]]
+            g = {"id": zellen[0], "name": name, "gewaesser": wasser, "lat": lat, "lon": lon, "datum": tag.strftime("%Y-%m-%d"),
+                 "stand": ganz(zellen[5]), "gestern_frueh": ganz(zellen[3]), "gestern_abend": ganz(zellen[4]), "aenderung": ganz(zellen[6])}
+            if see:
+                g["wassertemp"] = ganz(zellen[7])
+            else:
+                g["abfluss"] = ganz(zellen[7])
+                g["wassertemp"] = ganz(zellen[8]) if len(zellen) > 8 else None
+            f = farbe(row[5][1])
+            if f:
+                g["stufe"] = f
+            # eigener Verlauf: je Tag Morgen- (07 Uhr) und Abendwert (19 Uhr), 45 Tage
+            v = {t: w for t, w in (alt.get(g["id"], {}).get("verlauf") or [])}
+            gestern = (tag - timedelta(days=1)).strftime("%Y-%m-%d")
+            for t, w in ((f"{gestern}T07", g["gestern_frueh"]), (f"{gestern}T19", g["gestern_abend"]), (f"{g['datum']}T07", g["stand"])):
+                if w is not None:
+                    v[t] = w
+            grenze = (tag - timedelta(days=45)).strftime("%Y-%m-%d")
+            g["verlauf"] = sorted([[t, w] for t, w in v.items() if t >= grenze])
+            out.append(g)
+    if not out:
+        raise RuntimeError("; ".join(fehler) or "keine Pegel gefunden")
+    return {"pegel": out, "fehler": fehler}
+
+
 METEOALARM = "https://feeds.meteoalarm.org/feeds/meteoalarm-legacy-atom-hungary"
 
 
@@ -223,7 +350,7 @@ def main():
         old = json.load(open(OUT, encoding="utf-8"))
     except Exception:
         old = {}
-    for key, fn in (("messnetz", stationen), ("warnungen", warnungen)):
+    for key, fn in (("messnetz", stationen), ("gewaesser", gewaesser), ("warnungen", warnungen)):
         try:
             data[key] = fn()
         except Exception as e:
@@ -234,7 +361,7 @@ def main():
     with open(OUT, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, separators=(",", ":"))
     n = len((data.get("messnetz") or {}).get("stationen", []))
-    print(f"hu.json: {n} Stationen, {len(data.get('warnungen') or [])} Warnungen, Fehler: {list(data['errors'])}")
+    print(f"hu.json: {n} Stationen, {len((data.get('gewaesser') or {}).get('pegel', []))} Pegel, {len(data.get('warnungen') or [])} Warnungen, Fehler: {list(data['errors'])}")
 
 
 if __name__ == "__main__":

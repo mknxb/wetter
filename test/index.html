@@ -378,7 +378,7 @@ footer a{color:var(--accent)}
   <svg class="ridge" id="ridge" viewBox="0 0 1200 360" preserveAspectRatio="xMidYMax slice" aria-hidden="true"></svg>
   <div class="hero-in">
     <div class="topbar">
-      <span class="brand"><span class="testbadge">Testseite · Stand 23.11. 21:30</span> <span id="brand-txt">Bayerischer Wald · Böhmerwald</span></span>
+      <span class="brand"><span class="testbadge">Testseite · Stand 23.11. 22:15</span> <span id="brand-txt">Bayerischer Wald · Böhmerwald</span></span>
       <span class="umsch"><span class="tg" id="region-tg" role="group" aria-label="Region"><button type="button" data-region="by" aria-pressed="true">Bayerwald</button><button type="button" data-region="hu" aria-pressed="false">Magyarország</button></span>
         <span class="tg" id="lang-tg" role="group" aria-label="Sprache"><button type="button" data-lang="de" aria-pressed="true">DE</button><button type="button" data-lang="hu" aria-pressed="false">HU</button></span></span>
       <span class="stand"><span id="stand">lädt …</span>
@@ -434,7 +434,7 @@ footer a{color:var(--accent)}
       <div id="warn"><div class="load">Lade Warnungen …</div></div>
     </section>
     <section class="card" id="card-pegel">
-      <h2>Gewässer <small>Regen, Chamb, Donau</small></h2>
+      <h2>Gewässer <small id="pegel-quelle">Regen, Chamb, Donau</small></h2>
       <div id="pegel"><div class="load">Lade Pegel …</div></div>
     </section>
     <section class="card">
@@ -472,10 +472,12 @@ footer a{color:var(--accent)}
 </main>
 
 <footer>
-  <p><b>Quellen</b></p>
+  <p><b id="fuss-quellen">Quellen</b></p>
   <ul class="quellen" id="quellen-hu" hidden>
     <li>Messwerte, Strahlung (Gamma-Dosisleistung): <a href="https://odp.met.hu" target="_blank" rel="noopener">HungaroMet Nonprofit Zrt.</a> (offene Daten, 10-Minuten-Werte, über den eigenen Abholdienst)</li>
     <li>Vorhersage: DWD-MOSMIX über <a href="https://brightsky.dev" target="_blank" rel="noopener">Bright Sky</a> · Regenradar: <a href="https://www.rainviewer.com" target="_blank" rel="noopener">RainViewer</a> · Warnungen: <a href="https://www.meteoalarm.org" target="_blank" rel="noopener">MeteoAlarm</a> (HungaroMet)</li>
+    <li>Pegel Donau, Balaton, Velencei-tó und Wassertemperatur: <a href="https://www.hydroinfo.hu" target="_blank" rel="noopener">hydroinfo.hu</a> (Országos Vízügyi Főigazgatóság, OVF)</li>
+    <li>UV-Index und Pollen (Modell): Copernicus Atmosphere Monitoring Service (CAMS) über <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a></li>
     <li>Polarlicht (Kp-Index): <a href="https://www.swpc.noaa.gov" target="_blank" rel="noopener">NOAA SWPC</a> · Karte: © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>-Mitwirkende</li>
   </ul>
   <ul class="quellen" id="quellen-by">
@@ -486,7 +488,7 @@ footer a{color:var(--accent)}
     <li>Polarlicht (Kp-Index): <a href="https://www.swpc.noaa.gov" target="_blank" rel="noopener">NOAA SWPC</a> · Karte: © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>-Mitwirkende</li>
     <li>Eigene Berechnungen: Waldbrandindex (FWI), Sonne und Mond, Signale; eigenes Archiv für Pegel, Strahlung und tschechische Temperaturen</li>
   </ul>
-  <p>Wie die App aufgebaut ist und rechnet: <a href="../dokumentation.pdf" target="_blank" rel="noopener">Dokumentation (PDF) ↗</a></p>
+  <p id="fuss-doku">Wie die App aufgebaut ist und rechnet: <a href="../dokumentation.pdf" target="_blank" rel="noopener">Dokumentation (PDF) ↗</a></p>
   <p id="fuss-hu" hidden>Messwerte alle 10 Minuten bei HungaroMet, über GitHub alle 30 Minuten. Keine amtliche Warnung, maßgeblich ist <a href="https://www.met.hu/idojaras/veszelyjelzes/" target="_blank" rel="noopener">met.hu</a>.</p>
   <p id="fuss-by">Live-Werte alle 10 Minuten, Pegel, Strahlung und Archiv alle 30 Minuten über GitHub. Keine amtliche Warnung, maßgeblich sind <a href="https://www.dwd.de/warnungen" target="_blank" rel="noopener">dwd.de</a> und <a href="https://www.hnd.bayern.de" target="_blank" rel="noopener">hnd.bayern.de</a>.</p>
 </footer>
@@ -572,8 +574,30 @@ const HU_TXT = {
   "Stand {0}":"Frissítve {0}", "Daten gerade nicht abrufbar ({0}). Nächster Versuch in 10 Minuten.":"Az adatok most nem érhetők el ({0}). Új próbálkozás 10 perc múlva.",
   "{0} ist dein Startort":"{0} a kezdőhelyed", "{0} als Startort merken":"{0} megjegyzése kezdőhelyként", "{0} ist schon Startort":"{0} már kezdőhely",
   "Startort wieder {0}":"Kezdőhely ismét: {0}", "Startort: {0}":"Kezdőhely: {0}", "Merken hier nicht möglich (privates Surfen?)":"Itt nem menthető (privát böngészés?)",
-  "Extras gerade nicht verfügbar.":"Az extrák most nem érhetők el.", "ruhig":"nyugodt", "Chance!":"Esély!", "nur Fotos":"csak fotón", "morgen":"holnap"
+  "Extras gerade nicht verfügbar.":"Az extrák most nem érhetők el.", "ruhig":"nyugodt", "Chance!":"Esély!", "nur Fotos":"csak fotón", "morgen":"holnap",
+  // Ergänzungen: Signale, Pollen, Gewässer Ungarn
+  "sehr hoch":"nagyon magas", "hoch":"magas", "mittel":"közepes", "niedrig":"alacsony", "gering":"alacsony", "keine":"nincs",
+  "diesig":"párás", "Alpenblick":"Alpok-kilátás", "Alpenblick möglich":"Alpok-kilátás lehetséges", "sehr klare Luft":"nagyon tiszta levegő",
+  "gute Fernsicht":"jó látótávolság", "mäßige Sicht":"közepes látás", "klar, morgen früh schauen":"tiszta, reggel érdemes nézni", "nachts":"éjjel",
+  "Ambrosia":"parlagfű", "keine Sichtdaten":"nincs látótávolság-adat", "Regen, Chamb, Donau":"Regen, Chamb, Duna", "Testseite · Stand 23.11. 22:15":"Tesztoldal · 23.11. 22:15",
+  "Granitböden wie im Bayerischen Wald liefern eher höhere natürliche Werte. Quelle: BfS-Messnetz (ODL), Werte über den eigenen Abholdienst.":"A Bajor-erdőhöz hasonló gránittalajokon a természetes értékek inkább magasabbak. Forrás: BfS ODL mérőhálózat, saját letöltő szolgáltatáson át.", "Gräser":"fűfélék", "Birke":"nyír", "Erle":"éger", "Beifuß":"üröm", "Hasel":"mogyoró", "Esche":"kőris", "Roggen":"rozs",
+  "Gesundheitstipps":"egészségügyi tippek", "kaum Einfluss":"alig van hatása", "Balaton":"Balaton", "Balaton (Mittel)":"Balaton (átlag)",
+  "Balaton Wasser":"Balaton víz", "Budapest (Vigadó tér)":"Budapest (Vigadó tér)", "Esztergom":"Esztergom", "Mittel":"Átlag",
+  "Alarmstufe":"készültségi fok", "Wasser":"víz", "Wasserstand":"vízállás", "gemessen":"mérve", "morgens":"reggel", "gleich":"változatlan",
+  "normal":"normál", "kein Wert":"nincs adat", "keine Pegelwerte":"nincs vízállásadat", "kein Pollenflug":"nincs pollen", "Morgen":"Holnap",
+  "Rückhalteraum frei":"tározótér szabad", "Rückhalteraum belegt":"tározótér részben telt",
+  "Verlauf {0} Tage":"Idősor, {0} nap", "Wichtigster Pegel für {0}":"Legfontosabb vízmérce: {0}", "Weitere Pegel":"További vízmércék",
+  "nach Entfernung zu {0}":"távolság szerint ({0})", "Wasserstand morgens 7 Uhr, {0} · Quelle: hydroinfo.hu (OVF)":"Reggel 7 órai vízállás, {0} · Forrás: hydroinfo.hu (OVF)",
+  "Heute keine nennenswerte Belastung.":"Ma nincs számottevő terhelés.", "Pollen/m³":"pollen/m³", "Ambrosia: keine Belastung.":"Parlagfű: nincs terhelés.",
+  "Höchster UV-Index heute {0} ({1}), morgen {2}. Ab 3 ist Sonnenschutz sinnvoll, ab 6 unbedingt. Quelle: Copernicus (CAMS) über Open-Meteo.":
+    "A legmagasabb UV-index ma {0} ({1}), holnap {2}. 3-tól ajánlott a fényvédelem, 6-tól feltétlenül. Forrás: Copernicus (CAMS), Open-Meteo.",
+  "Modellwerte Copernicus (CAMS) über Open-Meteo, Tageshöchstwert. Ambrosia (Ragweed) blüht in Ungarn vor allem von August bis Oktober.":
+    "Copernicus (CAMS) modellértékek az Open-Meteón át, napi maximum. A parlagfű Magyarországon főleg augusztustól októberig virágzik.",
+  "Wassertemperatur in Siófok {0} °C{1}. Ab etwa 22 °C angenehm zum Baden, unter 18 °C nur für Abgehärtete. Quelle: HungaroMet und hydroinfo.hu (OVF).":
+    "Vízhőmérséklet Siófokon {0} °C{1}. Kb. 22 °C-tól kellemes a fürdéshez, 18 °C alatt csak edzetteknek. Forrás: HungaroMet és hydroinfo.hu (OVF).",
+  "{0} °C Wasser":"{0} °C víz", "{0} °C · Badewetter":"{0} °C · strandidő", "{0} °C · erfrischend":"{0} °C · üdítő"
 };
+const ZW = (de, hu) => LANG === "hu" ? hu : de;   // zweisprachige Texte direkt im Code
 function TR(de, ...a) {
   let s = LANG === "hu" && HU_TXT[de] != null ? HU_TXT[de] : de;
   a.forEach((v, i) => { s = s.split("{" + i + "}").join(v); });
@@ -606,6 +630,7 @@ const ORTE_BY = {
 // Ungarn: Warngebiete für MeteoAlarm (Komitate und Großregionen, englisch und ungarisch, je nachdem wie der Feed sie nennt)
 const ORTE_HU = {
   budapest:      {name:"Budapest",        lat:47.4979, lon:19.0402, h:110, megye:["Budapest","Pest","Central Hungary","Közép-Magyarország"]},
+  csomad:        {name:"Csomád",          lat:47.6539, lon:19.2366, h:180, megye:["Pest","Central Hungary","Közép-Magyarország"]},
   veszprem:      {name:"Veszprém",        lat:47.0930, lon:17.9093, h:250, megye:["Veszprém","Central Transdanubia","Közép-Dunántúl"]},
   balatonfured:  {name:"Balatonfüred",    lat:46.9590, lon:17.8890, h:130, megye:["Veszprém","Central Transdanubia","Közép-Dunántúl"]},
   siofok:        {name:"Siófok",          lat:46.9047, lon:18.0490, h:110, megye:["Somogy","Southern Transdanubia","Dél-Dunántúl"]},
@@ -817,8 +842,8 @@ function cloudLocal(cur, recs, now, wxSources) {
   if (w.cloud_cover != null && km != null && km <= 15) return {cc: w.cloud_cover, txt: null};
   const fc = new Set((wxSources || []).filter(s => s.observation_type === "forecast").map(s => s.id));
   const f = recs.find(r => fc.has(r.source_id) && Date.parse(r.timestamp) >= now - 30 * 6e4 && r.cloud_cover != null);
-  if (f) return {cc: f.cloud_cover, txt: `Bewölkung: DWD-Vorhersage für ${ORT.name}${w.cloud_cover != null && st ? ` (Station ${kurz(st.station_name)}, ${Math.round(km)} km: ${Math.round(w.cloud_cover)} %)` : ""}`};
-  return {cc: w.cloud_cover, txt: st && km > 15 ? `Bewölkung von Station ${kurz(st.station_name)}, ${Math.round(km)} km` : null};
+  if (f) return {cc: f.cloud_cover, txt: ZW(`Bewölkung: DWD-Vorhersage für ${ORT.name}${w.cloud_cover != null && st ? ` (Station ${kurz(st.station_name)}, ${Math.round(km)} km: ${Math.round(w.cloud_cover)} %)` : ""}`, `Felhőzet: DWD-előrejelzés ehhez: ${ORT.name}${w.cloud_cover != null && st ? ` (${kurz(st.station_name)} állomás, ${Math.round(km)} km: ${Math.round(w.cloud_cover)} %)` : ""}`)};
+  return {cc: w.cloud_cover, txt: st && km > 15 ? ZW(`Bewölkung von Station ${kurz(st.station_name)}, ${Math.round(km)} km`, `Felhőzet a(z) ${kurz(st.station_name)} állomásról, ${Math.round(km)} km`) : null};
 }
 function iconFor(icon, cc, night) {   // Symbol an die Bewölkung des Ortes anpassen (Niederschlag, Nebel bleiben)
   if (!/^(clear|partly-cloudy|cloudy)/.test(icon || "") || cc == null) return icon;
@@ -844,8 +869,9 @@ function renderCurrent(cur, recs, now, wxSources) {
   const dist = src?.distance != null ? ` · ${Math.round(src.distance / 1000)} ${TR("km entfernt")}` : "";
   $("cur-src").textContent = `${TR("Messstation")} ${kurz(src?.station_name) || ORT.name}${dist} · ${hhmm(new Date(w.timestamp))}${UHR}`;
   $("cur-src").title = cl.txt || "";
-  if (cl.txt && /Vorhersage/.test(cl.txt)) $("cur-src").textContent += " · " + TR("Wolken lt. DWD-Vorhersage");
-  const past = recs.filter(r => new Date(r.timestamp) <= new Date(now - 2.5 * 36e5) && r.temperature != null).pop();
+  if (cl.txt && /Vorhersage|előrejelzés/.test(cl.txt)) $("cur-src").textContent += " · " + TR("Wolken lt. DWD-Vorhersage");
+  const past = HU ? (HU_T3 != null ? {temperature: HU_T3} : null)   // Ungarn: Tendenz nur aus derselben Station
+    : recs.filter(r => new Date(r.timestamp) <= new Date(now - 2.5 * 36e5) && r.temperature != null).pop();
   let trend = `<span class="chip"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8h11M9 4l4 4-4 4"/></svg>${TR("gleichbleibend")}</span>`;
   if (past && w.temperature != null) {
     const d = w.temperature - past.temperature;
@@ -926,7 +952,7 @@ function renderChart(recs, now) {
     return `<circle cx="${X}" cy="${Y}" r="4" fill="${tcol(T_[i])}" stroke="#0c1426" stroke-width="2"/>
       <text class="tv" x="${X}" y="${above ? Y - 10 : Y + 20}" text-anchor="${anchor}">${f1(T_[i])}°</text>`;
   };
-  box.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Temperatur- und Regenverlauf der nächsten 36 Stunden">
+  box.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${ZW("Temperatur- und Regenverlauf der nächsten 36 Stunden", "Hőmérséklet és eső a következő 36 órában")}">
     <defs>
       <linearGradient id="tl" gradientUnits="userSpaceOnUse" x1="0" y1="${y(hi)}" x2="0" y2="${y(lo)}">
         <stop offset="0" stop-color="${tcol(hi)}"/><stop offset=".5" stop-color="${tcol((hi + lo) / 2)}"/><stop offset="1" stop-color="${tcol(lo)}"/></linearGradient>
@@ -1269,7 +1295,7 @@ async function loadODL(force) {
       <span class="ov">${s.v.toLocaleString(LOC,{minimumFractionDigits:3,maximumFractionDigits:3})}</span>
     </div>`).join("") + `<div class="unit">µSv/h, Stundenmittel bis ${hhmm(new Date(st[0].end))}${UHR}</div>`;
   ODL_AT = Date.now();
-  loadCZ().catch(() => { $("odl-cz").innerHTML = '<div class="note">Tschechische Werte gerade nicht abrufbar.</div>'; });
+  loadCZ().catch(() => { $("odl-cz").innerHTML = ZW('<div class="note">Tschechische Werte gerade nicht abrufbar.</div>', '<div class="note">A cseh értékek most nem érhetők el.</div>'); });
   // Verlauf der nächstgelegenen Sonde, 7 Tage
   try {
     const ts = await bfs({typeName:"opendata:odlinfo_timeseries_odl_1h", version:"1.1.0", viewparams:"kenn:" + st[0].kenn, sortBy:"end_measure D", maxFeatures:"168"});
@@ -1332,25 +1358,25 @@ function pTrend(s) {
 const SPEICHER = {
   "15215600": {
     wert: h => Math.max(0, Math.min(105, 100 * Math.pow(Math.max(0, h - 700) / 67, 3.46))),   // 100 % = Stauziel 767 m
-    zeile: (h, v) => ({big: `${Math.round(v)} %`, lbl: "gefüllt (ca.)", sub: `${nf(h, 2)} m ü. NN · ${nf(767 - h, 1)} m unter Stauziel`}),
-    unit: "%", yF: v => nf(v, 2), info: "Füllstand ca. in Prozent, 100 % = Stauziel 767 m ü. NN. Näherung aus dem Wasserspiegel, eine amtliche Inhaltskurve ist nicht veröffentlicht."
+    zeile: (h, v) => ({big: `${Math.round(v)} %`, lbl: ZW("gefüllt (ca.)", "telítettség (kb.)"), sub: ZW(`${nf(h, 2)} m ü. NN · ${nf(767 - h, 1)} m unter Stauziel`, `${nf(h, 2)} m tszf. · ${nf(767 - h, 1)} m-rel a duzzasztási cél alatt`)}),
+    unit: "%", yF: v => nf(v, 2), info: ZW("Füllstand ca. in Prozent, 100 % = Stauziel 767 m ü. NN. Näherung aus dem Wasserspiegel, eine amtliche Inhaltskurve ist nicht veröffentlicht.", "Telítettség kb. százalékban, 100 % = duzzasztási cél 767 m tszf. Közelítés a vízszintből, hivatalos térfogatgörbe nincs közzétéve.")
   },
   "15242406": {
     wert: h => (h - 405) * 100,
     zeile: (h, v) => { const p = Math.max(0, Math.min(100, (h - 405) / 3.25 * 100));
-      return {big: p < 1 ? "normal" : `${Math.round(p)} %`, lbl: p < 1 ? "Rückhalteraum frei" : "Rückhalteraum belegt", sub: `${nf(h, 2)} m ü. NN · ${v >= 0 ? "+" : "−"}${nf(Math.abs(v), 0)} cm zum Dauerstau`}; },
-    unit: "cm", yF: v => nf(v, 0), info: "Wasserspiegel in cm über dem Dauerstau (405,00 m ü. NN). Bei Hochwasser füllt sich der Rückhalteraum bis zum Vollstau 408,25 m (+325 cm, 4 Mio m³)."
+      return {big: p < 1 ? TR("normal") : `${Math.round(p)} %`, lbl: TR(p < 1 ? "Rückhalteraum frei" : "Rückhalteraum belegt"), sub: ZW(`${nf(h, 2)} m ü. NN · ${v >= 0 ? "+" : "−"}${nf(Math.abs(v), 0)} cm zum Dauerstau`, `${nf(h, 2)} m tszf. · ${v >= 0 ? "+" : "−"}${nf(Math.abs(v), 0)} cm az állandó duzzasztáshoz képest`)}; },
+    unit: "cm", yF: v => nf(v, 0), info: ZW("Wasserspiegel in cm über dem Dauerstau (405,00 m ü. NN). Bei Hochwasser füllt sich der Rückhalteraum bis zum Vollstau 408,25 m (+325 cm, 4 Mio m³).", "Vízszint cm-ben az állandó duzzasztási szint (405,00 m tszf.) felett. Árvízkor a tározótér a teljes duzzasztásig, 408,25 m-ig telik (+325 cm, 4 millió m³).")
   }
 };
 function pRow(s, nr) {
   const tr = pTrend(s);
-  const tt = tr && Math.abs(tr.d) >= 2 ? `<span class="pt ${tr.d > 0 ? "up" : "dn"}">${tr.d > 0 ? "▲" : "▼"} ${tr.d > 0 ? "+" : ""}${Math.round(tr.d)} cm/${Math.round(tr.hrs)} h</span>` : `<span class="pt">gleich</span>`;
+  const tt = tr && Math.abs(tr.d) >= 2 ? `<span class="pt ${tr.d > 0 ? "up" : "dn"}">${tr.d > 0 ? "▲" : "▼"} ${tr.d > 0 ? "+" : ""}${Math.round(tr.d)} cm/${Math.round(tr.hrs)} h</span>` : `<span class="pt">${TR("gleich")}</span>`;
   const ms = s.stage > 0 ? `<span class="ms ms${Math.min(4, s.stage)}">MS ${s.stage}</span>` : "";
   const name = esc(s.name);
   return `<div class="pg pgx" role="button" tabindex="0" data-id="${esc(s.id)}" aria-expanded="false"><div class="nm"><b>${nr ? `<span class="nr">${nr}</span>` : ""}${name} ${ms}</b><small>${PEGEL_KM[s.id] != null ? Math.round(PEGEL_KM[s.id]) + " km · " : ""}${SPEICHER[s.id] && s.level != null ? SPEICHER[s.id].zeile(s.level, SPEICHER[s.id].wert(s.level)).sub : esc(s.river) + (s.flow != null ? " · " + f1(s.flow) + " m³/s" : "") + (s.hint ? " · " + esc(s.hint) : "")}</small></div>
     <div class="pv">${SPEICHER[s.id] && s.level != null ? (z => `<b>${z.big}</b><span class="pt">${z.lbl}</span>`)(SPEICHER[s.id].zeile(s.level, SPEICHER[s.id].wert(s.level)))
       : /see|talsperre/i.test(s.name + s.river) && s.level > 100
-      ? `<b>${s.level.toLocaleString(LOC,{minimumFractionDigits:2,maximumFractionDigits:2})}</b> m ü. NN`
+      ? `<b>${s.level.toLocaleString(LOC,{minimumFractionDigits:2,maximumFractionDigits:2})}</b> ${ZW("m ü. NN", "m tszf.")}`
       : s.level != null ? `<b>${Math.round(s.level)}</b> cm${tt}` : `<b>${f1(s.flow)}</b> m³/s`}</div></div>`;
 }
 /* Verlauf je Pegel: Zeile antippen, Diagramm klappt darunter auf */
@@ -1364,7 +1390,7 @@ function pgOpen(row) {
   row.setAttribute("aria-expanded", "true");
   const box = document.createElement("div"); box.className = "pg-vl"; box.dataset.id = s.id;
   const lg = ARC.pegelLage?.[s.id];
-  box.innerHTML = `<div class="vl-body"></div>` + (lg ? `<div class="subh">Lage</div><div class="minimap"></div><a class="maplink" href="${kartenUrl(lg.lat, lg.lon, s.name)}" target="_blank" rel="noopener">In Karten-App öffnen ↗</a>` : "");
+  box.innerHTML = `<div class="vl-body"></div>` + (lg ? `<div class="subh">${TR("Lage")}</div><div class="minimap"></div><a class="maplink" href="${kartenUrl(lg.lat, lg.lon, s.name)}" target="_blank" rel="noopener">${TR("In Karten-App öffnen ↗")}</a>` : "");
   row.after(box); pgVerlauf(box.querySelector(".vl-body"), s);
   if (lg) miniKarte(box.querySelector(".minimap"), lg.lat, lg.lon, s.name, s.stage > 0 ? "#e88a2e" : "#4f86c6");
 }
@@ -1382,23 +1408,23 @@ async function pegelStunden(id) {   // eigenes Archiv (Monatsdateien) + aktuelle
 }
 async function pgVerlauf(box, s) {
   const range = PGV.range, see = /see|talsperre/i.test(s.name + s.river) && s.level > 100;
-  const seg = `<div class="seg">${[["7", "7 Tage"], ["30", "30 Tage"], ["365", "1 Jahr"]].map(([k, t]) => `<button type="button" data-r="${k}" aria-pressed="${range === k}">${t}</button>`).join("")}</div>`;
+  const seg = `<div class="seg">${[["7", "7 Tage"], ["30", "30 Tage"], ["365", "1 Jahr"]].map(([k, t]) => `<button type="button" data-r="${k}" aria-pressed="${range === k}">${TR(t)}</button>`).join("")}</div>`;
   const SP = SPEICHER[s.id], tf = SP ? SP.wert : (v => v);
   const ms = ARC.ms?.[s.id] || {}, unit = SP ? SP.unit : see ? "m" : "cm", yF = SP ? SP.yF : (v => see ? nf(v, 2) : nf(v, 0));
-  const foot = `<div class="note">${SP ? SP.info + " " : ""}Eigenes Archiv aus den Werten des Hochwassernachrichtendienstes Bayern, gesammelt seit 26.10.2026.${s.url ? ` <a href="${esc(s.url)}" target="_blank" rel="noopener">Pegel beim HND ansehen ↗</a>` : ""}</div>`;
-  if (s.level == null) { box.innerHTML = `<div class="note">An diesem Pegel wird nur der Abfluss gemeldet, kein Wasserstand.</div>` + foot; return; }
+  const foot = ZW(`<div class="note">${SP ? SP.info + " " : ""}Eigenes Archiv aus den Werten des Hochwassernachrichtendienstes Bayern, gesammelt seit 26.10.2026.${s.url ? ` <a href="${esc(s.url)}" target="_blank" rel="noopener">Pegel beim HND ansehen ↗</a>` : ""}</div>`, `<div class="note">${SP ? SP.info + " " : ""}Saját archívum a bajor árvízjelző szolgálat (HND) adataiból, gyűjtve 2026.10.26. óta.${s.url ? ` <a href="${esc(s.url)}" target="_blank" rel="noopener">Vízmérce a HND oldalán ↗</a>` : ""}</div>`);
+  if (s.level == null) { box.innerHTML = ZW(`<div class="note">An diesem Pegel wird nur der Abfluss gemeldet, kein Wasserstand.</div>`, `<div class="note">Ennél a vízmércénél csak a vízhozamot jelentik, vízállást nem.</div>`) + foot; return; }
   const hl = [];
   if (!see && ms.MW) hl.push({type: "hline", v: ms.MW, color: "rgba(238,243,251,.5)", label: "Mittelwasser"});
-  if (!see && ms["1"]) hl.push({type: "hline", v: ms["1"], color: "#f2cd4b", label: "Meldestufe 1"});
+  if (!see && ms["1"]) hl.push({type: "hline", v: ms["1"], color: "#f2cd4b", label: ZW("Meldestufe 1", "1. jelzőszint")});
   box.innerHTML = seg + '<div class="load">Lade Verlauf …</div>';
   if (range === "7") {
     const pts = await pegelStunden(s.id);
     if (!box.isConnected || PGV.range !== range) return;
-    if (pts.length < 3) { box.innerHTML = seg + '<div class="note">Noch zu wenige Werte für einen Verlauf.</div>' + foot; return; }
+    if (pts.length < 3) { box.innerHTML = seg + ZW('<div class="note">Noch zu wenige Werte für einen Verlauf.</div>', '<div class="note">Még túl kevés adat az idősorhoz.</div>') + foot; return; }
     const vals = pts.map(p => tf(p.v)), mn = Math.min(...vals), mx = Math.max(...vals);
     const tag = d => new Intl.DateTimeFormat(LOC, {timeZone: TZ, weekday: "short", day: "numeric", month: "numeric"}).format(d);
     const span = (pts.at(-1).t - pts[0].t) / 864e5, n = pts.length;
-    box.innerHTML = seg + `<p class="rb-sum">jetzt ${yF(vals.at(-1))} ${unit} · Spanne ${yF(mn)} – ${yF(mx)} ${unit}${ms.MW && !see ? ` · Mittelwasser ${ms.MW} cm` : ""}</p><div class="rbc"></div>` + foot;
+    box.innerHTML = seg + ZW(`<p class="rb-sum">jetzt ${yF(vals.at(-1))} ${unit} · Spanne ${yF(mn)} – ${yF(mx)} ${unit}${ms.MW && !see ? ` · Mittelwasser ${ms.MW} cm` : ""}</p><div class="rbc"></div>`, `<p class="rb-sum">most ${yF(vals.at(-1))} ${unit} · tartomány ${yF(mn)} – ${yF(mx)} ${unit}${ms.MW && !see ? ` · középvíz ${ms.MW} cm` : ""}</p><div class="rbc"></div>`) + foot;
     const step = Math.max(1, Math.round(n / Math.max(1, span) * (span > 3 ? 2 : 1)));
     drawChart(box.querySelector(".rbc"), {n, h: 160, aria: `Wasserstand ${s.name}`, fromZero: false, yFmt: yF,
       xLabel: i => { const k = n - 1 - i; return k === 0 ? "jetzt" : (k % step === 0 && i > n * 0.08 && k > n * 0.12 ? tag(pts[i].t).replace(/\.$/, "") : null); },
@@ -1410,7 +1436,7 @@ async function pgVerlauf(box, s) {
   for (let i = +range - 1; i >= 0; i--) dates.push(addDays(today, -i));
   const m = new Map(P.filter(r => String(r.id) === s.id).map(r => [r.datum, r]));
   const rows = dates.map(d => { const r = m.get(d); return r ? {...r, mittel: tf(r.mittel), min: tf(r.min), max: tf(r.max)} : null; }), ok = rows.filter(Boolean);
-  if (ok.length < 2) { box.innerHTML = seg + '<div class="note">Für diesen Zeitraum liegen noch zu wenige Tageswerte im Archiv. Es füllt sich Tag für Tag.</div>' + foot; return; }
+  if (ok.length < 2) { box.innerHTML = seg + ZW('<div class="note">Für diesen Zeitraum liegen noch zu wenige Tageswerte im Archiv. Es füllt sich Tag für Tag.</div>', '<div class="note">Erre az időszakra még túl kevés napi adat van az archívumban. Napról napra bővül.</div>') + foot; return; }
   const first = ok[0].datum;
   box.innerHTML = seg + `<p class="rb-sum">Tagesmittel · Spanne ${yF(Math.min(...ok.map(r => r.min)))} – ${yF(Math.max(...ok.map(r => r.max)))} ${unit} · Archiv ab ${dShort(first)}</p><div class="rbc"></div>
     <div class="legend"><span><i style="background:#6fb7ff"></i>Tagesmittel</span><span><i style="background:#6fb7ff;opacity:.3"></i>Tagesspanne</span></div>` + foot;
@@ -1418,7 +1444,7 @@ async function pgVerlauf(box, s) {
     xLabel: i => (i % Math.ceil(dates.length / 6) === 0) ? dShort(dates[i]) : null,
     layers: [{type: "range", lo: rows.map(r => r ? r.min : null), hi: rows.map(r => r ? r.max : null), color: "rgba(111,183,255,.3)"},
              {type: "line", vals: rows.map(r => r ? r.mittel : null), color: "#6fb7ff", width: 2, dots: ok.length < 15}, ...hl],
-    tip: i => `<b>${dShort(dates[i])}</b>${rows[i] ? `<span class="tt" style="color:#6fb7ff">Mittel ${yF(rows[i].mittel)} ${unit}</span><span>${yF(rows[i].min)} – ${yF(rows[i].max)} ${unit}</span>` : "<span>kein Wert</span>"}`});
+    tip: i => `<b>${dShort(dates[i])}</b>${rows[i] ? `<span class="tt" style="color:#6fb7ff">${TR("Mittel")} ${yF(rows[i].mittel)} ${unit}</span><span>${yF(rows[i].min)} – ${yF(rows[i].max)} ${unit}</span>` : `<span>${TR("kein Wert")}</span>`}`});
 }
 function initPGV() {
   const card = $("pegel").closest(".card");
@@ -1497,7 +1523,7 @@ async function loadPegel() {
     const r = await fetch("../pegel.json?t=" + Date.now());
     if (!r.ok) throw new Error("HTTP " + r.status);
     data = await r.json();
-  } catch (e) { $("pegel").innerHTML = '<div class="note">Pegelwerte werden gerade eingerichtet und erscheinen in Kürze.</div>'; return; }
+  } catch (e) { $("pegel").innerHTML = ZW('<div class="note">Pegelwerte werden gerade eingerichtet und erscheinen in Kürze.</div>', '<div class="note">A vízállásadatok beállítása folyamatban, hamarosan megjelennek.</div>'); return; }
   const st = (data.stations || []).filter(s => s.level != null || s.flow != null);
   if (!st.length) throw new Error("keine Pegelwerte");
   const maxMs = Math.max(0, ...st.map(s => s.stage || 0));
@@ -1505,10 +1531,10 @@ async function loadPegel() {
   let banner;
   if (maxMs > 0) {
     const hit = st.filter(s => s.stage === maxMs).map(s => s.name).join(", ");
-    banner = `<div class="pwarn ms${Math.min(4, maxMs)}"><b>Hochwasser-Meldestufe ${maxMs}</b> an ${esc(hit)}</div>`;
+    banner = ZW(`<div class="pwarn ms${Math.min(4, maxMs)}"><b>Hochwasser-Meldestufe ${maxMs}</b> an ${esc(hit)}</div>`, `<div class="pwarn ms${Math.min(4, maxMs)}"><b>${maxMs}. árvízjelző fokozat</b>: ${esc(hit)}</div>`);
   } else if (rising.length) {
-    banner = `<div class="pwarn rise"><b>Wasser steigt am Oberlauf</b> ${rising.slice(0, 3).map(x => `${esc(x.s.name)} +${Math.round(x.t.d)} cm`).join(", ")} in ${Math.round(rising[0].t.hrs)} h</div>`;
-  } else banner = `<div class="ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M7.5 12.5l3 3 6-6.5"/></svg>Keine Meldestufe, kein auffälliger Anstieg.</div>`;
+    banner = ZW(`<div class="pwarn rise"><b>Wasser steigt am Oberlauf</b> ${rising.slice(0, 3).map(x => `${esc(x.s.name)} +${Math.round(x.t.d)} cm`).join(", ")} in ${Math.round(rising[0].t.hrs)} h</div>`, `<div class="pwarn rise"><b>Emelkedik a víz a felső szakaszon</b> ${rising.slice(0, 3).map(x => `${esc(x.s.name)} +${Math.round(x.t.d)} cm`).join(", ")}, ${Math.round(rising[0].t.hrs)} óra alatt</div>`);
+  } else banner = `<div class="ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M7.5 12.5l3 3 6-6.5"/></svg>${ZW("Keine Meldestufe, kein auffälliger Anstieg.", "Nincs jelzőszint, nincs feltűnő emelkedés.")}</div>`;
   const key = cfg().pegel.map(id => st.find(s => s.id === id)).filter(Boolean);
   window.PEGEL_DATA = data;
   const groups = {};
@@ -1519,26 +1545,26 @@ async function loadPegel() {
   const LG = ARC.pegelLage || {};
   // Seen und Trinkwasserspeicher immer oben, in eigener kleiner Rubrik
   const seen = st.filter(s => SPEICHER[s.id]);
-  const seenBlock = seen.length ? `<div class="grp"><div class="grp-h">Seen und Speicher</div>${seen.map((s, i) => pRow(s, "S" + (i + 1))).join("")}</div>` : "";
+  const seenBlock = seen.length ? `<div class="grp"><div class="grp-h">${ZW("Seen und Speicher", "Tavak és tározók")}</div>${seen.map((s, i) => pRow(s, "S" + (i + 1))).join("")}</div>` : "";
   const mitLage = st.filter(s => LG[s.id] && !SPEICHER[s.id]).map(s => ({s, d: km(ORT.lat, ORT.lon, LG[s.id].lat, LG[s.id].lon)})).sort((a, b) => a.d - b.d);
   let mid;
   if (mitLage.length >= 3) {
     const near = mitLage.slice(0, 3), rest = mitLage.slice(3);
     PEGEL_KM = Object.fromEntries(mitLage.map(x => [x.s.id, x.d]));
-    mid = `<div class="grp"><div class="grp-h">Flusspegel <small>nach Entfernung zu ${esc(ORT.name)}</small></div>` + near.map((x, i) => pRow(x.s, i + 1)).join("")
+    mid = `<div class="grp"><div class="grp-h">${ZW("Flusspegel", "Folyami vízmércék")} <small>${TR("nach Entfernung zu {0}", esc(ORT.name))}</small></div>` + near.map((x, i) => pRow(x.s, i + 1)).join("")
       + (rest.length ? `<div class="roll" id="pg-roll" data-auto="${rest.length > 4 ? 1 : 0}"><div class="roll-in">${rollRows(rest, 4)}${rest.length > 4 ? rollRows(rest, 4) : ""}</div></div>`
-        + `<details class="pall"><summary>Alle ${rest.length} weiteren Pegel als Liste</summary>${rest.map((x, i) => pRow(x.s, i + 4)).join("")}</details>` : "") + `</div>`;
+        + `<details class="pall"><summary>${ZW(`Alle ${rest.length} weiteren Pegel als Liste`, `További ${rest.length} vízmérce listája`)}</summary>${rest.map((x, i) => pRow(x.s, i + 4)).join("")}</details>` : "") + `</div>`;
     
   } else {
     PEGEL_KM = {};
-    mid = `<div class="subh">Für ${esc(ORT.name)}</div>` + key.map(pRow).join("")
-      + `<details class="pall"><summary>Alle ${st.length} Pegel der Region</summary>${order.map(r => `<div class="subh">${esc(r)}</div>` + groups[r].map(pRow).join("")).join("")}</details>`;
+    mid = `<div class="subh">${ZW("Für", "Ehhez:")} ${esc(ORT.name)}</div>` + key.map(pRow).join("")
+      + `<details class="pall"><summary>${ZW(`Alle ${st.length} Pegel der Region`, `A régió mind a(z) ${st.length} vízmércéje`)}</summary>${order.map(r => `<div class="subh">${esc(r)}</div>` + groups[r].map(pRow).join("")).join("")}</details>`;
     
   }
   kartenWeg($("pegel"));
   $("pegel").innerHTML = banner + regenBlock() + (Object.keys(LG).length ? ansichtSchalter("pegel") : "") + `<div class="lv">` + seenBlock + mid + `</div>`
-    + `<div class="kv" hidden><div class="bigmap"></div><div class="legend"><span><i style="background:#4f86c6"></i>normal</span><span><i style="background:#c98a2b"></i>steigt ab 5 cm</span><span><i style="background:#e88a2e"></i>Meldestufe</span><span><i style="background:#3c7d8f"></i>See/Speicher</span></div></div>`
-    + `<div class="unit">Stand ${hhmm(new Date(data.updated))}${UHR}${age > 120 ? " · älter als 2 Stunden" : ""} · Quelle: Hochwassernachrichtendienst Bayern · Pegel antippen für den Verlauf</div>`;
+    + `<div class="kv" hidden><div class="bigmap"></div><div class="legend"><span><i style="background:#4f86c6"></i>${TR("normal")}</span><span><i style="background:#c98a2b"></i>${ZW("steigt ab 5 cm", "5 cm-től emelkedik")}</span><span><i style="background:#e88a2e"></i>${ZW("Meldestufe", "jelzőszint")}</span><span><i style="background:#3c7d8f"></i>${ZW("See/Speicher", "tó/tározó")}</span></div></div>`
+    + ZW(`<div class="unit">Stand ${hhmm(new Date(data.updated))}${UHR}${age > 120 ? " · älter als 2 Stunden" : ""} · Quelle: Hochwassernachrichtendienst Bayern · Pegel antippen für den Verlauf</div>`, `<div class="unit">Frissítve ${hhmm(new Date(data.updated))}${age > 120 ? " · 2 óránál régebbi" : ""} · Forrás: bajor árvízjelző szolgálat (HND) · koppintson a vízmércére az idősorért</div>`);
   initRoll($("pg-roll"));
   ansichtAnwenden("pegel");
 }
@@ -1572,8 +1598,9 @@ const SIG_ICON = {
   aur: '<path d="M3 18c3-8 6-12 9-12s6 4 9 12"/><path d="M6 18c2-5 4-8 6-8s4 3 6 8" opacity=".6"/><path d="M2 21h20"/>'
 };
 const POLLEN_N = {"-1":0,"0":0,"0-1":.5,"1":1,"1-2":1.5,"2":2,"2-3":2.5,"3":3};
-const POLLEN_T = v => v >= 2.5 ? "hoch" : v >= 1.5 ? "mittel" : v >= .5 ? "gering" : "keine";
+const POLLEN_T = v => TR(v >= 2.5 ? "hoch" : v >= 1.5 ? "mittel" : v >= .5 ? "gering" : "keine");
 const POLLEN_NAME = {Graeser:"Gräser", Beifuss:"Beifuß"};
+const pollenName = n => TR(POLLEN_NAME[n] || n);
 
 async function loadExtra() {
   try { const r = await fetch("../extra.json?t=" + Date.now()); if (r.ok) EXTRA = await r.json(); } catch {}
@@ -1586,11 +1613,11 @@ function sigInversion() {
   const diff = ar.now.t - val.now.t, dh = ar.hoehe - val.hoehe, normal = -0.0065 * dh;
   const foggy = (CUR?.icon === "fog") || (CUR?.relative_humidity >= 97);
   const txt = `Großer Arber ${f1(ar.now.t)} °C (${Math.round(ar.hoehe)} m), ${esc(val.name)} ${f1(val.now.t)} °C (${Math.round(val.hoehe)} m). Normal wäre es oben rund ${f1(-normal)} Grad kälter.`;
-  if (diff > 0) return {key:"inv", title:"Inversion", state:"on", short: foggy ? "Über dem Nebel!" : `Arber ${f1(diff)}° wärmer`,
-    detail:`Oben ist es wärmer als im Tal: eine echte Inversion. ${foggy ? "Im Tal liegt Nebel, auf den Gipfeln scheint vermutlich die Sonne." : "Typisch für ruhiges Hochdruckwetter, oft mit Nebel oder Hochnebel in den Tälern."} ${txt}`};
-  if (diff > normal + 3) return {key:"inv", title:"Inversion", state:"maybe", short:"schwach ausgeprägt",
-    detail:`Oben ist es weniger kalt als üblich, die Luft ist stabil geschichtet. ${txt}`};
-  return {key:"inv", title:"Inversion", state:"off", short:"normale Schichtung", detail:`Keine Inversion: Mit der Höhe wird es wie üblich kälter. ${txt}`};
+  if (diff > 0) return {key:"inv", title:"Inversion", state:"on", short: foggy ? ZW("Über dem Nebel!", "A köd fölött!") : `Arber ${f1(diff)}° wärmer`,
+    detail:ZW(`Oben ist es wärmer als im Tal: eine echte Inversion. ${foggy ? "Im Tal liegt Nebel, auf den Gipfeln scheint vermutlich die Sonne." : "Typisch für ruhiges Hochdruckwetter, oft mit Nebel oder Hochnebel in den Tälern."} ${txt}`, `Fent melegebb van, mint a völgyben: valódi inverzió. ${foggy ? "A völgyben köd van, a csúcsokon valószínűleg süt a nap." : "Jellemző a nyugodt anticiklonális időre, gyakran köddel vagy alacsony szürke felhőzettel a völgyekben."} ${txt}`)};
+  if (diff > normal + 3) return {key:"inv", title:"Inversion", state:"maybe", short:ZW("schwach ausgeprägt", "gyenge"),
+    detail:ZW(`Oben ist es weniger kalt als üblich, die Luft ist stabil geschichtet. ${txt}`, `Fent kevésbé hideg a szokásosnál, a légrétegződés stabil. ${txt}`)};
+  return {key:"inv", title:"Inversion", state:"off", short:ZW("normale Schichtung", "normál rétegződés"), detail:ZW(`Keine Inversion: Mit der Höhe wird es wie üblich kälter. ${txt}`, `Nincs inverzió: a magassággal a szokásos módon hűl a levegő. ${txt}`)};
 }
 
 function sigAlpen() {
@@ -1623,12 +1650,12 @@ function sigRadl() {
   const today = best(dayKey(new Date())), tom = best(dayKey(new Date(now + 864e5)));
   const span = x => `${hhmm(x.start._t).slice(0,2)}–${String(hourOf(x.end._t) + 1).padStart(2, "0")}${UHR_H}`;
   const tmax = x => Math.round(Math.max(...hrs.filter(r => r._t >= x.start._t && r._t <= x.end._t).map(r => r.temperature)));
-  const crit = "Trocken (unter 30 % Regenrisiko), Böen unter 40 km/h, mindestens 4 °C, bei Tageslicht.";
+  const crit = ZW("Trocken (unter 30 % Regenrisiko), Böen unter 40 km/h, mindestens 4 °C, bei Tageslicht.", "Száraz (30 % alatti esőkockázat), széllökések 40 km/h alatt, legalább 4 °C, nappali fénynél.");
   if (today) return {key:"bike", title:"Radl-Fenster", state:"on", short:`${TR("heute")} ${span(today)}`,
-    detail:`Bestes Fenster heute ${span(today)}, bis ${tmax(today)} °C.${tom ? ` Morgen: ${span(tom)}.` : ""} ${crit}`};
+    detail:ZW(`Bestes Fenster heute ${span(today)}, bis ${tmax(today)} °C.${tom ? ` Morgen: ${span(tom)}.` : ""} ${crit}`, `A legjobb ablak ma ${span(today)}, legfeljebb ${tmax(today)} °C.${tom ? ` Holnap: ${span(tom)}.` : ""} ${crit}`)};
   if (tom) return {key:"bike", title:"Radl-Fenster", state:"maybe", short:`${TR("morgen")} ${span(tom)}`,
-    detail:`Heute passt es nicht mehr. Morgen ${span(tom)}, bis ${tmax(tom)} °C. ${crit}`};
-  return {key:"bike", title:"Radl-Fenster", state:"off", short:"kein Fenster", detail:`Heute und morgen kein trockenes Fenster von mindestens 2 Stunden. ${crit}`};
+    detail:ZW(`Heute passt es nicht mehr. Morgen ${span(tom)}, bis ${tmax(tom)} °C. ${crit}`, `Ma már nem jó. Holnap ${span(tom)}, legfeljebb ${tmax(tom)} °C. ${crit}`)};
+  return {key:"bike", title:"Radl-Fenster", state:"off", short:"kein Fenster", detail:ZW(`Heute und morgen kein trockenes Fenster von mindestens 2 Stunden. ${crit}`, `Ma és holnap nincs legalább 2 órás száraz ablak. ${crit}`)};
 }
 
 function sigUV() {
@@ -1666,8 +1693,8 @@ function sigAurora() {
     const night = LAST.recs.filter(r => { const t = new Date(r.timestamp), h = hourOf(t); return t > now && t < now + 20 * 36e5 && (h >= 20 || h <= 4); }).map(r => r.cloud_cover).filter(v => v != null);
     if (night.length) cloud = night.reduce((a, b) => a + b, 0) / night.length;
   }
-  const sky = cloud == null ? "" : cloud < 40 ? " Der Himmel ist nachts überwiegend klar." : cloud < 75 ? " Nachts teils bewölkt." : " Nachts aber meist bewölkt.";
-  const base = `Höchster Kp-Index in den nächsten 24 Stunden: ${f1(kp)}.${later != null ? ` Danach bis ${f1(later)}.` : ""}${sky} In Süddeutschland braucht es etwa Kp 7, für Fotos Richtung Norden reicht manchmal Kp 6. Quelle: NOAA.`;
+  const sky = cloud == null ? "" : cloud < 40 ? ZW(" Der Himmel ist nachts überwiegend klar.", " Éjjel többnyire derült az ég.") : cloud < 75 ? ZW(" Nachts teils bewölkt.", " Éjjel részben felhős.") : ZW(" Nachts aber meist bewölkt.", " Éjjel viszont többnyire felhős.");
+  const base = ZW(`Höchster Kp-Index in den nächsten 24 Stunden: ${f1(kp)}.${later != null ? ` Danach bis ${f1(later)}.` : ""}${sky} In Süddeutschland braucht es etwa Kp 7, für Fotos Richtung Norden reicht manchmal Kp 6. Quelle: NOAA.`, `A legmagasabb Kp-index a következő 24 órában: ${f1(kp)}.${later != null ? ` Utána legfeljebb ${f1(later)}.` : ""}${sky} ${HU ? "Magyarországon szabad szemmel kb. Kp 7–8 kell, északi irányú fotókhoz néha elég Kp 6." : "Dél-Németországban kb. Kp 7 kell, északi irányú fotókhoz néha elég Kp 6."} Forrás: NOAA.`);
   if (kp >= 7) return {key:"aur", title:"Polarlicht", state: cloud != null && cloud >= 75 ? "maybe" : "on", short:`${TR("Chance!")} Kp ${f1(kp)}`, detail: base};
   if (kp >= 6) return {key:"aur", title:"Polarlicht", state:"maybe", short:`Kp ${f1(kp)} · ${TR("nur Fotos")}`, detail: base};
   return {key:"aur", title:"Polarlicht", state:"off", short:`${TR("ruhig")} · Kp ${f1(kp)}`, detail: base};
@@ -1775,12 +1802,12 @@ function sigSterne() {
   const moonUp = moonAlt(mid, ORT.lat, ORT.lon) > 0, bright = MOON.fraction > 0.4 && moonUp;
   const md = dayKey(now).slice(5), y = now.getFullYear();
   const shower = SCHAUER.find(([d]) => Math.abs(Date.parse(`${y}-${d}`) - Date.parse(`${y}-${md}`)) <= 2 * 864e5);
-  const sh = shower ? ` Sternschnuppen: ${shower[1]} haben um den ${shower[0].slice(3)}.${shower[0].slice(0, 2)}. ihr Maximum.` : "";
-  const base = `Bewölkung heute Nacht im Mittel ${cloud == null ? "unbekannt" : Math.round(cloud) + " %"}. Mond: ${MOON.name}, ${Math.round(MOON.fraction * 100)} % beleuchtet, um Mitternacht ${moonUp ? "über" : "unter"} dem Horizont. Nächster Vollmond ${MOON.full ? wd(MOON.full) + " " + dm(MOON.full) + "." : "–"}, nächster Neumond ${MOON.nw ? wd(MOON.nw) + " " + dm(MOON.nw) + "." : "–"}.${sh}`;
+  const sh = shower ? ZW(` Sternschnuppen: ${shower[1]} haben um den ${shower[0].slice(3)}.${shower[0].slice(0, 2)}. ihr Maximum.`, ` Hullócsillagok: a(z) ${shower[1]} maximuma ${shower[0].slice(0, 2)}.${shower[0].slice(3)}. körül van.`) : "";
+  const base = ZW(`Bewölkung heute Nacht im Mittel ${cloud == null ? "unbekannt" : Math.round(cloud) + " %"}. Mond: ${MOON.name}, ${Math.round(MOON.fraction * 100)} % beleuchtet, um Mitternacht ${moonUp ? "über" : "unter"} dem Horizont. Nächster Vollmond ${MOON.full ? wd(MOON.full) + " " + dm(MOON.full) + "." : "–"}, nächster Neumond ${MOON.nw ? wd(MOON.nw) + " " + dm(MOON.nw) + "." : "–"}.${sh}`, `Átlagos felhőzet ma éjjel: ${cloud == null ? "ismeretlen" : Math.round(cloud) + " %"}. Hold: ${TR(MOON.name)}, ${Math.round(MOON.fraction * 100)} %-ban megvilágítva, éjfélkor a horizont ${moonUp ? "fölött" : "alatt"}. Következő telihold ${MOON.full ? wd(MOON.full) + " " + dm(MOON.full) + "." : "–"}, következő újhold ${MOON.nw ? wd(MOON.nw) + " " + dm(MOON.nw) + "." : "–"}.${sh}`);
   if (cloud == null) return {key:"star", title:"Sternenhimmel", state:"na", short:"keine Daten", detail: base};
-  if (cloud < 30 && !bright) return {key:"star", title:"Sternenhimmel", state:"on", short: shower ? shower[1] + "!" : "klar und dunkel", detail:`Beste Bedingungen zum Sternegucken. ${base}`};
-  if (cloud < 30) return {key:"star", title:"Sternenhimmel", state:"maybe", short:"klar, Mond hell", detail:`Klare Nacht, aber der Mond überstrahlt schwache Sterne. ${base}`};
-  if (cloud < 60) return {key:"star", title:"Sternenhimmel", state:"maybe", short:"teils klar", detail:`Wolkenlücken möglich. ${base}`};
+  if (cloud < 30 && !bright) return {key:"star", title:"Sternenhimmel", state:"on", short: shower ? shower[1] + "!" : "klar und dunkel", detail:ZW(`Beste Bedingungen zum Sternegucken. ${base}`, `Kiváló feltételek a csillagnézéshez. ${base}`)};
+  if (cloud < 30) return {key:"star", title:"Sternenhimmel", state:"maybe", short:"klar, Mond hell", detail:ZW(`Klare Nacht, aber der Mond überstrahlt schwache Sterne. ${base}`, `Derült éjszaka, de a Hold elnyomja a halvány csillagokat. ${base}`)};
+  if (cloud < 60) return {key:"star", title:"Sternenhimmel", state:"maybe", short:"teils klar", detail:ZW(`Wolkenlücken möglich. ${base}`, `Felhőszakadások lehetségesek. ${base}`)};
   return {key:"star", title:"Sternenhimmel", state:"off", short:"bewölkt", detail: base};
 }
 
@@ -1798,28 +1825,28 @@ function sigPV() {
   if (!LAST) return {key:"pv", title:"PV morgen", state:"na", short:"–", detail:""};
   const tom = new Date(Date.now() + 864e5), k = dayKey(tom);
   const hrs = LAST.recs.filter(r => dayKey(new Date(r.timestamp)) === k && r.solar != null);
-  if (hrs.length < 12) return {key:"pv", title:"PV morgen", state:"na", short:"keine Daten", detail:"Für morgen liegt noch keine Strahlungsvorhersage vor."};
+  if (hrs.length < 12) return {key:"pv", title:"PV morgen", state:"na", short:"keine Daten", detail:ZW("Für morgen liegt noch keine Strahlungsvorhersage vor.", "Holnapra még nincs sugárzás-előrejelzés.")};
   const sum = hrs.reduce((a, r) => a + r.solar, 0), clear = clearSkyKwh(tom), q = Math.min(1, sum / clear);
   let best = null;
   for (let i = 0; i + 2 < hrs.length; i++) { const s3 = hrs[i].solar + hrs[i + 1].solar + hrs[i + 2].solar; if (!best || s3 > best.s) best = {s: s3, h: hourOf(new Date(hrs[i].timestamp)) - 1}; }
   const win = best && best.s > 0.05 ? `${String(best.h).padStart(2, "0")}–${String(best.h + 3).padStart(2, "0")}${UHR_H}` : null;
   const lvl = q >= 0.7 ? "sehr gut" : q >= 0.45 ? "gut" : q >= 0.2 ? "mäßig" : "schwach";
-  const detail = `Vorhergesagte Sonneneinstrahlung morgen ${f1(sum)} kWh/m², das sind ${Math.round(q * 100)} % eines wolkenlosen Tages (${f1(clear)} kWh/m²).${win ? ` Stärkste drei Stunden: ${win}, gut für Waschmaschine, Spülmaschine oder Autoladen.` : ""} Quelle: DWD-MOSMIX über Bright Sky.`;
+  const detail = ZW(`Vorhergesagte Sonneneinstrahlung morgen ${f1(sum)} kWh/m², das sind ${Math.round(q * 100)} % eines wolkenlosen Tages (${f1(clear)} kWh/m²).${win ? ` Stärkste drei Stunden: ${win}, gut für Waschmaschine, Spülmaschine oder Autoladen.` : ""} Quelle: DWD-MOSMIX über Bright Sky.`, `Holnapra előrejelzett napsugárzás ${f1(sum)} kWh/m², ez egy felhőtlen nap ${Math.round(q * 100)} %-a (${f1(clear)} kWh/m²).${win ? ` A legerősebb három óra: ${win}, jó a mosógéphez, mosogatógéphez vagy autótöltéshez.` : ""} Forrás: DWD-MOSMIX a Bright Sky-on át.`);
   return {key:"pv", title:"PV morgen", state: q >= 0.7 ? "on" : q >= 0.45 ? "maybe" : "off", short: win && q >= 0.2 ? `${TR(lvl)} · ${win}` : TR(lvl), detail};
 }
 
 function sigFrost() {
   if (!LAST) return {key:"frost", title:"Morgenfrost", state:"na", short:"–", detail:""};
   const now = new Date(), early = hourOf(now) < 8;
-  const day = early ? now : new Date(now.getTime() + 864e5), k = dayKey(day), when = early ? "heute früh" : "morgen früh";
+  const day = early ? now : new Date(now.getTime() + 864e5), k = dayKey(day), when = early ? ZW("heute früh", "ma reggel") : ZW("morgen früh", "holnap reggel");
   const m = LAST.recs.filter(r => { const d = new Date(r.timestamp), h = hourOf(d); return dayKey(d) === k && h >= 4 && h <= 9 && r.temperature != null; });
   if (!m.length) return {key:"frost", title:"Morgenfrost", state:"na", short:"keine Daten", detail:""};
   const tmin = Math.min(...m.map(r => r.temperature)), wet = m.some(r => r.precipitation > 0.05);
   const fog = m.some(r => r.dew_point != null && r.temperature - r.dew_point < 1.5);
-  const base = `Tiefstwert ${when} zwischen 4 und 9 Uhr: ${f1(tmin)} °C in 2 m Höhe. Am Boden und auf Autoscheiben ist es oft 2 bis 4 Grad kälter.`;
-  if (tmin <= 1 && wet) return {key:"frost", title:"Morgenfrost", state:"on", short:`Glätte ${when}`, detail:`Niederschlag bei Temperaturen um den Gefrierpunkt: Glättegefahr auf Straßen und Wegen. ${base}`};
-  if (tmin <= 0) return {key:"frost", title:"Morgenfrost", state:"on", short:"Scheibe kratzen", detail:`Frost ${when}: Autoscheiben vereisen. ${base}`};
-  if (tmin <= 3) return {key:"frost", title:"Morgenfrost", state:"maybe", short: fog || !wet ? "Reif möglich" : "Bodenfrost möglich", detail:`Bodenfrost und Reif auf Scheiben möglich. ${base}`};
+  const base = ZW(`Tiefstwert ${when} zwischen 4 und 9 Uhr: ${f1(tmin)} °C in 2 m Höhe. Am Boden und auf Autoscheiben ist es oft 2 bis 4 Grad kälter.`, `Minimum ${when} 4 és 9 óra között: ${f1(tmin)} °C 2 m magasan. A talajon és az autók szélvédőjén gyakran 2–4 fokkal hidegebb van.`);
+  if (tmin <= 1 && wet) return {key:"frost", title:"Morgenfrost", state:"on", short:ZW(`Glätte ${when}`, `Síkosság ${when}`), detail:ZW(`Niederschlag bei Temperaturen um den Gefrierpunkt: Glättegefahr auf Straßen und Wegen. ${base}`, `Csapadék fagypont körüli hőmérsékleten: síkosság az utakon és járdákon. ${base}`)};
+  if (tmin <= 0) return {key:"frost", title:"Morgenfrost", state:"on", short:"Scheibe kratzen", detail:ZW(`Frost ${when}: Autoscheiben vereisen. ${base}`, `Fagy ${when}: az autók szélvédője bejegesedik. ${base}`)};
+  if (tmin <= 3) return {key:"frost", title:"Morgenfrost", state:"maybe", short: fog || !wet ? "Reif möglich" : "Bodenfrost möglich", detail:ZW(`Bodenfrost und Reif auf Scheiben möglich. ${base}`, `Talajmenti fagy és dér a szélvédőn lehetséges. ${base}`)};
   return {key:"frost", title:"Morgenfrost", state:"off", short:"frostfrei", detail: base};
 }
 
@@ -1846,52 +1873,66 @@ function gesundTipps(eff) {
   const kreisNied = wirk(/niedriger Blutdruck/), rheuma = wirk(/Rheuma|rheumatisch/i), befinden = eff.some(e => e.l > 0);
   // Kneipp
   let kn;
-  if (rheuma) kn = "Bei Gelenk- und Rheumabeschwerden lieber Wärme als Kälte: ansteigendes Fußbad oder ein warmes Heublumensäckchen.";
-  else if (kreisNied) kn = "Kalter Knieguss am Morgen (von den Zehen bis übers Knie, rund 20 Sekunden) bringt einen trägen Kreislauf in Schwung.";
-  else if (schnee) kn = "Schneetreten: einige Sekunden barfuß im frischen Schnee, danach Füße abstreifen, warme Socken an und bewegen.";
-  else if (tx < 6) kn = "Wechselfußbad am Abend: 5 Minuten warm, 10 Sekunden kalt, zweimal wiederholen, kalt aufhören. Wärmt kalte Füße nachhaltig.";
-  else if (tx < 16) kn = "Kaltes Armbad (beide Arme bis zur Mitte des Oberarms, 20 bis 30 Sekunden) am Vormittag statt der zweiten Tasse Kaffee.";
-  else if (tx < 26) kn = regen < 0.5 ? "Tautreten am Morgen: ein bis zwei Minuten barfuß durchs nasse Gras, danach Füße warm laufen." : "Wassertreten in der Badewanne oder am Bach (Storchengang, bis es kalt zieht, etwa 30 Sekunden) belebt müde Beine.";
-  else kn = "Bei Hitze kühlt ein kaltes Armbad oder ein Wadenwickel am Abend und hilft beim Einschlafen.";
+  if (rheuma) kn = ZW("Bei Gelenk- und Rheumabeschwerden lieber Wärme als Kälte: ansteigendes Fußbad oder ein warmes Heublumensäckchen.", "Ízületi és reumás panaszoknál inkább meleget, mint hideget: fokozatosan melegített lábfürdő vagy meleg szénavirág-párna.");
+  else if (kreisNied) kn = ZW("Kalter Knieguss am Morgen (von den Zehen bis übers Knie, rund 20 Sekunden) bringt einen trägen Kreislauf in Schwung.", "Reggel hideg térdöntés (a lábujjaktól a térd fölé, kb. 20 másodperc) felpezsdíti a lomha keringést.");
+  else if (schnee) kn = ZW("Schneetreten: einige Sekunden barfuß im frischen Schnee, danach Füße abstreifen, warme Socken an und bewegen.", "Hótaposás: néhány másodperc mezítláb a friss hóban, utána a lábat letörölni, meleg zoknit húzni és mozogni.");
+  else if (tx < 6) kn = ZW("Wechselfußbad am Abend: 5 Minuten warm, 10 Sekunden kalt, zweimal wiederholen, kalt aufhören. Wärmt kalte Füße nachhaltig.", "Esti váltott lábfürdő: 5 perc meleg, 10 másodperc hideg, kétszer ismételve, hideggel befejezve. Tartósan felmelegíti a hideg lábat.");
+  else if (tx < 16) kn = ZW("Kaltes Armbad (beide Arme bis zur Mitte des Oberarms, 20 bis 30 Sekunden) am Vormittag statt der zweiten Tasse Kaffee.", "Délelőtt hideg karfürdő (mindkét kar a felkar közepéig, 20–30 másodperc) a második kávé helyett.");
+  else if (tx < 26) kn = regen < 0.5 ? ZW("Tautreten am Morgen: ein bis zwei Minuten barfuß durchs nasse Gras, danach Füße warm laufen.", "Harmattaposás reggel: egy-két perc mezítláb a nedves fűben, utána a lábat sétálva bemelegíteni.") : ZW("Wassertreten in der Badewanne oder am Bach (Storchengang, bis es kalt zieht, etwa 30 Sekunden) belebt müde Beine.", "Vízben járás a kádban vagy patakban (gólyajárás, amíg csíp a hideg, kb. 30 másodperc) felfrissíti a fáradt lábat.");
+  else kn = ZW("Bei Hitze kühlt ein kaltes Armbad oder ein Wadenwickel am Abend und hilft beim Einschlafen.", "Hőségben este hideg karfürdő vagy vádlipakolás hűt, és segít az elalvásban.");
   // Ganzheitlich
   let gz;
-  if (tx >= 27) gz = "Bewegung in die kühlen Morgenstunden legen, regelmäßig trinken, mittags Schatten und Ruhe.";
-  else if (befinden) gz = "Wetterfühlige Tage ruhiger planen: genug trinken, frische Luft, moderate Bewegung statt Höchstleistung, früh ins Bett.";
-  else if (sonne < 2 && (mon >= 10 || mon <= 3)) gz = "Kurze, trübe Tage: mittags mindestens 30 Minuten raus ans Tageslicht. Das stützt Stimmung und Schlaf-Wach-Rhythmus.";
-  else if (sonne >= 4) gz = `Rund ${Math.round(sonne)} Sonnenstunden: ein Spaziergang am Vormittag tankt Licht und Bewegung zugleich.`;
-  else gz = "Gleichmäßiger Tagesrhythmus: feste Essens- und Schlafzeiten, zwischendurch kurz an die frische Luft.";
+  if (tx >= 27) gz = ZW("Bewegung in die kühlen Morgenstunden legen, regelmäßig trinken, mittags Schatten und Ruhe.", "A mozgást a hűvös reggeli órákra tegye, igyon rendszeresen, délben árnyék és pihenés.");
+  else if (befinden) gz = ZW("Wetterfühlige Tage ruhiger planen: genug trinken, frische Luft, moderate Bewegung statt Höchstleistung, früh ins Bett.", "Frontérzékeny napokon nyugodtabb program: elég folyadék, friss levegő, mérsékelt mozgás csúcsteljesítmény helyett, korai lefekvés.");
+  else if (sonne < 2 && (mon >= 10 || mon <= 3)) gz = ZW("Kurze, trübe Tage: mittags mindestens 30 Minuten raus ans Tageslicht. Das stützt Stimmung und Schlaf-Wach-Rhythmus.", "Rövid, borús napok: délben legalább 30 perc a szabadban, nappali fényen. Ez segíti a hangulatot és az alvás-ébrenlét ritmusát.");
+  else if (sonne >= 4) gz = ZW(`Rund ${Math.round(sonne)} Sonnenstunden: ein Spaziergang am Vormittag tankt Licht und Bewegung zugleich.`, `Kb. ${Math.round(sonne)} napos óra: egy délelőtti séta fényt és mozgást is ad.`);
+  else gz = ZW("Gleichmäßiger Tagesrhythmus: feste Essens- und Schlafzeiten, zwischendurch kurz an die frische Luft.", "Egyenletes napi ritmus: rendszeres étkezési és alvási idők, közben rövid séták a friss levegőn.");
   // TCM
-  const zeit = mon <= 2 || mon === 12 ? ["Winter", "Niere", "Kraft sparen, früh schlafen, Rücken und Füße warm halten"]
+  const zeit = LANG === "hu"
+    ? (mon <= 2 || mon === 12 ? ["A tél", "vese", "erőt tartalékolni, korán aludni, a hátat és a lábat melegen tartani"]
+      : mon <= 5 ? ["A tavasz", "máj", "sok mozgás, friss zöld, mint a medvehagyma és a csíra, savanyú mértékkel"]
+      : mon <= 7 ? ["A nyár", "szív", "könnyű étkezés, keserű saláták, a kedélyt nem túlhevíteni"]
+      : mon === 8 ? ["A késő nyár", "lép", "főtt, meleg étel, tök, köles, rendszeres étkezés"]
+      : ["Az ősz", "tüdő", "a légzés ápolása, körte, mandula, méz, párolt zöldség"])
+    : mon <= 2 || mon === 12 ? ["Winter", "Niere", "Kraft sparen, früh schlafen, Rücken und Füße warm halten"]
     : mon <= 5 ? ["Frühling", "Leber", "viel Bewegung, frisches Grün wie Bärlauch und Sprossen, sauer in Maßen"]
     : mon <= 7 ? ["Sommer", "Herz", "leicht essen, bittere Salate, Gemüt nicht überhitzen"]
     : mon === 8 ? ["Spätsommer", "Milz", "gekochtes, warmes Essen, Kürbis, Hirse, regelmäßige Mahlzeiten"]
     : ["Herbst", "Lunge", "Atmung pflegen, Birne, Mandeln, Honig, gedünstetes Gemüse"];
   let tc;
-  if (tx >= 27) tc = "Hitze gilt in der TCM als Belastung für das Herz: kühlende Lebensmittel wie Gurke, Melone, Pfefferminztee; scharf Gebratenes und Alkohol meiden.";
-  else if (boe >= 45) tc = `Böen bis ${Math.round(boe)} km/h: Wind gilt in der TCM als Türöffner für Erkältungen. Nacken und Hals mit Schal schützen.`;
-  else if (tx < 8) tc = "Kälte: warme, gekochte Speisen wie Suppen und Eintöpfe, dazu Ingwer, Zimt oder Fenchel. Wenig Rohkost und Eiskaltes.";
-  else if (regen >= 2 || (feucht != null && feucht >= 88)) tc = "Feuchtigkeit belastet nach TCM die Mitte (Milz): Warmes und leicht Verdauliches wie Hirse, Reis, Karotten; wenig Süßes und Milchprodukte.";
-  else if (feucht != null && feucht < 55) tc = "Trockene Luft schwächt nach TCM die Lunge: Birne (auch gedünstet), Honig, Mandeln und warmes Wasser über den Tag.";
-  else tc = `${zeit[0]} ist in der TCM die Zeit der ${zeit[1]}: ${zeit[2]}.`;
-  return `<div class="gt"><div class="gt-h">Tipps für ${morgen ? "morgen" : "heute"}</div>
-    <p><span>Kneipp</span>${esc(kn)}</p><p><span>Ganzheitlich</span>${esc(gz)}</p><p><span>TCM</span>${esc(tc)}</p>
-    <small>Hausmittel und Erfahrungsheilkunde, kein ärztlicher Rat. Kalte Anwendungen nur bei warmem Körper; bei Herz-, Gefäß- oder Blutdruckproblemen und in der Schwangerschaft vorher ärztlich abklären.</small></div>`;
+  if (tx >= 27) tc = ZW("Hitze gilt in der TCM als Belastung für das Herz: kühlende Lebensmittel wie Gurke, Melone, Pfefferminztee; scharf Gebratenes und Alkohol meiden.", "A TCM szerint a hőség megterheli a szívet: hűsítő ételek, mint uborka, dinnye, borsmentatea; kerülje az erősen sült ételeket és az alkoholt.");
+  else if (boe >= 45) tc = ZW(`Böen bis ${Math.round(boe)} km/h: Wind gilt in der TCM als Türöffner für Erkältungen. Nacken und Hals mit Schal schützen.`, `Széllökések ${Math.round(boe)} km/h-ig: a TCM szerint a szél kaput nyit a megfázásnak. Védje a tarkót és a nyakat sállal.`);
+  else if (tx < 8) tc = ZW("Kälte: warme, gekochte Speisen wie Suppen und Eintöpfe, dazu Ingwer, Zimt oder Fenchel. Wenig Rohkost und Eiskaltes.", "Hideg: meleg, főtt ételek, mint levesek és egytálételek, mellé gyömbér, fahéj vagy édeskömény. Kevés nyers és jéghideg étel.");
+  else if (regen >= 2 || (feucht != null && feucht >= 88)) tc = ZW("Feuchtigkeit belastet nach TCM die Mitte (Milz): Warmes und leicht Verdauliches wie Hirse, Reis, Karotten; wenig Süßes und Milchprodukte.", "A TCM szerint a nedvesség a közepet (lép) terheli: meleg, könnyen emészthető ételek, mint köles, rizs, sárgarépa; kevés édesség és tejtermék.");
+  else if (feucht != null && feucht < 55) tc = ZW("Trockene Luft schwächt nach TCM die Lunge: Birne (auch gedünstet), Honig, Mandeln und warmes Wasser über den Tag.", "A TCM szerint a száraz levegő gyengíti a tüdőt: körte (párolva is), méz, mandula és napközben meleg víz.");
+  else tc = ZW(`${zeit[0]} ist in der TCM die Zeit der ${zeit[1]}: ${zeit[2]}.`, `${zeit[0]} a TCM-ben a ${zeit[1]} ideje: ${zeit[2]}.`);
+  return `<div class="gt"><div class="gt-h">${ZW(`Tipps für ${morgen ? "morgen" : "heute"}`, `Tippek ${morgen ? "holnapra" : "mára"}`)}</div>
+    <p><span>Kneipp</span>${esc(kn)}</p><p><span>${ZW("Ganzheitlich", "Holisztikus")}</span>${esc(gz)}</p><p><span>TCM</span>${esc(tc)}</p>
+    <small>${ZW("Hausmittel und Erfahrungsheilkunde, kein ärztlicher Rat. Kalte Anwendungen nur bei warmem Körper; bei Herz-, Gefäß- oder Blutdruckproblemen und in der Schwangerschaft vorher ärztlich abklären.",
+      "Házi praktikák és tapasztalati gyógymódok, nem orvosi tanács. Hideg kezelést csak meleg testtel; szív-, ér- vagy vérnyomásproblémák esetén és terhesség alatt előbb kérje ki orvosa véleményét.")}</small></div>`;
 }
+const BIO_HU = [[/allgemeine Befinden|Befinden/, "általános közérzet"], [/Herz- und Kreislaufgeschehen|Kreislauf/, "szív és keringés"],
+  [/niedriger Blutdruck/, "alacsony vérnyomás"], [/hoher Blutdruck/, "magas vérnyomás"], [/rheumatische Beschwerden|Rheuma/, "reumás panaszok"],
+  [/entzündliche /, "gyulladásos "], [/degenerative /, "degeneratív "], [/Asthma/, "asztma"], [/Wärmebelastung|Thermische Belastung/, "hőterhelés"],
+  [/Kältereiz/, "hidegterhelés"], [/geringe Gefährdung/, "kis kockázat"], [/mäßige Gefährdung/, "mérsékelt kockázat"], [/sehr hohe Gefährdung/, "nagyon nagy kockázat"], [/hohe Gefährdung/, "nagy kockázat"], [/kein Einfluss/, "nincs hatás"],
+  [/positiver Einfluss/, "kedvező hatás"], [/mäßige|mäßig/, "mérsékelt"], [/Belastung/, "terhelés"], [/stark/, "erős"], [/gering/, "csekély"]];
+const bioHU = t => LANG === "hu" ? BIO_HU.reduce((s, [re, h]) => s.replace(re, h), String(t)) : t;
 function sigBio() {
   const z = EXTRA?.bio?.zone;
-  if (!z) { const g = gesundTipps([]); return {key:"bio", title:"Biowetter", state:"na", short: g ? "Gesundheitstipps" : "keine Daten", detail: g ? "DWD-Biowetter gerade nicht verfügbar." + g : ""}; }
+  if (!z) { const g = gesundTipps([]); return {key:"bio", title:"Biowetter", state:"na", short: g ? "Gesundheitstipps" : "keine Daten", detail: g ? ZW("DWD-Biowetter gerade nicht verfügbar.", "A DWD biometeorológiai előrejelzése most nem érhető el.") + g : ""}; }
   const useToday = hourOf(new Date()) < 14 && z.today_afternoon;
   const per = useToday ? z.today_afternoon : (z.tomorrow_morning || z.today_afternoon);
-  const when = useToday ? "Heute Nachmittag" : "Morgen Vormittag";
-  if (!per) { const g = gesundTipps([]); return {key:"bio", title:"Biowetter", state:"na", short: g ? "Gesundheitstipps" : "keine Daten", detail: g ? "DWD-Biowetter gerade nicht verfügbar." + g : ""}; }
+  const when = useToday ? ZW("Heute Nachmittag", "Ma délután") : ZW("Morgen Vormittag", "Holnap délelőtt");
+  if (!per) { const g = gesundTipps([]); return {key:"bio", title:"Biowetter", state:"na", short: g ? "Gesundheitstipps" : "keine Daten", detail: g ? ZW("DWD-Biowetter gerade nicht verfügbar.", "A DWD biometeorológiai előrejelzése most nem érhető el.") + g : ""}; }
   const eff = (per.effect || []).map(e => ({n: String(e.name || "").replace(/^Wettereinfluss auf (das |die |den )?/, "").replace(/ ?\((hypotone|hypertone) Form\)/, m => m.includes("hypo") ? " (niedriger Blutdruck)" : " (hoher Blutdruck)"), v: e.value, l: bioLevel(e.value)}));
   const worst = eff.slice().sort((a, b) => b.l - a.l)[0];
   const recs = [...new Set((per.recomms || []).map(r => r.value).filter(Boolean))];
-  const list = eff.filter(e => e.l > 0).map(e => `${e.n}: ${e.v}`).join("; ");
-  const detail = `${when}: ${list ? esc(list) + "." : "kein nennenswerter Wettereinfluss."}${recs.length ? " Empfehlung: " + esc(recs.slice(0, 2).join(". ")) + "." : ""} Region ${esc(z.name || "")}. Quelle: DWD-Biowetter.` + gesundTipps(eff);
+  const list = eff.filter(e => e.l > 0).map(e => `${bioHU(e.n)}: ${bioHU(e.v)}`).join("; ");
+  const detail = ZW(`${when}: ${list ? esc(list) + "." : "kein nennenswerter Wettereinfluss."}${recs.length ? " Empfehlung: " + esc(recs.slice(0, 2).join(". ")) + "." : ""} Region ${esc(z.name || "")}. Quelle: DWD-Biowetter.`,
+    `${when}: ${list ? esc(list) + "." : "nincs számottevő időjárási hatás."}${recs.length ? " Ajánlás (a DWD szövege, németül): " + esc(recs.slice(0, 2).join(". ")) + "." : ""} Régió: ${esc(z.name || "")}. Forrás: DWD biometeorológia.`) + gesundTipps(eff);
   if (!worst || worst.l === 0) return {key:"bio", title:"Biowetter", state:"off", short:"kaum Einfluss", detail};
   const short = worst.n.replace(/allgemeine Befinden/, "Befinden").replace(/Herz- und Kreislaufgeschehen/, "Kreislauf").replace(/ ?\(.*\)/, "").replace(/entzündliche |degenerative /, "").replace(/rheumatische Beschwerden/, "Rheuma").replace(/^Thermische Belastung$/, "Wärmebelastung");
-  return {key:"bio", title:"Biowetter", state: worst.l >= 2 ? "on" : "maybe", short: `${short} ${worst.l >= 2 ? "stark" : "leicht"}`, detail};
+  return {key:"bio", title:"Biowetter", state: worst.l >= 2 ? "on" : "maybe", short: ZW(`${short} ${worst.l >= 2 ? "stark" : "leicht"}`, `${bioHU(short)} ${worst.l >= 2 ? "erős" : "enyhe"}`), detail};
 }
 
 async function loadArber() {
@@ -1908,10 +1949,10 @@ function sigSchnee() {
   if (!cm && neu < 0.5 && !winter) return null;   // im Sommer ohne Schnee ausblenden
   const datum = last ? `${last[0].slice(8)}.${last[0].slice(5, 7)}.` : null;
   const detail = `${cm != null ? `Schneehöhe an der DWD-Station Großer Arber: ${Math.round(cm)} cm (Messung vom ${datum}).` : "Aktuell keine Schneehöhe gemeldet."} Neuschnee in den nächsten 48 Stunden laut Vorhersage: etwa ${Math.round(neu)} cm (grob 1 cm je mm Niederschlag).`;
-  if (neu >= 5) return {key:"snow", title:"Schnee Arber", state:"on", short:`+${Math.round(neu)} cm Neuschnee`, detail};
-  if (cm >= 20) return {key:"snow", title:"Schnee Arber", state:"on", short:`${Math.round(cm)} cm Schnee`, detail};
+  if (neu >= 5) return {key:"snow", title:"Schnee Arber", state:"on", short:ZW(`+${Math.round(neu)} cm Neuschnee`, `+${Math.round(neu)} cm friss hó`), detail};
+  if (cm >= 20) return {key:"snow", title:"Schnee Arber", state:"on", short:ZW(`${Math.round(cm)} cm Schnee`, `${Math.round(cm)} cm hó`), detail};
   if (cm > 0 || neu >= 0.5) return {key:"snow", title:"Schnee Arber", state:"maybe", short: cm > 0 ? `${Math.round(cm)} cm` : `etwas Neuschnee`, detail};
-  return {key:"snow", title:"Schnee Arber", state:"off", short:"kein Schnee", detail};
+  return {key:"snow", title:"Schnee Arber", state:"off", short:ZW("kein Schnee", "nincs hó"), detail};
 }
 
 
@@ -1938,7 +1979,7 @@ const cfg = () => ORT_CFG[ortKey()];
 const addDays = (d, n) => new Date(Date.parse(d + "T00:00:00Z") + n * 864e5).toISOString().slice(0, 10);
 const nf = (v, d = 1) => v == null || isNaN(v) ? "–" : v.toLocaleString(LOC, {minimumFractionDigits: d, maximumFractionDigits: d});
 const sgn = (v, d = 1) => (v > 0 ? "+" : v < 0 ? "−" : "±") + nf(Math.abs(v), d);
-const MONATE = ["Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"];
+const MONATE = LANG === "hu" ? ["jan.","febr.","márc.","ápr.","máj.","jún.","júl.","aug.","szept.","okt.","nov.","dec."] : ["Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"];
 
 /* ---------- Regen am Ort (gemessen) ---------- */
 let RAIN = null;
@@ -2026,7 +2067,7 @@ function klimaChip(recs, now) {
   if (t.length < 12) return "";
   const d = t.reduce((a, b) => a + b, 0) / t.length - n.tmit;
   const cls = d > 1 ? "up" : d < -1 ? "down" : "";
-  return `<span class="chip ${cls}" title="Tagesmittel heute (Messung und Vorhersage) gegenüber dem Mittel ${T.normLabel} an der DWD-Station ${esc(STATION()?.name || "")}">${sgn(d)}° ${Math.abs(d) < 0.5 ? "wie" : d > 0 ? "wärmer als" : "kälter als"} im Mittel</span>`;
+  return ZW(`<span class="chip ${cls}" title="Tagesmittel heute (Messung und Vorhersage) gegenüber dem Mittel ${T.normLabel} an der DWD-Station ${esc(STATION()?.name || "")}">${sgn(d)}° ${Math.abs(d) < 0.5 ? "wie" : d > 0 ? "wärmer als" : "kälter als"} im Mittel</span>`, `<span class="chip ${cls}" title="A mai napi átlag (mérés és előrejelzés) a ${T.normLabel} átlaghoz képest, DWD ${esc(STATION()?.name || "")} állomás">${sgn(d)}° ${Math.abs(d) < 0.5 ? "mint az átlag" : d > 0 ? "melegebb az átlagnál" : "hidegebb az átlagnál"}</span>`);
 }
 
 /* ---------- Waldbrandgefahr: kanadischer Fire Weather Index (Van Wagner 1987), eigene Berechnung ---------- */
@@ -2081,7 +2122,7 @@ function sigFeuer() {
   const now = new Date(), mon = now.getMonth();
   if (mon <= 1 || mon === 10 || mon === 11) return null;   // November bis Februar ausgeblendet
   const T = TAGE();
-  if (!T || !LAST) return {key:"fire", title:"Waldbrand", state:"na", short:"keine Daten", detail:"Für die Berechnung fehlen die Tageswerte der letzten Wochen."};
+  if (!T || !LAST) return {key:"fire", title:"Waldbrand", state:"na", short:"keine Daten", detail:ZW("Für die Berechnung fehlen die Tageswerte der letzten Wochen.", "A számításhoz hiányoznak az elmúlt hetek napi adatai.")};
   const today = dayKey(now);
   let s = {ffmc: 85, dmc: 6, dc: 15}, dry = 0;
   for (let d = addDays(today, -60); d < today; d = addDays(d, 1)) {
@@ -2098,38 +2139,39 @@ function sigFeuer() {
   }
   const f = s.fwi ?? 0;
   const lvl = f < 5.2 ? 1 : f < 11.2 ? 2 : f < 21.3 ? 3 : f < 38 ? 4 : 5;
-  const word = ["", "sehr gering", "gering", "mittel", "hoch", "sehr hoch"][lvl];
-  const gras = mon >= 2 && mon <= 4 && s.ffmc >= 88 ? " Graslandfeuer: Altgras und trockene Wiesen sind leicht entzündlich." : "";
-  const detail = `Stufe ${lvl} von 5 (${word}). FWI ${nf(f)}, Feinstreu-Feuchtecode ${nf(s.ffmc, 0)}, Brennstoffindex ${nf(s.bui, 0)}. ${dry ? `Seit ${dry} Tag${dry > 1 ? "en" : ""} weniger als 1 mm Regen.` : "Zuletzt nennenswerter Regen."}${gras} Eigene Berechnung nach dem kanadischen FWI-Verfahren (Grundlage auch des DWD-Index) aus den Tageswerten der DWD-Station ${esc(STATION()?.name || "")}, Klassen nach EFFIS. Keine amtliche Warnung.`;
-  return {key:"fire", title:"Waldbrand", state: lvl >= 4 ? "on" : lvl === 3 ? "maybe" : "off", short:`Stufe ${lvl} · ${word}`, detail};
+  const word = (LANG === "hu" ? ["", "nagyon alacsony", "alacsony", "közepes", "magas", "nagyon magas"] : ["", "sehr gering", "gering", "mittel", "hoch", "sehr hoch"])[lvl];
+  const gras = mon >= 2 && mon <= 4 && s.ffmc >= 88 ? ZW(" Graslandfeuer: Altgras und trockene Wiesen sind leicht entzündlich.", " Gyepterületi tűz: az avar és a száraz rét könnyen meggyullad.") : "";
+  const detail = ZW(`Stufe ${lvl} von 5 (${word}). FWI ${nf(f)}, Feinstreu-Feuchtecode ${nf(s.ffmc, 0)}, Brennstoffindex ${nf(s.bui, 0)}. ${dry ? `Seit ${dry} Tag${dry > 1 ? "en" : ""} weniger als 1 mm Regen.` : "Zuletzt nennenswerter Regen."}${gras} Eigene Berechnung nach dem kanadischen FWI-Verfahren (Grundlage auch des DWD-Index) aus den Tageswerten der DWD-Station ${esc(STATION()?.name || "")}, Klassen nach EFFIS. Keine amtliche Warnung.`, `${lvl}. fokozat az 5-ből (${word}). FWI ${nf(f)}, finom avar nedvességkódja ${nf(s.ffmc, 0)}, éghetőanyag-index ${nf(s.bui, 0)}. ${dry ? `${dry} napja kevesebb mint 1 mm eső.` : "Nemrég volt számottevő eső."}${gras} Saját számítás a kanadai FWI-módszerrel (erre épül a DWD indexe is) a DWD ${esc(STATION()?.name || "")} állomás napi adataiból, osztályok az EFFIS szerint. Nem hivatalos figyelmeztetés.`);
+  return {key:"fire", title:"Waldbrand", state: lvl >= 4 ? "on" : lvl === 3 ? "maybe" : "off", short:ZW(`Stufe ${lvl} · ${word}`, `${lvl}. fokozat · ${word}`), detail};
 }
 
 /* ---------- Ortsbezogene Fassungen bestehender Kacheln ---------- */
 function sigInversionOrt() {
   const ar = STN.find(s => /Arber/.test(s.name) && s.now && s.hoehe > 1200);
   const val = STN.filter(s => s.now && s.hoehe != null && s.hoehe < 700 && s.dist != null).sort((a, b) => a.dist - b.dist)[0];
-  if (!ar || !val) return {key:"inv", title:"Inversion", state:"na", short:"keine Daten", detail:"Für den Vergleich fehlen gerade Messwerte vom Arber oder aus dem Tal am Ort."};
+  if (!ar || !val) return {key:"inv", title:"Inversion", state:"na", short:"keine Daten", detail:ZW("Für den Vergleich fehlen gerade Messwerte vom Arber oder aus dem Tal am Ort.", "Az összehasonlításhoz most hiányoznak az Arber vagy a völgy mérései.")};
   const diff = ar.now.t - val.now.t, dh = ar.hoehe - val.hoehe, normal = -0.0065 * dh;
   const foggy = (CUR?.icon === "fog") || (CUR?.relative_humidity >= 97);
-  const txt = `Tal am Ort: ${esc(val.name)} ${f1(val.now.t)} °C (${Math.round(val.hoehe)} m, ${Math.round(val.dist)} km). Gipfel: Großer Arber ${f1(ar.now.t)} °C (${Math.round(ar.hoehe)} m). Normal wäre es oben rund ${f1(-normal)} Grad kälter.`;
-  if (diff > 0) return {key:"inv", title:"Inversion", state:"on", short: foggy ? "Über dem Nebel!" : `oben ${f1(diff)}° wärmer`,
-    detail:`Oben ist es wärmer als im Tal: eine echte Inversion. ${foggy ? "Im Tal liegt Nebel, auf den Gipfeln scheint vermutlich die Sonne." : "Typisch für ruhiges Hochdruckwetter, oft mit Nebel oder Hochnebel in den Tälern."} ${txt}`};
-  if (diff > normal + 3) return {key:"inv", title:"Inversion", state:"maybe", short:"schwach ausgeprägt", detail:`Oben ist es weniger kalt als üblich, die Luft ist stabil geschichtet. ${txt}`};
-  return {key:"inv", title:"Inversion", state:"off", short:"normale Schichtung", detail:`Keine Inversion: Mit der Höhe wird es wie üblich kälter. ${txt}`};
+  const txt = ZW(`Tal am Ort: ${esc(val.name)} ${f1(val.now.t)} °C (${Math.round(val.hoehe)} m, ${Math.round(val.dist)} km). Gipfel: Großer Arber ${f1(ar.now.t)} °C (${Math.round(ar.hoehe)} m). Normal wäre es oben rund ${f1(-normal)} Grad kälter.`, `Völgy: ${esc(val.name)} ${f1(val.now.t)} °C (${Math.round(val.hoehe)} m, ${Math.round(val.dist)} km). Csúcs: Großer Arber ${f1(ar.now.t)} °C (${Math.round(ar.hoehe)} m). Normál esetben fent kb. ${f1(-normal)} fokkal hidegebb lenne.`);
+  if (diff > 0) return {key:"inv", title:"Inversion", state:"on", short: foggy ? ZW("Über dem Nebel!", "A köd fölött!") : ZW(`oben ${f1(diff)}° wärmer`, `fent ${f1(diff)}°-kal melegebb`),
+    detail:ZW(`Oben ist es wärmer als im Tal: eine echte Inversion. ${foggy ? "Im Tal liegt Nebel, auf den Gipfeln scheint vermutlich die Sonne." : "Typisch für ruhiges Hochdruckwetter, oft mit Nebel oder Hochnebel in den Tälern."} ${txt}`, `Fent melegebb van, mint a völgyben: valódi inverzió. ${foggy ? "A völgyben köd van, a csúcsokon valószínűleg süt a nap." : "Jellemző a nyugodt anticiklonális időre, gyakran köddel vagy alacsony szürke felhőzettel a völgyekben."} ${txt}`)};
+  if (diff > normal + 3) return {key:"inv", title:"Inversion", state:"maybe", short:ZW("schwach ausgeprägt", "gyenge"), detail:ZW(`Oben ist es weniger kalt als üblich, die Luft ist stabil geschichtet. ${txt}`, `Fent kevésbé hideg a szokásosnál, a légrétegződés stabil. ${txt}`)};
+  return {key:"inv", title:"Inversion", state:"off", short:ZW("normale Schichtung", "normál rétegződés"), detail:ZW(`Keine Inversion: Mit der Höhe wird es wie üblich kälter. ${txt}`, `Nincs inverzió: a magassággal a szokásos módon hűl a levegő. ${txt}`)};
 }
 function sigFernsicht() {
   const st = STN.filter(s => s.vis != null && s.dist != null).sort((a, b) => a.dist - b.dist)[0];
   const now = new Date(), sun = sunTimes(now, ORT.lat, ORT.lon), day = now > sun.rise && now < sun.set;
   const gipfel = ortKey() === "arber";
-  if (!st) return {key:"alp", title:"Fernsicht", state:"na", short:"keine Sichtdaten", detail:"Keine Station in der Nähe meldet gerade die Sichtweite."};
+  if (!st) return {key:"alp", title:"Fernsicht", state:"na", short:"keine Sichtdaten", detail:ZW("Keine Station in der Nähe meldet gerade die Sichtweite.", "A közelben most egyik állomás sem jelent látótávolságot.")};
   const kmv = st.vis / 1000, rh = st.rh;
-  const base = `Sichtweite an der Station ${esc(st.name)} (${Math.round(st.dist)} km entfernt): ${Math.round(kmv)} km${rh != null ? `, Luftfeuchte ${Math.round(rh)} %` : ""}. ${gipfel ? "Vom Arber sind die Alpen rund 150 km entfernt; sichtbar werden sie bei sehr klarer, trockener Luft." : "Die Alpen sieht man nur von den Gipfeln aus, etwa vom Arber, bei sehr klarer Luft."} Schätzung aus Messwerten.`;
+  const base = ZW(`Sichtweite an der Station ${esc(st.name)} (${Math.round(st.dist)} km entfernt): ${Math.round(kmv)} km${rh != null ? `, Luftfeuchte ${Math.round(rh)} %` : ""}. ${gipfel ? "Vom Arber sind die Alpen rund 150 km entfernt; sichtbar werden sie bei sehr klarer, trockener Luft." : "Die Alpen sieht man nur von den Gipfeln aus, etwa vom Arber, bei sehr klarer Luft."} Schätzung aus Messwerten.`, `Látótávolság a(z) ${esc(st.name)} állomáson (${Math.round(st.dist)} km-re): ${Math.round(kmv)} km${rh != null ? `, páratartalom ${Math.round(rh)} %` : ""}. ${gipfel ? "Az Arberről az Alpok kb. 150 km-re vannak; nagyon tiszta, száraz levegőben láthatók." : "Az Alpok csak a csúcsokról látszanak, például az Arberről, nagyon tiszta levegőben."} Becslés mérési adatokból.`);
   let state = "off", short = "diesig";
   if (kmv >= 60 && (rh == null || rh < 75)) { state = "on"; short = gipfel ? "Alpenblick möglich" : "sehr klare Luft"; }
   else if (kmv >= 35) { state = "maybe"; short = "gute Fernsicht"; }
   else if (kmv >= 10) short = "mäßige Sicht";
   else if (kmv < 1) short = "Nebel";
   if (!day) { state = state === "on" ? "maybe" : "off"; short = state === "maybe" ? "klar, morgen früh schauen" : "nachts"; }
+  short = TR(short);
   return {key:"alp", title: gipfel ? "Alpenblick" : "Fernsicht", state, short, detail: base};
 }
 function sigUVOrt() {
@@ -2138,20 +2180,22 @@ function sigUVOrt() {
   if (!fc) return {key:"uv", title:"UV-Index", state:"na", short:"keine Daten", detail:""};
   const v = fc.today, w = fc.tomorrow;
   const lvl = x => x >= 8 ? "sehr hoch" : x >= 6 ? "hoch" : x >= 3 ? "mittel" : "niedrig";
-  return {key:"uv", title:"UV-Index", state: v >= 6 ? "on" : v >= 3 ? "maybe" : "off", short:`${v} · ${lvl(v)}`,
-    detail:`Heute ${v} (${lvl(v)}), morgen ${w ?? "–"}. DWD-Vorhersage für ${esc(u?.all?.[city] ? city : (u?.city || ""))}, den nächstgelegenen UV-Messort. Ab 3 ist Sonnenschutz sinnvoll, ab 6 unbedingt.`};
+  return {key:"uv", title:"UV-Index", state: v >= 6 ? "on" : v >= 3 ? "maybe" : "off", short:`${v} · ${TR(lvl(v))}`,
+    detail:ZW(`Heute ${v} (${lvl(v)}), morgen ${w ?? "–"}. DWD-Vorhersage für ${esc(u?.all?.[city] ? city : (u?.city || ""))}, den nächstgelegenen UV-Messort. Ab 3 ist Sonnenschutz sinnvoll, ab 6 unbedingt.`, `Ma ${v} (${TR(lvl(v))}), holnap ${w ?? "–"}. A DWD előrejelzése erre: ${esc(u?.all?.[city] ? city : (u?.city || ""))}, a legközelebbi UV-mérőhely. 3-tól ajánlott a fényvédelem, 6-tól feltétlenül.`)};
 }
 function sigPollenOrt() {
   const all = EXTRA?.pollen?.all || {};
   const rk = Object.keys(all).find(k => cfg().pollen.test(k));
   const p = rk ? all[rk] : EXTRA?.pollen?.pollen, region = rk || EXTRA?.pollen?.region || "";
   if (!p) return {key:"pol", title:"Pollen", state:"na", short:"keine Daten", detail:""};
-  const list = Object.entries(p).map(([n, v]) => ({n: POLLEN_NAME[n] || n, t: POLLEN_N[v.today] ?? 0, m: POLLEN_N[v.tomorrow] ?? 0})).sort((a, b) => b.t - a.t);
+  const list = Object.entries(p).map(([n, v]) => ({n: pollenName(n), t: POLLEN_N[v.today] ?? 0, m: POLLEN_N[v.tomorrow] ?? 0})).sort((a, b) => b.t - a.t);
   const act = list.filter(x => x.t >= .5), top = act[0];
   const tomorrow = list.filter(x => x.m >= .5).map(x => `${x.n} ${POLLEN_T(x.m)}`).join(", ");
-  if (!top) return {key:"pol", title:"Pollen", state:"off", short:"kein Pollenflug", detail:`Heute keine Belastung in der DWD-Region ${esc(region)}.${tomorrow ? " Morgen: " + tomorrow + "." : ""}`};
+  if (!top) return {key:"pol", title:"Pollen", state:"off", short:"kein Pollenflug", detail: ZW(`Heute keine Belastung in der DWD-Region ${esc(region)}.${tomorrow ? " Morgen: " + tomorrow + "." : ""}`,
+    `Ma nincs terhelés a DWD ${esc(region)} régiójában.${tomorrow ? " Holnap: " + tomorrow + "." : ""}`)};
   return {key:"pol", title:"Pollen", state: top.t >= 2 ? "on" : "maybe", short:`${top.n} ${POLLEN_T(top.t)}`,
-    detail:`Heute: ${act.map(x => `${x.n} ${POLLEN_T(x.t)}`).join(", ")}.${tomorrow ? " Morgen: " + tomorrow + "." : ""} DWD-Region ${esc(region)}.`};
+    detail: ZW(`Heute: ${act.map(x => `${x.n} ${POLLEN_T(x.t)}`).join(", ")}.${tomorrow ? " Morgen: " + tomorrow + "." : ""} DWD-Region ${esc(region)}.`,
+      `Ma: ${act.map(x => `${x.n} ${POLLEN_T(x.t)}`).join(", ")}.${tomorrow ? " Holnap: " + tomorrow + "." : ""} DWD-régió: ${esc(region)}.`)};
 }
 function sigSchneeOrt() {
   const T = TAGE(), st = STATION(), now = Date.now();
@@ -2161,11 +2205,11 @@ function sigSchneeOrt() {
   const cm = last ? last.schnee : null, m = new Date().getMonth() + 1, winter = m >= 11 || m <= 4;
   if (!cm && neu < 0.5 && !winter) return null;
   const datum = last ? `${last.datum.slice(8)}.${last.datum.slice(5, 7)}.` : null;
-  const detail = `${cm != null ? `Schneehöhe an der DWD-Station ${esc(kurz(st?.regen?.name || st?.name || ""))} (${Math.round(st?.regen?.hoehe || st?.hoehe || 0)} m): ${Math.round(cm)} cm, Messung vom ${datum}.` : "Keine Schneehöhe gemeldet."} Neuschnee am Ort in den nächsten 48 Stunden laut Vorhersage: etwa ${Math.round(neu)} cm (grob 1 cm je mm Niederschlag).`;
-  if (neu >= 5) return {key:"snow", title:"Schnee", state:"on", short:`+${Math.round(neu)} cm Neuschnee`, detail};
-  if (cm >= 20) return {key:"snow", title:"Schnee", state:"on", short:`${Math.round(cm)} cm Schnee`, detail};
-  if (cm > 0 || neu >= 0.5) return {key:"snow", title:"Schnee", state:"maybe", short: cm > 0 ? `${Math.round(cm)} cm` : "etwas Neuschnee", detail};
-  return {key:"snow", title:"Schnee", state:"off", short:"kein Schnee", detail};
+  const detail = ZW(`${cm != null ? `Schneehöhe an der DWD-Station ${esc(kurz(st?.regen?.name || st?.name || ""))} (${Math.round(st?.regen?.hoehe || st?.hoehe || 0)} m): ${Math.round(cm)} cm, Messung vom ${datum}.` : "Keine Schneehöhe gemeldet."} Neuschnee am Ort in den nächsten 48 Stunden laut Vorhersage: etwa ${Math.round(neu)} cm (grob 1 cm je mm Niederschlag).`, `${cm != null ? `Hóvastagság a DWD ${esc(kurz(st?.regen?.name || st?.name || ""))} állomásán (${Math.round(st?.regen?.hoehe || st?.hoehe || 0)} m): ${Math.round(cm)} cm, mérés: ${datum}` : "Nincs jelentett hóvastagság."} Friss hó a következő 48 órában az előrejelzés szerint: kb. ${Math.round(neu)} cm (durván 1 cm milliméterenként).`);
+  if (neu >= 5) return {key:"snow", title:"Schnee", state:"on", short:ZW(`+${Math.round(neu)} cm Neuschnee`, `+${Math.round(neu)} cm friss hó`), detail};
+  if (cm >= 20) return {key:"snow", title:"Schnee", state:"on", short:ZW(`${Math.round(cm)} cm Schnee`, `${Math.round(cm)} cm hó`), detail};
+  if (cm > 0 || neu >= 0.5) return {key:"snow", title:"Schnee", state:"maybe", short: cm > 0 ? `${Math.round(cm)} cm` : ZW("etwas Neuschnee", "kevés friss hó"), detail};
+  return {key:"snow", title:"Schnee", state:"off", short:ZW("kein Schnee", "nincs hó"), detail};
 }
 
 /* ---------- Warnungen: zuerst der gewählte Ort, dann die Umgebung ---------- */
@@ -2200,28 +2244,29 @@ function odlZustand(list) {
   const z = list.filter(s => s.wert != null && s.mittel7).map(s => ({...s, q: s.wert / s.mittel7, hoch24: (s.stunden || []).slice(-24).every(p => p[1] > s.mittel7 * 1.3)}));
   if (!z.length) return null;
   const n = z[0];
-  if (z.filter(s => s.q >= 3).length && !rain) return {k:"alarm", t:"auffällig", d:"Mehr als das Dreifache des Wochenmittels ohne Regen. Meldungen des BfS und die Warn-App NINA beachten."};
-  if (z.filter(s => s.hoch24).length >= 2) return {k:"alarm", t:"auffällig", d:"Seit über 24 Stunden an mehreren Sonden erhöht. Meldungen des BfS und die Warn-App NINA beachten."};
-  if (n.q >= 1.15 && rain) return {k:"rain", t:"Regeneffekt", d:"Erhöht durch Regen: Er wäscht natürliche Radon-Folgeprodukte aus der Luft. Harmlos, klingt in wenigen Stunden ab."};
-  if (n.q >= 1.5 && z.filter(s => s.q >= 1.3).length === 1) return {k:"spike", t:"Einzelspitze", d:"Nur an einer Sonde erhöht, vermutlich eine Messstörung. Stundenwerte sind ungeprüfte Rohdaten."};
-  return {k:"ok", t:"normal", d:"Im natürlichen Bereich und nahe am Wochenmittel."};
+  if (z.filter(s => s.q >= 3).length && !rain) return {k:"alarm", t:ZW("auffällig", "feltűnő"), d:ZW("Mehr als das Dreifache des Wochenmittels ohne Regen. Meldungen des BfS und die Warn-App NINA beachten.", "Eső nélkül a heti átlag több mint háromszorosa. Kövesse a BfS közleményeit és a NINA figyelmeztető alkalmazást.")};
+  if (z.filter(s => s.hoch24).length >= 2) return {k:"alarm", t:ZW("auffällig", "feltűnő"), d:ZW("Seit über 24 Stunden an mehreren Sonden erhöht. Meldungen des BfS und die Warn-App NINA beachten.", "Több mint 24 órája több szondán emelkedett. Kövesse a BfS közleményeit és a NINA figyelmeztető alkalmazást.")};
+  if (n.q >= 1.15 && rain) return {k:"rain", t:ZW("Regeneffekt", "esőhatás"), d:ZW("Erhöht durch Regen: Er wäscht natürliche Radon-Folgeprodukte aus der Luft. Harmlos, klingt in wenigen Stunden ab.", "Az eső miatt emelkedett: kimossa a levegőből a radon természetes bomlástermékeit. Ártalmatlan, néhány óra alatt lecseng.")};
+  if (n.q >= 1.5 && z.filter(s => s.q >= 1.3).length === 1) return {k:"spike", t:ZW("Einzelspitze", "egyedi kiugrás"), d:ZW("Nur an einer Sonde erhöht, vermutlich eine Messstörung. Stundenwerte sind ungeprüfte Rohdaten.", "Csak egy szondán emelkedett, valószínűleg mérési zavar. Az órás értékek ellenőrizetlen nyers adatok.")};
+  return {k:"ok", t:TR("normal"), d:ZW("Im natürlichen Bereich und nahe am Wochenmittel.", "Természetes tartományban, közel a heti átlaghoz.")};
 }
 function odlSkala(v) {
   // logarithmische Skala 0,03 … 1000 µSv/h, Beschriftung nur in der Legende
   const lo = Math.log10(0.03), hi = Math.log10(1000), P = x => ((Math.log10(x) - lo) / (hi - lo) * 100).toFixed(2) + "%";
   const zones = [[0.03, 0.2, "z1"], [0.2, 0.6, "z2"], [0.6, 60, "z3"], [60, 600, "z4"], [600, 1000, "z5"]];
-  return `<div class="skala" role="img" aria-label="Aktueller Wert ${fmt3(v)} µSv/h auf einer logarithmischen Skala von 0,03 bis 1000">
+  return `<div class="skala" role="img" aria-label="${ZW("Aktueller Wert", "Jelenlegi érték")} ${fmt3(v)} µSv/h">
       <div class="sk-bar">${zones.map(([a, b, c]) => `<i class="${c}" style="left:${P(a)};width:calc(${P(b)} - ${P(a)})"></i>`).join("")}
         ${v != null ? `<b class="sk-dot" style="left:${P(Math.max(0.031, v))}"></b>` : ""}</div>
       <div class="sk-ax">${[[0.03, "0,03"], [0.1, "0,1"], [1, "1"], [10, "10"], [100, "100"], [1000, "1000"]].map(([x, t], i, a) => `<span style="left:${P(x)};transform:translateX(${i === 0 ? "0" : i === a.length - 1 ? "-100%" : "-50%"})">${t}</span>`).join("")}</div>
     </div>
     <div class="sk-leg">
-      <span><i class="z1"></i>natürlich 0,05–0,2</span>
-      <span><i class="z2"></i>kurz nach Regen bis ≈ 0,6</span>
-      <span><i class="z4"></i>Aufenthalt in Gebäuden ab ≈ 60</span>
-      <span><i class="z5"></i>Evakuierung ab ≈ 600</span>
+      <span><i class="z1"></i>${ZW("natürlich", "természetes")} 0,05–0,2</span>
+      <span><i class="z2"></i>${ZW("kurz nach Regen bis ≈ 0,6", "röviddel eső után ≈ 0,6-ig")}</span>
+      <span><i class="z4"></i>${ZW("Aufenthalt in Gebäuden ab ≈ 60", "épületben tartózkodás ≈ 60-tól")}</span>
+      <span><i class="z5"></i>${ZW("Evakuierung ab ≈ 600", "kitelepítés ≈ 600-tól")}</span>
     </div>
-    <div class="note">Werte in µSv/h. Grenzwert für die Bevölkerung: 1 mSv pro Jahr aus künstlichen Quellen (Strahlenschutzgesetz), dauerhaft etwa 0,11 µSv/h zusätzlich. Notfall-Dosiswerte (NDWV): Gebäude ab 10 mSv, Evakuierung ab 100 mSv in 7 Tagen; die µSv/h-Werte sind eine grobe Umrechnung bei Daueraufenthalt im Freien.</div>`;
+    <div class="note">${ZW("Werte in µSv/h. Grenzwert für die Bevölkerung: 1 mSv pro Jahr aus künstlichen Quellen (Strahlenschutzgesetz), dauerhaft etwa 0,11 µSv/h zusätzlich. Notfall-Dosiswerte (NDWV): Gebäude ab 10 mSv, Evakuierung ab 100 mSv in 7 Tagen; die µSv/h-Werte sind eine grobe Umrechnung bei Daueraufenthalt im Freien.",
+      "Értékek µSv/h-ban. A lakossági határérték évi 1 mSv mesterséges forrásokból (német sugárvédelmi törvény), ez tartósan kb. 0,11 µSv/h többletnek felel meg. Vészhelyzeti dózisértékek (NDWV): épületben tartózkodás 10 mSv-től, kitelepítés 100 mSv-től 7 nap alatt; a µSv/h értékek durva átszámítások folyamatos szabadtéri tartózkodásra.")}</div>`;
 }
 
 /* Verlauf je Sonde: Zeile antippen, Diagramm klappt darunter auf */
@@ -2236,22 +2281,23 @@ function odlOpen(kenn, keep) {
   ODLV.open = kenn; row.setAttribute("aria-expanded", "true"); odlEinordnung();
   const box = document.createElement("div"); box.className = "odl-vl";
   box.innerHTML = `<div class="vl-body"></div>` + (s.wert != null ? `<div class="vl-skala"><div class="subh">Einordnung: ${fmt3(s.wert)} µSv/h</div>${odlSkala(s.wert)}</div>` : "")
-    + (s.lat != null ? `<div class="subh">Lage</div><div class="minimap"></div><a class="maplink" href="${kartenUrl(s.lat, s.lon, s.name)}" target="_blank" rel="noopener">In Karten-App öffnen ↗</a>` : "");
+    + (s.lat != null ? `<div class="subh">${TR("Lage")}</div><div class="minimap"></div><a class="maplink" href="${kartenUrl(s.lat, s.lon, s.name)}" target="_blank" rel="noopener">${TR("In Karten-App öffnen ↗")}</a>` : "");
   row.after(box); odlVerlauf(box.querySelector(".vl-body"), s);
   if (s.lat != null) miniKarte(box.querySelector(".minimap"), s.lat, s.lon, s.name, odlFarbe(s));
 }
 async function odlVerlauf(box, s) {
-  const seg = `<div class="seg">${[["7", "7 Tage"], ["30", "30 Tage"], ["365", "1 Jahr"]].map(([k, t]) => `<button type="button" data-r="${k}" aria-pressed="${ODLV.range === k}">${t}</button>`).join("")}</div>`;
+  const seg = `<div class="seg">${[["7", "7 Tage"], ["30", "30 Tage"], ["365", "1 Jahr"]].map(([k, t]) => `<button type="button" data-r="${k}" aria-pressed="${ODLV.range === k}">${TR(t)}</button>`).join("")}</div>`;
   const cz = String(s.kenn).startsWith("CZ_");
-  const seit = cz && s.seit ? `<div class="note">Eigene Aufzeichnung seit ${dShort(s.seit)}${s.seit.slice(0, 4)}, der Verlauf füllt sich Tag für Tag.</div>` : "";
+  const seit = cz && s.seit ? ZW(`<div class="note">Eigene Aufzeichnung seit ${dShort(s.seit)}${s.seit.slice(0, 4)}, der Verlauf füllt sich Tag für Tag.</div>`, `<div class="note">Saját rögzítés ${s.seit.slice(0, 4)}.${dShort(s.seit)} óta, az idősor napról napra bővül.</div>`) : "";
   const range = ODLV.range;
   if (range === "7") {
     const pts = (s.stunden || []).filter(x => x[1] != null).map(([t, v]) => ({t: new Date(t + "Z"), v}));
-    if (pts.length < 3) { box.innerHTML = seg + '<div class="note">Noch zu wenige Stundenwerte für einen Verlauf.</div>' + seit; return; }
+    if (pts.length < 3) { box.innerHTML = seg + ZW('<div class="note">Noch zu wenige Stundenwerte für einen Verlauf.</div>', '<div class="note">Még túl kevés órás adat az idősorhoz.</div>') + seit; return; }
     const vals = pts.map(p => p.v), mn = Math.min(...vals), mx = Math.max(...vals), mean = vals.reduce((a, b) => a + b, 0) / vals.length;
     const tag = d => new Intl.DateTimeFormat(LOC, {timeZone: TZ, weekday: "short", day: "numeric", month: "numeric"}).format(d);
-    box.innerHTML = seg + `<p class="rb-sum">Mittel ${fmt3(mean)} · Spanne ${fmt3(mn)} – ${fmt3(mx)} µSv/h</p><div class="rbc"></div>
-      <div class="note">Stundenwerte. Kurze Spitzen kommen fast immer von Regen, der natürliche Radon-Folgeprodukte aus der Luft auswäscht; sie klingen nach wenigen Stunden ab. Grüner Bereich = natürlich (0,05–0,2).</div>` + seit;
+    box.innerHTML = seg + ZW(`<p class="rb-sum">Mittel ${fmt3(mean)} · Spanne ${fmt3(mn)} – ${fmt3(mx)} µSv/h</p><div class="rbc"></div>
+      <div class="note">Stundenwerte. Kurze Spitzen kommen fast immer von Regen, der natürliche Radon-Folgeprodukte aus der Luft auswäscht; sie klingen nach wenigen Stunden ab. Grüner Bereich = natürlich (0,05–0,2).</div>`, `<p class="rb-sum">Átlag ${fmt3(mean)} · tartomány ${fmt3(mn)} – ${fmt3(mx)} µSv/h</p><div class="rbc"></div>
+      <div class="note">Órás értékek. A rövid kiugrásokat szinte mindig eső okozza, amely kimossa a levegőből a radon természetes bomlástermékeit; néhány óra alatt lecsengenek. Zöld sáv = természetes (0,05–0,2).</div>`) + seit;
     const lo = Math.min(0.05, mn) * 0.9, hi = Math.max(0.2, mx) * 1.08, n = pts.length;
     drawChart(box.querySelector(".rbc"), {n, h: 160, aria: `Stundenwerte ${s.name}, letzte 7 Tage`, yMin: lo, yMax: hi, yFmt: v => nf(v, 2),
       xLabel: i => { const k = n - 1 - i; return k === 0 ? "jetzt" : (k % 48 === 0 && i > 8 ? tag(pts[i].t).replace(/\.$/, "") : null); },
@@ -2265,18 +2311,19 @@ async function odlVerlauf(box, s) {
   const D = ARC.odlTage[s.kenn], today = dayKey(new Date()), dates = [];
   for (let i = +range; i >= 1; i--) dates.push(addDays(today, -i));
   const m = new Map(D.map(r => [r.datum, r.usvh])), vals = dates.map(d => m.get(d) ?? null), ok = vals.filter(v => v != null);
-  if (ok.length < 2) { box.innerHTML = seg + '<div class="note">Für diesen Zeitraum liegen noch zu wenige Tageswerte im Archiv.</div>' + seit; return; }
+  if (ok.length < 2) { box.innerHTML = seg + ZW('<div class="note">Für diesen Zeitraum liegen noch zu wenige Tageswerte im Archiv.</div>', '<div class="note">Erre az időszakra még túl kevés napi adat van az archívumban.</div>') + seit; return; }
   const T = TAGE(), rainD = dates.map(d => { const r = T?.by.get(d); return r && r.regen >= 2 ? r.regen : null; });
   const mean = ok.reduce((a, b) => a + b, 0) / ok.length;
-  box.innerHTML = seg + `<p class="rb-sum">Mittel ${fmt3(mean)} · Spanne ${fmt3(Math.min(...ok))} – ${fmt3(Math.max(...ok))} µSv/h</p><div class="rbc"></div>
-    <div class="legend"><span><i style="background:#86d7a0"></i>Tagesmittel</span><span><i style="background:#86d7a0;opacity:.25"></i>natürlich 0,05–0,2</span>${cz ? "" : '<span><i style="background:#6fb7ff"></i>Regentag am Ort ab 2 mm</span>'}</div>` + seit;
+  box.innerHTML = seg + ZW(`<p class="rb-sum">Mittel ${fmt3(mean)} · Spanne ${fmt3(Math.min(...ok))} – ${fmt3(Math.max(...ok))} µSv/h</p><div class="rbc"></div>
+    <div class="legend"><span><i style="background:#86d7a0"></i>Tagesmittel</span><span><i style="background:#86d7a0;opacity:.25"></i>natürlich 0,05–0,2</span>${cz ? "" : '<span><i style="background:#6fb7ff"></i>Regentag am Ort ab 2 mm</span>'}</div>`, `<p class="rb-sum">Átlag ${fmt3(mean)} · tartomány ${fmt3(Math.min(...ok))} – ${fmt3(Math.max(...ok))} µSv/h</p><div class="rbc"></div>
+    <div class="legend"><span><i style="background:#86d7a0"></i>napi átlag</span><span><i style="background:#86d7a0;opacity:.25"></i>természetes 0,05–0,2</span>${cz ? "" : '<span><i style="background:#6fb7ff"></i>esős nap a helyszínen 2 mm-től</span>'}</div>`) + seit;
   const lo = Math.min(0.05, ...ok) * 0.9, hi = Math.max(0.2, ...ok) * 1.08;
   drawChart(box.querySelector(".rbc"), {n: dates.length, h: 160, aria: `Tagesmittel ${s.name}`, yMin: lo, yMax: hi, yFmt: v => nf(v, 2),
     xLabel: i => (i % Math.ceil(dates.length / 6) === 0) ? dShort(dates[i]) : null,
     layers: [{type: "area", lo: dates.map(() => 0.05), hi: dates.map(() => 0.2), color: "#86d7a0", opacity: .1},
              ...(cz ? [] : [{type: "bar", vals: rainD.map(v => v ? lo + (hi - lo) * 0.06 : null), color: "#6fb7ff", w: .5}]),
              {type: "line", vals, color: "#86d7a0", width: 2}],
-    tip: i => `<b>${dShort(dates[i])}</b><span class="tt" style="color:#86d7a0">${vals[i] != null ? fmt3(vals[i]) + " µSv/h" : "kein Wert"}</span>${rainD[i] && !cz ? `<span>${nf(rainD[i])} mm Regen</span>` : ""}`});
+    tip: i => `<b>${dShort(dates[i])}</b><span class="tt" style="color:#86d7a0">${vals[i] != null ? fmt3(vals[i]) + " µSv/h" : TR("kein Wert")}</span>${rainD[i] && !cz ? `<span>${nf(rainD[i])} ${TR("mm Regen")}</span>` : ""}`});
 }
 function initODLV() {
   const card = $("odl").closest(".card");
@@ -2310,21 +2357,21 @@ async function loadODLOrt(force) {
   };
   const rollRow = (s, i) => {
     const p = s.mittel7 ? (s.wert / s.mittel7 - 1) * 100 : null;
-    return `<div class="rr" data-kenn="${esc(s.kenn)}"><span class="rk">${i}</span><span class="rn"><b>${flag(s)}${esc(s.name)}</b><small>${s.cc === "CZ" ? "Tschechien" : "Deutschland"} · ${Math.round(s.km)} km</small></span><span class="rv ok">${fmt3(s.wert)}</span><em class="${p > 15 ? "up" : p < -15 ? "dn" : ""}">${p != null ? (p >= 0 ? "+" : "−") + Math.abs(Math.round(p)) + " %" : ""}</em></div>`;
+    return `<div class="rr" data-kenn="${esc(s.kenn)}"><span class="rk">${i}</span><span class="rn"><b>${flag(s)}${esc(s.name)}</b><small>${s.cc === "CZ" ? ZW("Tschechien", "Csehország") : ZW("Deutschland", "Németország")} · ${Math.round(s.km)} km</small></span><span class="rv ok">${fmt3(s.wert)}</span><em class="${p > 15 ? "up" : p < -15 ? "dn" : ""}">${p != null ? (p >= 0 ? "+" : "−") + Math.abs(Math.round(p)) + " %" : ""}</em></div>`;
   };
   const fest = alle.slice(0, 3), rest = alle.slice(3);
   const rows = rest.map((s, i) => rollRow(s, i + 4)).join("");
   kartenWeg($("odl"));
   $("odl").innerHTML = (z ? `<div class="odl-z ${z.k}"><b>${z.t}</b> ${z.d}</div>` : "") + ansichtSchalter("odl") + `<div class="lv">`
-    + `<div class="unit odl-head">µSv/h, Stundenwert bis ${hhmm(new Date(near[0].ende))}${UHR} · % = Abweichung vom Wochenmittel · antippen für Verlauf</div>`
-    + `<div class="grp"><div class="grp-h">Messsonden DE und CZ <small>nach Entfernung zu ${esc(ORT.name)}</small></div>` + fest.map((s, i) => row(s, i + 1)).join("")
+    + `<div class="unit odl-head">${ZW(`µSv/h, Stundenwert bis ${hhmm(new Date(near[0].ende))}${UHR} · % = Abweichung vom Wochenmittel · antippen für Verlauf`, `µSv/h, órás érték ${hhmm(new Date(near[0].ende))}-ig · % = eltérés a heti átlagtól · koppintson az idősorért`)}</div>`
+    + `<div class="grp"><div class="grp-h">${ZW("Messsonden DE und CZ", "Mérőszondák DE és CZ")} <small>${TR("nach Entfernung zu {0}", esc(ORT.name))}</small></div>` + fest.map((s, i) => row(s, i + 1)).join("")
     + (rest.length ? `<div class="roll roll3" id="odl-roll" data-auto="${rest.length > 3 ? 1 : 0}"><div class="roll-in">${rows}${rest.length > 3 ? rows : ""}</div></div>`
-      + `<details class="pall" id="odl-all"><summary>Alle ${rest.length} weiteren Sonden als Liste</summary>${rest.map((s, i) => row(s, i + 4)).join("")}</details>` : "") + `</div>`
-    + `</div><div class="kv" hidden><div class="bigmap"></div><div class="legend"><span><i style="background:#3f9d6b"></i>natürlich</span><span><i style="background:#c9a227"></i>über 1,5 × Wochenmittel (meist Regen)</span><span><i style="background:#d9473b"></i>auffällig</span></div></div>`;
+      + `<details class="pall" id="odl-all"><summary>${ZW(`Alle ${rest.length} weiteren Sonden als Liste`, `További ${rest.length} szonda listája`)}</summary>${rest.map((s, i) => row(s, i + 4)).join("")}</details>` : "") + `</div>`
+    + `</div><div class="kv" hidden><div class="bigmap"></div><div class="legend"><span><i style="background:#3f9d6b"></i>${ZW("natürlich", "természetes")}</span><span><i style="background:#c9a227"></i>${ZW("über 1,5 × Wochenmittel (meist Regen)", "a heti átlag 1,5-szerese felett (többnyire eső)")}</span><span><i style="background:#d9473b"></i>${ZW("auffällig", "feltűnő")}</span></div></div>`;
   ODLV.erste = near[0].kenn;
   $("odl-spark").innerHTML = "";
-  $("odl-cz").innerHTML = cz.length ? '<div class="note">Tschechische Werte: Frühwarnnetz SÚRO, eigene Aufzeichnung seit 29.10.2026.</div>'
-    : '<div class="note">Tschechische Werte gerade nicht abrufbar.</div>';
+  $("odl-cz").innerHTML = cz.length ? ZW('<div class="note">Tschechische Werte: Frühwarnnetz SÚRO, eigene Aufzeichnung seit 29.10.2026.</div>', '<div class="note">Cseh értékek: SÚRO korai figyelmeztető hálózat, saját rögzítés 2026.10.29. óta.</div>')
+    : ZW('<div class="note">Tschechische Werte gerade nicht abrufbar.</div>', '<div class="note">A cseh értékek most nem érhetők el.</div>');
   initRoll($("odl-roll"));
   ansichtAnwenden("odl");
   odlEinordnung();
@@ -2334,7 +2381,7 @@ async function loadODLOrt(force) {
 /* ---------- Gewässer: Pegel zum Ort + Regen am Ort ---------- */
 function regenBlock() {
   if (!RAIN?.ok) return "";
-  return `<div class="rain3"><span><small>Regen 24 h</small><b>${nf(RAIN.h24)} mm</b></span><span><small>Regen 3 Tage</small><b>${nf(RAIN.h72)} mm</b></span><span><small>gemessen</small><b class="st">${esc(RAIN.station || "–")}</b></span></div>`;
+  return `<div class="rain3"><span><small>${ZW("Regen 24 h", "Eső 24 óra")}</small><b>${nf(RAIN.h24)} mm</b></span><span><small>${ZW("Regen 3 Tage", "Eső 3 nap")}</small><b>${nf(RAIN.h72)} mm</b></span><span><small>${TR("gemessen")}</small><b class="st">${esc(RAIN.station || "–")}</b></span></div>`;
 }
 
 /* ---------- Diagramm-Baukasten mit Nachfahren ---------- */
@@ -2397,8 +2444,8 @@ function drawChart(el, o) {
 /* ---------- Rückblick ---------- */
 const RB = {tab: "wetter", range: {wetter: "30", regen: "tage"}};
 const RB_RANGES = {
-  wetter: [["30", "30 Tage"], ["365", "1 Jahr"]],
-  regen: [["tage", "Tage"], ["wochen", "Wochen"], ["monate", "Monate"], ["jahr", "Jahr"]]
+  wetter: [["30", TR("30 Tage")], ["365", TR("1 Jahr")]],
+  regen: [["tage", ZW("Tage", "Napok")], ["wochen", ZW("Wochen", "Hetek")], ["monate", ZW("Monate", "Hónapok")], ["jahr", ZW("Jahr", "Év")]]
 };
 function rbDays(T, n) {   // die letzten n Tage bis gestern (Archiv) + heute aus den Messungen
   const today = dayKey(new Date()), out = [];
@@ -2420,12 +2467,12 @@ function renderRueckblick() {
   $("rb-range").innerHTML = RB_RANGES[RB.tab].map(([k, t]) => `<button type="button" aria-pressed="${RB.range[RB.tab] === k}" data-r="${k}">${t}</button>`).join("");
   document.querySelectorAll("#rb-tabs button").forEach(b => b.setAttribute("aria-selected", b.dataset.t === RB.tab));
   const st = STATION();
-  let src = st ? `Temperatur: DWD-Station ${esc(st.name)} (${Math.round(st.hoehe)} m, ${nf(st.km, 0)} km vom Ort)` : "";
-  if (st?.regen) src += `. Niederschlag: DWD-Station ${esc(kurz(st.regen.name))} (${nf(st.regen.km, 0)} km)`;
+  let src = st ? ZW(`Temperatur: DWD-Station ${esc(st.name)} (${Math.round(st.hoehe)} m, ${nf(st.km, 0)} km vom Ort)`, `Hőmérséklet: DWD ${esc(st.name)} állomás (${Math.round(st.hoehe)} m, ${nf(st.km, 0)} km-re)`) : "";
+  if (st?.regen) src += ZW(`. Niederschlag: DWD-Station ${esc(kurz(st.regen.name))} (${nf(st.regen.km, 0)} km)`, `. Csapadék: DWD ${esc(kurz(st.regen.name))} állomás (${nf(st.regen.km, 0)} km)`);
   try {
     if (RB.tab === "wetter") return rbWetter(box, T, src);
     if (RB.tab === "regen") return rbRegen(box, T, src);
-  } catch (e) { box.innerHTML = `<div class="err">Rückblick gerade nicht darstellbar (${esc(e.message)}).</div>`; }
+  } catch (e) { box.innerHTML = ZW(`<div class="err">Rückblick gerade nicht darstellbar (${esc(e.message)}).</div>`, `<div class="err">A visszatekintés most nem jeleníthető meg (${esc(e.message)}).</div>`); }
 }
 function rbWetter(box, T, src) {
   if (!T) { box.innerHTML = '<div class="load">Archiv wird geladen oder ist noch im Aufbau …</div>'; return; }
@@ -2436,14 +2483,15 @@ function rbWetter(box, T, src) {
     const anom = days.filter(d => d.tmax != null && d.tmin != null && T.norm[d.datum.slice(5)]).map(d => (d.tmax + d.tmin) / 2 - (T.norm[d.datum.slice(5)].tmax + T.norm[d.datum.slice(5)].tmin) / 2);
     const a = anom.length ? anom.reduce((x, y) => x + y, 0) / anom.length : null;
     const frost = days.filter(d => d.tmin != null && d.tmin < 0).length;
-    html += `<p class="rb-sum">Letzte 30 Tage: <b>${a == null ? "–" : sgn(a) + " °C"}</b> gegenüber dem Mittel ${T.normLabel} · ${frost} Frosttag${frost === 1 ? "" : "e"}</p><div class="rbc" id="rbc1"></div>
-      <div class="legend"><span><i style="background:linear-gradient(90deg,var(--cold),var(--warm))"></i>Tiefst- bis Höchstwert</span><span><i style="background:rgba(238,243,251,.25)"></i>normal ${T.normLabel}</span></div>`;
-    box.innerHTML = html + rbRekord(T) + streifen() + `<div class="note">${src}. Heute: Messung bis jetzt.</div>`;
+    html += ZW(`<p class="rb-sum">Letzte 30 Tage: <b>${a == null ? "–" : sgn(a) + " °C"}</b> gegenüber dem Mittel ${T.normLabel} · ${frost} Frosttag${frost === 1 ? "" : "e"}</p><div class="rbc" id="rbc1"></div>
+      <div class="legend"><span><i style="background:linear-gradient(90deg,var(--cold),var(--warm))"></i>Tiefst- bis Höchstwert</span><span><i style="background:rgba(238,243,251,.25)"></i>normal ${T.normLabel}</span></div>`, `<p class="rb-sum">Elmúlt 30 nap: <b>${a == null ? "–" : sgn(a) + " °C"}</b> a ${T.normLabel} átlaghoz képest · ${frost} fagyos nap</p><div class="rbc" id="rbc1"></div>
+      <div class="legend"><span><i style="background:linear-gradient(90deg,var(--cold),var(--warm))"></i>minimumtól maximumig</span><span><i style="background:rgba(238,243,251,.25)"></i>normál ${T.normLabel}</span></div>`);
+    box.innerHTML = html + rbRekord(T) + streifen() + `<div class="note">${src}. ${ZW("Heute: Messung bis jetzt.", "Ma: mérés eddig.")}</div>`;
     drawChart($("rbc1"), {n: days.length, h: 200, aria: "Tageswerte der letzten 30 Tage gegenüber dem Mittel",
       xLabel: i => (i % 7 === 2) ? dShort(days[i].datum) : null, yFmt: v => nf(v, 0) + "°",
       layers: [{type: "area", lo: nm.map(x => x.tmin ?? null), hi: nm.map(x => x.tmax ?? null), color: "#eef3fb", opacity: .14},
                {type: "range", lo: days.map(d => d.tmin ?? null), hi: days.map(d => d.tmax ?? null), color: (a, b) => tcol((a + b) / 2)}],
-      tip: i => { const d = days[i], n = nm[i]; return `<b>${wd(new Date(d.datum + "T12:00:00Z"))} ${dShort(d.datum)}${d.heute ? " (bis jetzt)" : ""}</b><span class="tt" style="color:${tcol(d.tmax)}">${nf(d.tmin)}° / ${nf(d.tmax)}°</span><span>normal ${nf(n.tmin)}° / ${nf(n.tmax)}°</span>${d.regen != null ? `<span>${nf(d.regen)} mm Regen</span>` : ""}`; }});
+      tip: i => { const d = days[i], n = nm[i]; return `<b>${wd(new Date(d.datum + "T12:00:00Z"))} ${dShort(d.datum)}${d.heute ? ZW(" (bis jetzt)", " (eddig)") : ""}</b><span class="tt" style="color:${tcol(d.tmax)}">${nf(d.tmin)}° / ${nf(d.tmax)}°</span><span>${TR("normal")} ${nf(n.tmin)}° / ${nf(n.tmax)}°</span>${d.regen != null ? `<span>${nf(d.regen)} ${TR("mm Regen")}</span>` : ""}`; }});
   } else {
     // 12 Monate: Abweichung des Monatsmittels vom Klimamittel
     const today = dayKey(new Date()), mons = [];
@@ -2454,11 +2502,12 @@ function rbWetter(box, T, src) {
       mons.push({y, m, mean, n: rs.length, norm: T.monT[m], anom: mean != null && T.monT[m] != null ? mean - T.monT[m] : null});
     }
     const ok = mons.filter(x => x.anom != null), a = ok.length ? ok.reduce((s, x) => s + x.anom, 0) / ok.length : null;
-    box.innerHTML = `<p class="rb-sum">Letzte 12 Monate: <b>${a == null ? "–" : sgn(a) + " °C"}</b> gegenüber dem Mittel ${T.normLabel}</p><div class="rbc" id="rbc1"></div>
-      <div class="legend"><span><i style="background:var(--warm)"></i>wärmer</span><span><i style="background:var(--cold)"></i>kälter als normal</span></div>` + rbRekord(T) + streifen() + `<div class="note">${src}.</div>`;
+    box.innerHTML = ZW(`<p class="rb-sum">Letzte 12 Monate: <b>${a == null ? "–" : sgn(a) + " °C"}</b> gegenüber dem Mittel ${T.normLabel}</p><div class="rbc" id="rbc1"></div>
+      <div class="legend"><span><i style="background:var(--warm)"></i>wärmer</span><span><i style="background:var(--cold)"></i>kälter als normal</span></div>`, `<p class="rb-sum">Elmúlt 12 hónap: <b>${a == null ? "–" : sgn(a) + " °C"}</b> a ${T.normLabel} átlaghoz képest</p><div class="rbc" id="rbc1"></div>
+      <div class="legend"><span><i style="background:var(--warm)"></i>melegebb</span><span><i style="background:var(--cold)"></i>hidegebb a normálnál</span></div>`) + rbRekord(T) + streifen() + `<div class="note">${src}.</div>`;
     drawChart($("rbc1"), {n: 12, h: 190, aria: "Monatsmittel der letzten 12 Monate als Abweichung vom Klimamittel", xLabel: i => MONATE[mons[i].m], yFmt: v => sgn(v, 0) + "°",
       layers: [{type: "bar", vals: mons.map(x => x.anom), color: v => v >= 0 ? "#ffa36b" : "#6fb7ff", w: .62}],
-      tip: i => { const x = mons[i]; return `<b>${MONATE[x.m]} ${x.y}</b><span class="tt" style="color:${x.anom >= 0 ? "var(--warm)" : "var(--cold)"}">${x.anom == null ? "–" : sgn(x.anom) + " °C"}</span><span>Mittel ${nf(x.mean)} °C, normal ${nf(x.norm)} °C</span>${x.n < 28 ? `<span>${x.n} Tage</span>` : ""}`; }});
+      tip: i => { const x = mons[i]; return `<b>${MONATE[x.m]} ${x.y}</b><span class="tt" style="color:${x.anom >= 0 ? "var(--warm)" : "var(--cold)"}">${x.anom == null ? "–" : sgn(x.anom) + " °C"}</span><span>${TR("Mittel")} ${nf(x.mean)} °C, ${TR("normal")} ${nf(x.norm)} °C</span>${x.n < 28 ? `<span>${x.n} ${ZW("Tage", "nap")}</span>` : ""}`; }});
   }
 }
 function rbRekord(T) {
@@ -2470,11 +2519,11 @@ function rbRekord(T) {
   const yrs = same.length + 1, since = same[0].datum.slice(0, 4);
   const lastHi = hi.length ? hi.at(-1).datum.slice(0, 4) : null, lastLo = lo.length ? lo.at(-1).datum.slice(0, 4) : null;
   let t = "";
-  if (!hi.length) t = `Gestern mit ${nf(r.tmax)} °C der wärmste ${dShort(y)} seit Beginn der Reihe (${since}).`;
-  else if (hi.length <= 2) t = `Gestern mit ${nf(r.tmax)} °C der wärmste ${dShort(y)} seit ${lastHi}.`;
-  else if (r.tmin != null && !lo.length) t = `Letzte Nacht mit ${nf(r.tmin)} °C die kälteste zum ${dShort(y)} seit Beginn der Reihe (${since}).`;
-  else if (r.tmin != null && lo.length <= 2) t = `Letzte Nacht mit ${nf(r.tmin)} °C die kälteste zum ${dShort(y)} seit ${lastLo}.`;
-  else { const rank = same.filter(x => x.tmax != null && x.tmax > r.tmax).length + 1; t = `Gestern ${nf(r.tmax)} °C: Platz ${rank} von ${yrs} Jahren für den ${dShort(y)}.`; }
+  if (!hi.length) t = ZW(`Gestern mit ${nf(r.tmax)} °C der wärmste ${dShort(y)} seit Beginn der Reihe (${since}).`, `Tegnap ${nf(r.tmax)} °C-kal a legmelegebb ${dShort(y)} a mérések kezdete (${since}) óta.`);
+  else if (hi.length <= 2) t = ZW(`Gestern mit ${nf(r.tmax)} °C der wärmste ${dShort(y)} seit ${lastHi}.`, `Tegnap ${nf(r.tmax)} °C-kal a legmelegebb ${dShort(y)} ${lastHi} óta.`);
+  else if (r.tmin != null && !lo.length) t = ZW(`Letzte Nacht mit ${nf(r.tmin)} °C die kälteste zum ${dShort(y)} seit Beginn der Reihe (${since}).`, `Az éjjel ${nf(r.tmin)} °C-kal a leghidegebb ${dShort(y)} a mérések kezdete (${since}) óta.`);
+  else if (r.tmin != null && lo.length <= 2) t = ZW(`Letzte Nacht mit ${nf(r.tmin)} °C die kälteste zum ${dShort(y)} seit ${lastLo}.`, `Az éjjel ${nf(r.tmin)} °C-kal a leghidegebb ${dShort(y)} ${lastLo} óta.`);
+  else { const rank = same.filter(x => x.tmax != null && x.tmax > r.tmax).length + 1; t = ZW(`Gestern ${nf(r.tmax)} °C: Platz ${rank} von ${yrs} Jahren für den ${dShort(y)}.`, `Tegnap ${nf(r.tmax)} °C: ${rank}. hely ${yrs} év közül ezen a napon (${dShort(y)}).`); }
   return `<p class="rb-rec">${t.replace(/\.\.$/, ".").replace(/\.\. /g, ". ")}</p>`;
 }
 function streifen() {
@@ -2484,7 +2533,7 @@ function streifen() {
   const col = v => { const z = Math.max(-2.6, Math.min(2.6, (v - m) / sd)) / 2.6; return z < 0 ? `rgb(${Math.round(240 + z * 200)},${Math.round(244 + z * 130)},${Math.round(250 + z * 50)})` : `rgb(${Math.round(250 - z * 60)},${Math.round(240 - z * 200)},${Math.round(232 - z * 200)})`; };
   const w = 100 / B.length;
   return `<div class="stripes" role="img" aria-label="Wärmestreifen Bayern ${B[0].jahr} bis ${B.at(-1).jahr}">${B.map((r, i) => `<i style="left:${(i * w).toFixed(3)}%;width:${(w + 0.05).toFixed(3)}%;background:${col(r.tmit)}" title="${r.jahr}: ${nf(r.tmit)} °C"></i>`).join("")}</div>
-    <div class="stripes-l"><span>${B[0].jahr}</span><span>Wärmestreifen Bayern, Jahresmittel (DWD), blau kälter, rot wärmer als 1971–2000</span><span>${B.at(-1).jahr}</span></div>`;
+    <div class="stripes-l"><span>${B[0].jahr}</span><span>${ZW("Wärmestreifen Bayern, Jahresmittel (DWD), blau kälter, rot wärmer als 1971–2000", "Bajorország melegedési csíkjai, éves átlag (DWD), kék hidegebb, piros melegebb az 1971–2000-es átlagnál")}</span><span>${B.at(-1).jahr}</span></div>`;
 }
 function rbRegen(box, T, src) {
   if (!T) { box.innerHTML = '<div class="load">Archiv wird geladen oder ist noch im Aufbau …</div>'; return; }
@@ -2495,20 +2544,20 @@ function rbRegen(box, T, src) {
   let bins = [], title = "";
   if (r === "tage") {
     for (let i = 13; i >= 0; i--) { const d = addDays(today, -i); bins.push({lab: dShort(d), tl: `${wd(new Date(d + "T12:00:00Z"))} ${dShort(d)}`, v: rain(d), p: rain(vj(d))}); }
-    title = "letzte 14 Tage";
+    title = ZW("letzte 14 Tage", "elmúlt 14 nap");
   } else if (r === "wochen") {
     for (let i = 11; i >= 0; i--) { const b = addDays(today, -i * 7), a = addDays(b, -6); bins.push({lab: dShort(a), tl: `${dShort(a)} – ${dShort(b)}`, v: sumR(a, b), p: sumR(vj(a), vj(b))}); }
-    title = "letzte 12 Wochen";
+    title = ZW("letzte 12 Wochen", "elmúlt 12 hét");
   } else if (r === "monate") {
     for (let k = 11; k >= 0; k--) {
       const dt = new Date(Date.UTC(+today.slice(0, 4), +today.slice(5, 7) - 1 - k, 1)), y = dt.getUTCFullYear(), m = dt.getUTCMonth();
       const a = `${y}-${String(m + 1).padStart(2, "0")}-01`, e = addDays(new Date(Date.UTC(y, m + 1, 1)).toISOString().slice(0, 10), -1), b = e > today ? today : e;
-      bins.push({lab: MONATE[m], tl: `${MONATE[m]} ${y}${b < e ? " (bis heute)" : ""}`, v: sumR(a, b), p: sumR(vj(a), vj(b)), n: T.monRain[m] * (b < e ? (+b.slice(8)) / (+e.slice(8)) : 1)});
+      bins.push({lab: MONATE[m], tl: `${MONATE[m]} ${y}${b < e ? ZW(" (bis heute)", " (máig)") : ""}`, v: sumR(a, b), p: sumR(vj(a), vj(b)), n: T.monRain[m] * (b < e ? (+b.slice(8)) / (+e.slice(8)) : 1)});
     }
-    title = "letzte 12 Monate";
+    title = ZW("letzte 12 Monate", "elmúlt 12 hónap");
   }
   const dry = (() => { let n = 0; for (let d = today; n < 400; d = addDays(d, -1)) { const v = rain(d); if (v == null || v >= 1) break; n++; } return n; })();
-  const dryTxt = dry >= 3 ? ` · seit ${dry} Tagen weniger als 1 mm am Tag` : "";
+  const dryTxt = dry >= 3 ? ZW(` · seit ${dry} Tagen weniger als 1 mm am Tag`, ` · ${dry} napja kevesebb mint napi 1 mm`) : "";
   if (r === "jahr") {
     const y = today.slice(0, 4), start = `${y}-01-01`, n = Math.round((Date.parse(today) - Date.parse(start)) / 864e5) + 1;
     const cur = [], prev = [], norm = []; let c = 0, p = 0;
@@ -2519,22 +2568,24 @@ function rbRegen(box, T, src) {
       if (i < n) { const v = rain(d); c += v ?? 0; cur.push(c); } else cur.push(null);
     }
     const nn = norm[n - 1], pp = prev[n - 1];
-    box.innerHTML = `<p class="rb-sum">${y} bis heute: <b>${nf(c, 0)} mm</b> · Vorjahr bis ${dShort(today)}: ${nf(pp, 0)} mm · normal ${nf(nn, 0)} mm (${nn ? Math.round(c / nn * 100) : "–"} %)${dryTxt}</p><div class="rbc" id="rbc1"></div>
-      <div class="legend"><span><i style="background:#6fb7ff"></i>${y}</span><span><i style="background:#a99cf0"></i>${+y - 1}</span><span><i style="background:rgba(238,243,251,.5)"></i>normal ${T.normLabel}</span></div><div class="note">Aufsummierter Niederschlag seit 1. Januar. ${src}.</div>`;
+    box.innerHTML = ZW(`<p class="rb-sum">${y} bis heute: <b>${nf(c, 0)} mm</b> · Vorjahr bis ${dShort(today)}: ${nf(pp, 0)} mm · normal ${nf(nn, 0)} mm (${nn ? Math.round(c / nn * 100) : "–"} %)${dryTxt}</p><div class="rbc" id="rbc1"></div>
+      <div class="legend"><span><i style="background:#6fb7ff"></i>${y}</span><span><i style="background:#a99cf0"></i>${+y - 1}</span><span><i style="background:rgba(238,243,251,.5)"></i>normal ${T.normLabel}</span></div><div class="note">Aufsummierter Niederschlag seit 1. Januar. ${src}.</div>`, `<p class="rb-sum">${y} máig: <b>${nf(c, 0)} mm</b> · előző év ${dShort(today)}-ig: ${nf(pp, 0)} mm · normál ${nf(nn, 0)} mm (${nn ? Math.round(c / nn * 100) : "–"} %)${dryTxt}</p><div class="rbc" id="rbc1"></div>
+      <div class="legend"><span><i style="background:#6fb7ff"></i>${y}</span><span><i style="background:#a99cf0"></i>${+y - 1}</span><span><i style="background:rgba(238,243,251,.5)"></i>normál ${T.normLabel}</span></div><div class="note">Összesített csapadék január 1. óta. ${src}.</div>`);
     drawChart($("rbc1"), {n: cur.length, h: 200, aria: "Aufsummierter Niederschlag dieses Jahr, im Vorjahr und normal", yFmt: v => nf(v, 0),
       xLabel: i => { const d = addDays(start, i); return d.slice(8) === "01" && (+d.slice(5, 7) - 1) % 2 === 0 ? MONATE[+d.slice(5, 7) - 1] : null; },
       layers: [{type: "line", vals: norm, color: "rgba(238,243,251,.5)", dash: "4 4", width: 1.5}, {type: "line", vals: prev, color: "#a99cf0", width: 1.6}, {type: "line", vals: cur, color: "#6fb7ff", width: 2.4}],
-      tip: i => { const d = addDays(start, i); return `<b>bis ${dShort(d)}</b>${cur[i] != null ? `<span class="tt" style="color:#6fb7ff">${nf(cur[i], 0)} mm</span>` : ""}<span>Vorjahr ${nf(prev[i], 0)} mm</span><span>normal ${nf(norm[i], 0)} mm</span>`; }});
+      tip: i => { const d = addDays(start, i); return `<b>${ZW("bis", "eddig:")} ${dShort(d)}</b>${cur[i] != null ? `<span class="tt" style="color:#6fb7ff">${nf(cur[i], 0)} mm</span>` : ""}<span>${ZW("Vorjahr", "Előző év")} ${nf(prev[i], 0)} mm</span><span>${TR("normal")} ${nf(norm[i], 0)} mm</span>`; }});
     return;
   }
   const sv = bins.reduce((a, b) => a + (b.v ?? 0), 0), sp = bins.reduce((a, b) => a + (b.p ?? 0), 0), sn = bins.some(b => b.n != null) ? bins.reduce((a, b) => a + (b.n ?? 0), 0) : null;
-  box.innerHTML = `<p class="rb-sum">Summe ${title}: <b>${nf(sv, 0)} mm</b> · Vorjahr gleicher Zeitraum: ${nf(sp, 0)} mm${sn != null ? ` · normal ${nf(sn, 0)} mm` : ""}${dryTxt}</p><div class="rbc" id="rbc1"></div>
-    <div class="legend"><span><i style="background:#6fb7ff"></i>gemessen</span><span><i style="background:#a99cf0;opacity:.6"></i>Vorjahr</span>${sn != null ? `<span><i style="background:rgba(238,243,251,.5)"></i>normal</span>` : ""}</div><div class="note">${src}. Heute: Messung bis jetzt (Bright Sky).</div>`;
+  box.innerHTML = ZW(`<p class="rb-sum">Summe ${title}: <b>${nf(sv, 0)} mm</b> · Vorjahr gleicher Zeitraum: ${nf(sp, 0)} mm${sn != null ? ` · normal ${nf(sn, 0)} mm` : ""}${dryTxt}</p><div class="rbc" id="rbc1"></div>
+    <div class="legend"><span><i style="background:#6fb7ff"></i>gemessen</span><span><i style="background:#a99cf0;opacity:.6"></i>Vorjahr</span>${sn != null ? `<span><i style="background:rgba(238,243,251,.5)"></i>normal</span>` : ""}</div><div class="note">${src}. Heute: Messung bis jetzt (Bright Sky).</div>`, `<p class="rb-sum">Összesen, ${title}: <b>${nf(sv, 0)} mm</b> · előző év azonos időszaka: ${nf(sp, 0)} mm${sn != null ? ` · normál ${nf(sn, 0)} mm` : ""}${dryTxt}</p><div class="rbc" id="rbc1"></div>
+    <div class="legend"><span><i style="background:#6fb7ff"></i>mért</span><span><i style="background:#a99cf0;opacity:.6"></i>előző év</span>${sn != null ? `<span><i style="background:rgba(238,243,251,.5)"></i>normál</span>` : ""}</div><div class="note">${src}. Ma: mérés eddig (Bright Sky).</div>`);
   const layers = [{type: "bar", vals: bins.map(b => b.p), color: "#a99cf0", opacity: .45, w: .34, off: .17}, {type: "bar", vals: bins.map(b => b.v), color: "#6fb7ff", w: .34, off: -.17}];
   if (sn != null) layers.push({type: "line", vals: bins.map(b => b.n), color: "rgba(238,243,251,.55)", dash: "3 4", width: 1.5});
   drawChart($("rbc1"), {n: bins.length, h: 190, aria: `Niederschlag ${title} mit Vorjahr`, yFmt: v => nf(v, 0), yMin: 0,
     xLabel: i => (bins.length <= 12 || i % 2 === 0) ? bins[i].lab : null, layers,
-    tip: i => { const b = bins[i]; return `<b>${b.tl}</b><span class="tt" style="color:#6fb7ff">${b.v == null ? "–" : nf(b.v) + " mm"}</span><span>Vorjahr ${b.p == null ? "–" : nf(b.p) + " mm"}</span>${b.n != null ? `<span>normal ${nf(b.n, 0)} mm</span>` : ""}`; }});
+    tip: i => { const b = bins[i]; return `<b>${b.tl}</b><span class="tt" style="color:#6fb7ff">${b.v == null ? "–" : nf(b.v) + " mm"}</span><span>${ZW("Vorjahr", "Előző év")} ${b.p == null ? "–" : nf(b.p) + " mm"}</span>${b.n != null ? `<span>${TR("normal")} ${nf(b.n, 0)} mm</span>` : ""}`; }});
 }
 function initRueckblick() {
   initODLV(); initPGV();
@@ -2546,7 +2597,7 @@ let SIGS = [], SIG_OPEN = null, SIG_ALL = false;
 function renderSignals() {
   const order = {on:0, maybe:1, off:2, na:3};
   const safe = f => { try { return f(); } catch { return null; } };
-  const liste = HU ? [sigRadl, sigFrost, sigPV, sigSterne, sigAurora]
+  const liste = HU ? [sigBalaton, sigPollenHU, sigUVHU, sigRadl, sigFrost, sigPV, sigSterne, sigAurora]
     : [sigInversionOrt, sigFernsicht, sigRadl, sigFrost, sigFeuer, sigPV, sigSterne, sigUVOrt, sigPollenOrt, sigBio, sigAurora, sigSchneeOrt];
   SIGS = liste.map(safe).filter(s => s && !(HU && s.state === "na"))
     .map((s, i) => ({...s, i})).sort((a, b) => order[a.state] - order[b.state] || a.i - b.i);
@@ -2562,7 +2613,7 @@ function showSig(k) {
   const s = SIGS.find(x => x.key === k);
   document.querySelectorAll(".sg").forEach(b => b.setAttribute("aria-expanded", b.dataset.k === k));
   $("sig-detail").hidden = !s || !s.detail;
-  if (s) $("sig-detail").innerHTML = `<b>${TR(s.title)}</b> ${s.detail}${LANG === "hu" ? ` <em>(${TR("Details nur auf Deutsch.")})</em>` : ""}`;
+  if (s) $("sig-detail").innerHTML = `<b>${TR(s.title)}</b> ${s.detail}`;
 }
 
 
@@ -2609,7 +2660,7 @@ async function loadWarnings() {
 
 
 /* ---------- Region Ungarn: Messwerte HungaroMet (hu.json vom Abholdienst), Radar RainViewer, Warnungen MeteoAlarm ---------- */
-let HUDATA = null, HU_P3 = null;
+let HUDATA = null, HU_P3 = null, HU_T3 = null;
 async function loadHU() {
   try { const r = await fetch("../hu.json?t=" + Date.now()); if (r.ok) HUDATA = await r.json(); } catch {}
   return HUDATA;
@@ -2641,10 +2692,12 @@ async function loadForecastHU() {
       fallback_source_ids: {cloud_cover: base.source_id}};
     if (st.regen_1h >= 0.1 && !/rain|sleet|snow|hail|thunder/.test(w.icon || "")) w.icon = st.t < 1 ? "snow" : "rain";
     HU_P3 = st.p3 != null && st.p != null ? mslp(st.p3, st.hoehe, st.t) : null;
+    const t3 = (st.t_stunden || []).map(([t, v]) => ({d: Math.abs(Date.parse(t) - (now.getTime() - 3 * 36e5)), v})).sort((a, b) => a.d - b.d)[0];
+    HU_T3 = t3 && t3.d <= 40 * 6e4 ? t3.v : null;
     cur = {weather: w, sources: [{id: -1, station_name: st.name, distance: st.km * 1000}, ...(wx.sources || [])]};
     RAIN = {hour: st.regen_1h ?? null, today: st.regen_heute ?? null, h3: null, h24: st.regen_24h ?? null, h72: null, station: st.name, ok: st.regen_heute != null};
   } else {
-    HU_P3 = null;
+    HU_P3 = null; HU_T3 = null;
     cur = {weather: {...base}, sources: wx.sources || []};
     calcRain(recs, wx.sources, base, now);
   }
@@ -2694,6 +2747,19 @@ function radSumHU() {   // keine Radar-Vorhersage für Ungarn: Regen in den näc
   return (hit ? TR("Laut Vorhersage Regen ab etwa {0} in {1}.", `<b>${hhmm(new Date(Math.max(now, Date.parse(hit.timestamp) - 36e5)))}${UHR}</b>`, esc(ORT.name))
     : TR("Laut Vorhersage kein Regen in {0} in den nächsten 3 Stunden.", esc(ORT.name))) + note;
 }
+const WARN_ART = {wind:["Wind","szél"], rain:["Regen","eső"], snow:["Schnee","hó"], "snow-ice":["Schnee/Eis","hó/jég"], ice:["Glätte","ónos eső, jég"],
+  thunderstorm:["Gewitter","zivatar"], thunderstorms:["Gewitter","zivatar"], fog:["Nebel","köd"], "high-temperature":["Hitze","hőség"], "low-temperature":["Kälte","hideg"],
+  "extreme high temperature":["Hitze","hőség"], "extreme low temperature":["Kälte","hideg"], "forest-fire":["Waldbrand","erdőtűz"], "forest fire":["Waldbrand","erdőtűz"],
+  avalanches:["Lawinen","lavina"], flooding:["Hochwasser","árvíz"], "rain-flood":["Starkregen, Hochwasser","eső, árvíz"], "coastal event":["Sturmflut","part menti esemény"]};
+const REGION_HU = {"Central Hungary":"Közép-Magyarország", "Central Transdanubia":"Közép-Dunántúl", "Western Transdanubia":"Nyugat-Dunántúl",
+  "Southern Transdanubia":"Dél-Dunántúl", "Northern Hungary":"Észak-Magyarország", "Northern Great Plain":"Észak-Alföld", "Southern Great Plain":"Dél-Alföld"};
+const warnGebiet = t => LANG === "hu" ? String(t || "").replace(/[A-Z][a-z]+(?: [A-Z][a-z]+)+/g, m => REGION_HU[m] || m) : (t || "");
+function warnTitel(a) {   // MeteoAlarm schreibt z. B. "yellow wind warning" auf Englisch
+  const m = String(a.event || a.title || "").toLowerCase().match(/(yellow|orange|red)\s+(.+?)\s+warning/);
+  if (!m || !WARN_ART[m[2]]) return a.headline || a.event || a.title || "";
+  const farbe = {yellow: ["Gelbe", "Sárga"], orange: ["Orange", "Narancs"], red: ["Rote", "Piros"]}[m[1]];
+  return ZW(`${farbe[0]} Warnung: ${WARN_ART[m[2]][0]}`, `${farbe[1]} figyelmeztetés: ${WARN_ART[m[2]][1]}`);
+}
 function huStufe(a) {
   const t = `${a.awareness_level || ""} ${a.severity || ""} ${a.title || ""}`;
   return /red|piros|extreme/i.test(t) ? "extreme" : /orange|narancs|severe/i.test(t) ? "severe" : /yellow|sárga|moderate/i.test(t) ? "moderate" : "minor";
@@ -2714,7 +2780,7 @@ async function loadWarningsHU() {
   for (const k of hier.keys()) umg.delete(k);
   const order = {extreme:0, severe:1, moderate:2, minor:3}, sort = m => [...m.values()].sort((a, b) => order[huStufe(a)] - order[huStufe(b)]);
   const fmt = d => d ? `${wd(new Date(d))} ${hhmm(new Date(d))}` : TR("bis auf Weiteres");
-  const card = (a, extra) => `<div class="warn ${huStufe(a)}"><b>${esc(a.headline || a.event || a.title)}</b><small>${fmt(a.onset || a.effective)} – ${fmt(a.expires)} · ${esc(a.areaDesc || "")}${extra ? " · " + esc(extra) : ""}</small></div>`;
+  const card = (a, extra) => `<div class="warn ${huStufe(a)}"><b>${esc(warnTitel(a))}</b><small>${fmt(a.onset || a.effective)} – ${fmt(a.expires)} · ${esc(warnGebiet(a.areaDesc))}${extra ? " · " + esc(extra) : ""}</small></div>`;
   const ok = t => `<div class="ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M7.5 12.5l3 3 6-6.5"/></svg>${t}</div>`;
   const h = sort(hier), u = sort(umg);
   $("warn").innerHTML = (h.length ? h.map(a => card(a)).join("") : ok(TR("Keine Warnungen für {0}.", esc(ORT.name))))
@@ -2738,6 +2804,110 @@ async function loadODLHU() {
     + (rest.length ? `<details class="pall"><summary>${TR("Alle {0} weiteren Messstellen als Liste", rest.length)}</summary>${rest.map((x, i) => row(x, i + 4)).join("")}</details>` : "") + `</div>`;
   $("odl-cz").innerHTML = ""; $("odl-spark").innerHTML = ""; $("odl-skala").innerHTML = "";
 }
+/* Gewässer Ungarn: Pegel Donau, Balaton, Velencei-tó (OVF/hydroinfo über hu.json); Messung je Tag um 7 und 19 Uhr */
+const PEGEL_HAUPT = {budapest:"442027", csomad:"442026", veszprem:"442600", balatonfured:"442633", siofok:"442550", szekesfehervar:"442558"};
+function miniVerlauf(v) {   // kleiner Verlauf aus [Zeit, cm]
+  if (!v || v.length < 2) return "";
+  const W = 320, H = 54, P = 6, ts = v.map(x => Date.parse(x[0] + ":00:00+01:00")), vs = v.map(x => x[1]);
+  const lo = Math.min(...vs), hi = Math.max(...vs), sp = Math.max(4, hi - lo);
+  const X = t => P + (t - ts[0]) / Math.max(1, ts.at(-1) - ts[0]) * (W - 2 * P), Y = c => P + (hi + sp * .15 - c) / (sp * 1.3) * (H - 2 * P);
+  const d = "M" + v.map((x, i) => `${X(ts[i]).toFixed(1)},${Y(x[1]).toFixed(1)}`).join("L");
+  const tage = Math.round((ts.at(-1) - ts[0]) / 864e5);
+  return `<div class="sp-h">${TR("Verlauf {0} Tage", Math.max(1, tage))} <span>${Math.round(lo)} – ${Math.round(hi)} cm</span></div>
+    <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="${TR("Wasserstand")}"><path d="${d}" fill="none" stroke="#6fb2ff" stroke-width="1.8" vector-effect="non-scaling-stroke"/></svg>`;
+}
+async function loadPegelHU() {
+  if (!HUDATA) await loadHU();
+  const all = (HUDATA?.gewaesser?.pegel || []).filter(g => g.stand != null);
+  if (!all.length) throw new Error(TR("keine Pegelwerte"));
+  const stufen = new Set(all.map(g => g.stufe || ""));
+  const stufe = g => stufen.size > 1 && /gelb|orange|rot|lila/.test(g.stufe || "") ? g.stufe : null;   // gleiche Farbe überall = nur Tabellenstil
+  const haupt = all.find(g => g.id === PEGEL_HAUPT[ORT.key]) || [...all].sort((a, b) => km(ORT.lat, ORT.lon, a.lat, a.lon) - km(ORT.lat, ORT.lon, b.lat, b.lon))[0];
+  const name = g => TR(g.name);
+  const zeile = (g, nr) => {
+    const d = g.aenderung, tt = d == null ? "" : Math.abs(d) >= 2 ? `<span class="pt ${d > 0 ? "up" : "dn"}">${d > 0 ? "▲ +" : "▼ "}${Math.round(d)} cm/24 h</span>` : `<span class="pt">${TR("gleich")}</span>`;
+    const st = stufe(g), ms = st ? `<span class="ms ms${{gelb:1, orange:2, rot:3, lila:4}[st]}">${TR("Alarmstufe")}</span>` : "";
+    const info = [`${Math.round(km(ORT.lat, ORT.lon, g.lat, g.lon))} km`, g.gewaesser, g.abfluss != null ? `${Math.round(g.abfluss)} m³/s` : "", g.wassertemp != null ? `${TR("Wasser")} ${f1(g.wassertemp)} °C` : ""].filter(Boolean).join(" · ");
+    return `<div class="pg"><div class="nm"><b>${nr ? `<span class="nr">${nr}</span>` : ""}${esc(name(g))} ${ms}</b><small>${esc(info)}</small></div><div class="pv"><b>${Math.round(g.stand)}</b> cm${tt}</div></div>`;
+  };
+  const balaton = all.find(g => g.id === "442550" && g.wassertemp != null) || all.find(g => g.gewaesser === "Balaton" && g.wassertemp != null);
+  const siofok = huStationen().find(x => /^Siófok$/.test(x.name) && x.wasser != null);
+  const wt = balaton || siofok ? `<div class="rain3"><span><small>${TR("Balaton Wasser")}</small><b>${f1(siofok?.wasser ?? balaton.wassertemp)} °C</b></span><span><small>${TR("gemessen")}</small><b class="st">${siofok ? `Siófok, ${hhmm(new Date(siofok.at))}${UHR}` : `Siófok, ${TR("morgens")}`}</b></span>${all.find(g => g.id === "442600") ? `<span><small>${TR("Balaton (Mittel)")}</small><b>${Math.round(all.find(g => g.id === "442600").stand)} cm</b></span>` : ""}</div>` : "";
+  const rest = all.filter(g => g !== haupt).sort((a, b) => km(ORT.lat, ORT.lon, a.lat, a.lon) - km(ORT.lat, ORT.lon, b.lat, b.lon));
+  const datum = haupt.datum ? `${dm(new Date(haupt.datum + "T12:00:00"))}.` : "";
+  $("pegel").innerHTML = wt + `<div class="grp"><div class="grp-h">${TR("Wichtigster Pegel für {0}", esc(ORT.name))}</div>${zeile(haupt)}<div class="odl-spark">${miniVerlauf(haupt.verlauf)}</div></div>`
+    + `<div class="grp"><div class="grp-h">${TR("Weitere Pegel")} <small>${TR("nach Entfernung zu {0}", esc(ORT.name))}</small></div>${rest.map((g, i) => zeile(g, i + 1)).join("")}</div>`
+    + `<div class="unit">${TR("Wasserstand morgens 7 Uhr, {0} · Quelle: hydroinfo.hu (OVF)", datum)}</div>`;
+}
+/* UV-Index und Pollen Ungarn: Copernicus-Modell (CAMS) über Open-Meteo, je Ort, stündlich */
+let LUFT = null;
+async function loadLuftHU() {
+  const u = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${ORT.lat}&longitude=${ORT.lon}&hourly=uv_index,alder_pollen,birch_pollen,grass_pollen,mugwort_pollen,ragweed_pollen&timezone=Europe%2FBudapest&forecast_days=3`;
+  try { const r = await fetch(u); LUFT = r.ok ? await r.json() : null; } catch { LUFT = null; }
+}
+function luftTag(feld, tag) {   // Tageshöchstwert eines Feldes für den Kalendertag
+  const h = LUFT?.hourly; if (!h?.time) return null;
+  const v = h.time.map((t, i) => [t.slice(0, 10), h[feld]?.[i]]).filter(([d, x]) => d === tag && x != null).map(x => x[1]);
+  return v.length ? Math.max(...v) : null;
+}
+const POLLEN_HU = [["ragweed_pollen", "Ambrosia", 10, 30], ["grass_pollen", "Gräser", 10, 50], ["birch_pollen", "Birke", 10, 50],
+  ["alder_pollen", "Erle", 10, 50], ["mugwort_pollen", "Beifuß", 10, 30]];
+function sigUVHU() {
+  const heute = dayKey(new Date()), morgen = dayKey(new Date(Date.now() + 864e5));
+  const v = luftTag("uv_index", heute), w = luftTag("uv_index", morgen);
+  if (v == null) return {key:"uv", title:"UV-Index", state:"na", short:"keine Daten", detail:""};
+  const lvl = x => x >= 8 ? "sehr hoch" : x >= 6 ? "hoch" : x >= 3 ? "mittel" : "niedrig";
+  return {key:"uv", title:"UV-Index", state: v >= 6 ? "on" : v >= 3 ? "maybe" : "off", short:`${Math.round(v)} · ${TR(lvl(v))}`,
+    detail: TR("Höchster UV-Index heute {0} ({1}), morgen {2}. Ab 3 ist Sonnenschutz sinnvoll, ab 6 unbedingt. Quelle: Copernicus (CAMS) über Open-Meteo.",
+      Math.round(v), TR(lvl(v)), w == null ? "–" : Math.round(w))};
+}
+function sigPollenHU() {
+  const heute = dayKey(new Date()), morgen = dayKey(new Date(Date.now() + 864e5));
+  if (!LUFT?.hourly) return {key:"pol", title:"Pollen", state:"na", short:"keine Daten", detail:""};
+  const st = (v, m, h) => v == null || v < 1 ? 0 : v >= h ? 3 : v >= m ? 2 : 1;
+  const wort = n => TR(["keine", "gering", "mittel", "hoch"][n]);
+  const liste = POLLEN_HU.map(([f, n, m, h]) => ({n: TR(n), v: luftTag(f, heute), w: luftTag(f, morgen), m, h}))
+    .map(x => ({...x, s: st(x.v, x.m, x.h), sw: st(x.w, x.m, x.h)})).sort((a, b) => b.s - a.s || (b.v ?? 0) - (a.v ?? 0));
+  const ragweed = liste.find(x => x.n === TR("Ambrosia"));
+  const fmt = x => `${x.n} ${wort(x.s)} (${Math.round(x.v)} ${TR("Pollen/m³")})`;
+  const aktiv = liste.filter(x => x.s > 0), mo = liste.filter(x => x.sw > 0).map(x => `${x.n} ${wort(x.sw)}`).join(", ");
+  const quelle = TR("Modellwerte Copernicus (CAMS) über Open-Meteo, Tageshöchstwert. Ambrosia (Ragweed) blüht in Ungarn vor allem von August bis Oktober.");
+  if (!aktiv.length) return {key:"pol", title:"Pollen", state:"off", short: TR("kein Pollenflug"),
+    detail: `${TR("Heute keine nennenswerte Belastung.")}${mo ? " " + TR("Morgen") + ": " + mo + "." : ""} ${quelle}`};
+  const top = aktiv[0];
+  return {key:"pol", title:"Pollen", state: top.s >= 2 ? "on" : "maybe", short: `${top.n} ${wort(top.s)}`,
+    detail: `${TR("Heute")}: ${aktiv.map(fmt).join(", ")}.${ragweed && ragweed.s === 0 && ragweed.v != null ? " " + TR("Ambrosia: keine Belastung.") : ""}${mo ? " " + TR("Morgen") + ": " + mo + "." : ""} ${quelle}`};
+}
+SIG_ICON.bal = '<path d="M2 15c2.5 0 2.5-2 5-2s2.5 2 5 2 2.5-2 5-2 2.5 2 5 2"/><path d="M2 20c2.5 0 2.5-2 5-2s2.5 2 5 2 2.5-2 5-2 2.5 2 5 2" opacity=".6"/><path d="M12 3v6M9.5 6.5L12 9l2.5-2.5"/>';
+function sigBalaton() {   // Wassertemperatur Balaton (Siófok)
+  const st = huStationen().find(x => /^Siófok$/.test(x.name) && x.wasser != null);
+  const pg = (HUDATA?.gewaesser?.pegel || []).filter(g => g.gewaesser === "Balaton" && g.wassertemp != null);
+  const t = st?.wasser ?? pg.find(g => g.id === "442550")?.wassertemp ?? pg[0]?.wassertemp;
+  if (t == null) return {key:"bal", title:"Balaton", state:"na", short:"keine Daten", detail:""};
+  const andere = pg.filter(g => g.id !== "442550").map(g => `${g.name} ${f1(g.wassertemp)} °C`).join(", ");
+  const state = t >= 22 ? "on" : t >= 18 ? "maybe" : "off";
+  const short = t >= 22 ? TR("{0} °C · Badewetter", f1(t)) : t >= 18 ? TR("{0} °C · erfrischend", f1(t)) : TR("{0} °C Wasser", f1(t));
+  return {key:"bal", title:"Balaton", state, short,
+    detail: TR("Wassertemperatur in Siófok {0} °C{1}. Ab etwa 22 °C angenehm zum Baden, unter 18 °C nur für Abgehärtete. Quelle: HungaroMet und hydroinfo.hu (OVF).", f1(t), andere ? ` (${TR("morgens")}: ${andere})` : "")};
+}
+function fussUngarisch() {   // Fußbereich auf Ungarisch (Quellenangaben mit Links)
+  const a = (u, t) => `<a href="${u}" target="_blank" rel="noopener">${t}</a>`;
+  $("fuss-quellen").textContent = "Források";
+  $("quellen-hu").innerHTML = `<li>Mérések, sugárzás (gamma-dózisteljesítmény): ${a("https://odp.met.hu", "HungaroMet Nonprofit Zrt.")} (nyílt adatok, 10 perces értékek, saját letöltő szolgáltatáson át)</li>
+    <li>Előrejelzés: DWD-MOSMIX a ${a("https://brightsky.dev", "Bright Sky")} szolgáltatáson át · Csapadékradar: ${a("https://www.rainviewer.com", "RainViewer")} · Figyelmeztetések: ${a("https://www.meteoalarm.org", "MeteoAlarm")} (HungaroMet)</li>
+    <li>Vízállás (Duna, Balaton, Velencei-tó) és vízhőmérséklet: ${a("https://www.hydroinfo.hu", "hydroinfo.hu")} (Országos Vízügyi Főigazgatóság, OVF)</li>
+    <li>UV-index és pollen (modell): Copernicus légköri megfigyelő szolgálat (CAMS), ${a("https://open-meteo.com", "Open-Meteo")}</li>
+    <li>Sarki fény (Kp-index): ${a("https://www.swpc.noaa.gov", "NOAA SWPC")} · Térkép: © ${a("https://www.openstreetmap.org/copyright", "OpenStreetMap")} közreműködők</li>`;
+  $("quellen-by").innerHTML = `<li>Időjárás, előrejelzés, radar, figyelmeztetések: Német Meteorológiai Szolgálat (DWD Open Data), ${a("https://brightsky.dev", "Bright Sky")}; cseh állomások a nemzetközi SYNOP-cserén át</li>
+    <li>UV-index, pollen, biometeorológia, napi klímaadatok 1991 óta, bajor éves átlagok 1881 óta: ${a("https://opendata.dwd.de", "DWD Open Data")}</li>
+    <li>Vízmércék és tározók: ${a("https://www.hnd.bayern.de", "bajor árvízjelző szolgálat")} (LfU)</li>
+    <li>Sugárzás: ${a("https://odlinfo.bfs.de", "BfS ODL mérőhálózat")}; Csehország: a sugárvédelmi hatóság korai figyelmeztető hálózata, ${a("https://www.suro.cz/aplikace/monras/tabulky/svz", "SÚRO")} (MonRaS)</li>
+    <li>Sarki fény (Kp-index): ${a("https://www.swpc.noaa.gov", "NOAA SWPC")} · Térkép: © ${a("https://www.openstreetmap.org/copyright", "OpenStreetMap")} közreműködők</li>
+    <li>Saját számítások: erdőtűzindex (FWI), Nap és Hold, jelzések; saját archívum a vízmércékhez, a sugárzáshoz és a cseh hőmérsékletekhez</li>`;
+  $("fuss-doku").innerHTML = `Az alkalmazás felépítése és számításai: ${a("../dokumentation.pdf", "dokumentáció (PDF, németül) ↗")}`;
+  $("fuss-hu").innerHTML = `Mérések 10 percenként a HungaroMetnél, a GitHubon át 30 percenként. Nem hivatalos figyelmeztetés, a mérvadó a ${a("https://www.met.hu/idojaras/veszelyjelzes/", "met.hu")}.`;
+  $("fuss-by").innerHTML = `Élő adatok 10 percenként, vízállás, sugárzás és archívum 30 percenként a GitHubon át. Nem hivatalos figyelmeztetés, a mérvadó a ${a("https://www.dwd.de/warnungen", "dwd.de")} és a ${a("https://www.hnd.bayern.de", "hnd.bayern.de")}.`;
+}
 function regionAnwenden() {   // Texte, sichtbare Bereiche und Schalter passend zu Region und Sprache
   document.querySelectorAll("#region-tg button").forEach(b => b.setAttribute("aria-pressed", b.dataset.region === REGION));
   document.querySelectorAll("#lang-tg button").forEach(b => b.setAttribute("aria-pressed", b.dataset.lang === LANG));
@@ -2749,11 +2919,13 @@ function regionAnwenden() {   // Texte, sichtbare Bereiche und Schalter passend 
     $("st-quelle").textContent = "100 km um den Ort, HungaroMet";
     $("odl-quelle").textContent = "HungaroMet-Messnetz";
     $("odl-note").textContent = "Gamma-Dosisleistung an den Wetterstationen von HungaroMet (10-Minuten-Mittel). Natürliche Werte liegen meist zwischen 0,05 und 0,2 µSv/h, nach Regen etwas höher.";
-    for (const id of ["card-pegel", "rueckblick", "rscale", "quellen-by", "fuss-by"]) $(id).hidden = true;
+    $("pegel-quelle").textContent = "Duna, Balaton, Velencei-tó";
+    for (const id of ["rueckblick", "rscale", "quellen-by", "fuss-by"]) $(id).hidden = true;
     for (const id of ["quellen-hu", "fuss-hu"]) $(id).hidden = false;
     document.title = document.title.replace("Bayerwald", "Ungarn");
   }
   uebersetzeSeite();
+  if (LANG === "hu") fussUngarisch();
   const wechsel = (key, val) => { lsSet(key, val); location.href = location.pathname; };   // neu laden: ohne ?ort=, mit gemerktem Startort
   $("region-tg").addEventListener("click", e => { const b = e.target.closest("button[data-region]"); if (b && b.dataset.region !== REGION) wechsel(REGIONKEY, b.dataset.region); });
   $("lang-tg").addEventListener("click", e => { const b = e.target.closest("button[data-lang]"); if (b && b.dataset.lang !== LANG) { lsSet(LANGKEY, b.dataset.lang === "hu" ? "hu" : null); location.reload(); } });
@@ -2771,7 +2943,7 @@ async function refresh() {
   if (HU) {
     await loadHU();
     await Promise.all([run(loadForecastHU, ["cur","chart","hours","days"]), run(loadWarningsHU, ["warn"]), run(loadStationsHU, ["st-jetzt","st-12h"]),
-      run(loadRadarHU, ["rad-sum"]), loadExtra()]);
+      run(loadRadarHU, ["rad-sum"]), run(loadPegelHU, ["pegel"]), loadExtra(), loadLuftHU()]);
     try { if (RAD.layers) $("rad-sum").innerHTML = radSumHU(); } catch {}
     await run(loadODLHU, ["odl"]);
   } else {
@@ -2853,7 +3025,7 @@ function miniKarte(el, lat, lon, name, farbe) {
   const m = grundkarte(el, {zoom: false, drag: false}); if (!m) return;
   if (!gross) {
     // Durchsichtige Schaltfläche über der ganzen kleinen Karte: Leaflet bekommt den Tipp gar nicht erst
-    el.insertAdjacentHTML("beforeend", '<button type="button" class="map-tap" aria-label="Karte vergrößern"><span>⤢ vergrößern</span></button>');
+    el.insertAdjacentHTML("beforeend", `<button type="button" class="map-tap" aria-label="${ZW("Karte vergrößern", "Térkép nagyítása")}"><span>⤢ ${ZW("vergrößern", "nagyítás")}</span></button>`);
     el.querySelector(".map-tap").addEventListener("click", e => { e.stopPropagation(); karteGross(name, box => miniKarte(box, lat, lon, name, farbe)); });
   }
   const p = L.circleMarker([lat, lon], {radius: 8, color: "#fff", weight: 2, fillColor: farbe || "#6fb7ff", fillOpacity: 1}).addTo(m);
@@ -2870,7 +3042,7 @@ function miniKarte(el, lat, lon, name, farbe) {
 function karteGross(titel, bauen) {
   document.querySelector(".kgross")?.remove();
   const ov = document.createElement("div"); ov.className = "kgross";
-  ov.innerHTML = `<div class="kg-in" role="dialog" aria-modal="true" aria-label="${esc(titel)}"><div class="kg-h"><b>${esc(titel)}</b><button type="button" class="kg-x" aria-label="Schließen">×</button></div><div class="kg-map"></div></div>`;
+  ov.innerHTML = `<div class="kg-in" role="dialog" aria-modal="true" aria-label="${esc(titel)}"><div class="kg-h"><b>${esc(titel)}</b><button type="button" class="kg-x" aria-label="${ZW("Schließen", "Bezárás")}">×</button></div><div class="kg-map"></div></div>`;
   document.body.appendChild(ov); document.body.classList.add("noscroll");
   const zu = () => { kartenWeg(ov); ov.remove(); document.body.classList.remove("noscroll"); removeEventListener("keydown", esc_); };
   const esc_ = e => { if (e.key === "Escape") zu(); };
@@ -2918,8 +3090,8 @@ function tempKarte() {
   const box = $("st-karte");
   const pts = STN.filter(r => r.now && r.lat != null && r.dist != null && r.dist <= RADIUS / 1000);
   kartenWeg(box);
-  box.innerHTML = `<div class="kv-bar"><label class="chk"><input type="checkbox" id="heat-chk" ${TK_HEAT ? "checked" : ""}> Temperaturfläche (Näherung)</label></div>
-    <div class="bigmap"></div><div class="note">Schilder = gemessene Temperatur jetzt, ${pts.length} Stationen DE und CZ. Die Fläche ist zwischen den Stationen geschätzt; im Bergland weicht sie ab, weil die Höhe stark mitspielt.</div>`;
+  box.innerHTML = `<div class="kv-bar"><label class="chk"><input type="checkbox" id="heat-chk" ${TK_HEAT ? "checked" : ""}> ${ZW("Temperaturfläche (Näherung)", "Hőmérsékleti felület (közelítés)")}</label></div>
+    <div class="bigmap"></div><div class="note">${ZW(`Schilder = gemessene Temperatur jetzt, ${pts.length} Stationen ${HU ? "HU" : "DE und CZ"}. Die Fläche ist zwischen den Stationen geschätzt; im Bergland weicht sie ab, weil die Höhe stark mitspielt.`, `Címkék = most mért hőmérséklet, ${pts.length} állomás (${HU ? "HU" : "DE és CZ"}). A felület az állomások között becsült; hegyvidéken eltér, mert a magasság erősen befolyásolja.`)}</div>`;
   if (!pts.length) return;
   const mapEl = box.querySelector(".bigmap");
   mapEl.before(grossKnopf("Temperaturen um " + ORT.name, el => tempKarteBauen(el, pts)));
@@ -2945,7 +3117,7 @@ function tempKarteBauen(el, pts) {
 /* Liste | Karte bei Gewässer und Strahlung */
 const ANSICHT = {pegel: "liste", odl: "liste"};
 function ansichtSchalter(bereich) {
-  return `<div class="seg ansicht" data-bereich="${bereich}"><button type="button" data-v="liste" aria-pressed="${ANSICHT[bereich] === "liste"}">Liste</button><button type="button" data-v="karte" aria-pressed="${ANSICHT[bereich] === "karte"}">Karte</button></div>`;
+  return `<div class="seg ansicht" data-bereich="${bereich}"><button type="button" data-v="liste" aria-pressed="${ANSICHT[bereich] === "liste"}">${ZW("Liste", "Lista")}</button><button type="button" data-v="karte" aria-pressed="${ANSICHT[bereich] === "karte"}">${TR("Karte")}</button></div>`;
 }
 function ansichtAnwenden(bereich) {
   const root = $(bereich); if (!root) return;
@@ -2957,7 +3129,7 @@ function ansichtAnwenden(bereich) {
   kv.querySelector(".kg-btn")?.remove();
   if (karte) {
     const bau = bereich === "pegel" ? pegelKarte : odlKarte, el = kv.querySelector(".bigmap");
-    el.before(grossKnopf(bereich === "pegel" ? "Gewässer" : "Strahlung", bau));
+    el.before(grossKnopf(TR(bereich === "pegel" ? "Gewässer" : "Strahlung"), bau));
     bau(el);
   }
 }
@@ -3038,12 +3210,12 @@ async function stVerlauf(box, r) {
   if (!box || !r) return;
   const range = STV.range;
   const seg = r.land === "HU" ? "" : `<div class="seg">${[["7", "7 Tage"], ["30", "30 Tage"], ["365", "1 Jahr"]].map(([k, t]) => `<button type="button" data-r="${k}" aria-pressed="${range === k}">${TR(t)}</button>`).join("")}</div>`;
-  const foot = r.land === "HU" ? `<div class="note">${TR("Stundenwerte von HungaroMet, verfügbar für die letzten 24 Stunden.")}</div>` : r.land === "CZ" ? `<div class="note">Eigene Mitschrift der Stundenwerte des ČHMÚ, gesammelt seit 08.11.2026. Der Verlauf füllt sich Tag für Tag.</div>` : `<div class="note">Stundenwerte des Deutschen Wetterdienstes (über Bright Sky).</div>`;
+  const foot = r.land === "HU" ? `<div class="note">${TR("Stundenwerte von HungaroMet, verfügbar für die letzten 24 Stunden.")}</div>` : r.land === "CZ" ? ZW(`<div class="note">Eigene Mitschrift der Stundenwerte des ČHMÚ, gesammelt seit 08.11.2026. Der Verlauf füllt sich Tag für Tag.</div>`, `<div class="note">A ČHMÚ órás értékeinek saját rögzítése, gyűjtve 2026.11.08. óta. Az idősor napról napra bővül.</div>`) : ZW(`<div class="note">Stundenwerte des Deutschen Wetterdienstes (über Bright Sky).</div>`, `<div class="note">A Német Meteorológiai Szolgálat órás értékei (Bright Sky-on át).</div>`);
   box.innerHTML = seg + '<div class="load">Lade Verlauf …</div>';
   let pts = [];
   try { pts = await stStunden(r, +range); } catch {}
   if (!box.isConnected || STV.range !== range) return;
-  if (pts.length < 3) { box.innerHTML = seg + `<div class="note">${r.land === "CZ" ? "Noch zu wenige Werte in der eigenen Mitschrift." : TR("Verlauf gerade nicht abrufbar.")}</div>` + foot; return; }
+  if (pts.length < 3) { box.innerHTML = seg + `<div class="note">${r.land === "CZ" ? ZW("Noch zu wenige Werte in der eigenen Mitschrift.", "Még túl kevés adat a saját rögzítésben.") : TR("Verlauf gerade nicht abrufbar.")}</div>` + foot; return; }
   const yF = v => nf(v, 0), tag = d => new Intl.DateTimeFormat(LOC, {timeZone: TZ, weekday: "short", day: "numeric", month: "numeric"}).format(d);
   const vals = pts.map(p => p.v), mn = Math.min(...vals), mx = Math.max(...vals);
   const lmin = pts[vals.indexOf(mn)], lmax = pts[vals.indexOf(mx)];
@@ -3065,13 +3237,13 @@ async function stVerlauf(box, r) {
   const ok = rows.filter(Boolean);
   if (ok.length < 2) { box.innerHTML = seg + '<div class="note">Für diesen Zeitraum liegen noch zu wenige Tageswerte vor.</div>' + foot; return; }
   const erster = dates[rows.findIndex(Boolean)];
-  box.innerHTML = seg + sum.replace("</p>", (r.land === "CZ" && erster > dates[0] ? ` · Werte ab ${dShort(erster)}` : "") + "</p>") + `<div class="rbc"></div>
+  box.innerHTML = seg + sum.replace("</p>", (r.land === "CZ" && erster > dates[0] ? ZW(` · Werte ab ${dShort(erster)}`, ` · adatok ${dShort(erster)}-tól`) : "") + "</p>") + `<div class="rbc"></div>
     <div class="legend"><span><i style="background:#f2a65a"></i>Tagesmittel</span><span><i style="background:#f2a65a;opacity:.3"></i>Tief bis Hoch</span></div>` + foot;
   drawChart(box.querySelector(".rbc"), {n: dates.length, h: 160, aria: `Tageswerte Temperatur ${r.name}`, yFmt: yF,
     xLabel: i => (i % Math.ceil(dates.length / 6) === 0) ? dShort(dates[i]) : null,
     layers: [{type: "range", lo: rows.map(x => x ? x.min : null), hi: rows.map(x => x ? x.max : null), color: "rgba(242,166,90,.3)"},
              {type: "line", vals: rows.map(x => x ? x.mittel : null), color: "#f2a65a", width: 2, dots: ok.length < 15}],
-    tip: i => `<b>${dShort(dates[i])}</b>${rows[i] ? `<span class="tt" style="color:#f2a65a">Mittel ${f1(rows[i].mittel)} °C</span><span>${f1(rows[i].min)} bis ${f1(rows[i].max)} °C</span>` : "<span>kein Wert</span>"}`});
+    tip: i => `<b>${dShort(dates[i])}</b>${rows[i] ? `<span class="tt" style="color:#f2a65a">${TR("Mittel")} ${f1(rows[i].mittel)} °C</span><span>${f1(rows[i].min)} – ${f1(rows[i].max)} °C</span>` : `<span>${TR("kein Wert")}</span>`}`});
 }
 
 function initTabs() {
@@ -3093,7 +3265,7 @@ function initTabs() {
     const d = document.createElement("div"); d.className = "st-det";
     d.innerHTML = `<div class="vl-body"></div>`
       + (r.lat != null ? `<div class="subh">${TR("Lage")}</div><div class="minimap"></div><a class="maplink" href="${kartenUrl(r.lat, r.lon, r.name)}" target="_blank" rel="noopener">${TR("In Karten-App öffnen ↗")}</a>` : "")
-      + `<div class="note">${r.land === "HU" ? TR("HungaroMet (ungarischer Wetterdienst)") : r.land === "CZ" ? "Tschechischer Wetterdienst ČHMÚ" : "Deutscher Wetterdienst (über Bright Sky)"}${r.hoehe != null ? " · " + Math.round(r.hoehe) + (LANG === "hu" ? " m tszf." : " m ü. NN") : ""}${r.dist != null ? " · " + Math.round(r.dist) + " " + TR("km von") + " " + esc(ORT.name) : ""}</div>`;
+      + `<div class="note">${r.land === "HU" ? TR("HungaroMet (ungarischer Wetterdienst)") : r.land === "CZ" ? ZW("Tschechischer Wetterdienst ČHMÚ", "Cseh meteorológiai szolgálat (ČHMÚ)") : ZW("Deutscher Wetterdienst (über Bright Sky)", "Német Meteorológiai Szolgálat (Bright Sky-on át)")}${r.hoehe != null ? " · " + Math.round(r.hoehe) + (LANG === "hu" ? " m tszf." : " m ü. NN") : ""}${r.dist != null ? " · " + Math.round(r.dist) + " " + TR("km von") + " " + esc(ORT.name) : ""}</div>`;
     row.after(d); d.dataset.si = row.dataset.si;
     stVerlauf(d.querySelector(".vl-body"), r);
     if (r.lat != null) miniKarte(d.querySelector(".minimap"), r.lat, r.lon, r.name, tcol(r[row.dataset.f]?.t ?? r.now?.t));
