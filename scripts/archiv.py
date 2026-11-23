@@ -7,6 +7,9 @@ Schreibt:
 - bayern-jahre.csv      DWD-Gebietsmittel Bayern, Jahresmitteltemperatur seit 1881 (Waermestreifen)
 - pegel/YYYY-MM.csv     stuendliche Pegelwerte aus pegel.json (eigenes Archiv)
 - pegel-tage.csv        Tagesmittel und -maximum je Pegel
+- pegel-hu/YYYY-MM.csv  Pegel Ungarn (Donau, Balaton, Velencei-tó): Stundenwerte von vizugy.hu und die
+                        Morgen-/Abendwerte von hydroinfo.hu aus hu.json / hu-pegel-roh.json (eigenes Archiv)
+- pegel-hu-tage.csv     Tagesmittel, -maximum und -minimum je ungarischem Pegel
 - odl/<kenn>.csv        BfS-Tagesmittel der Ortsdosisleistung je Sonde
 - odl-aktuell.json      je Ort die naechsten Sonden mit Stundenwert, 7-Tage-Stundenverlauf, 7-Tage-Mittel,
                         dazu unter "cz" die naechsten tschechischen Sonden (EURDEP)
@@ -345,6 +348,77 @@ def teil_pegel(status):
         save_json("pegel-meldestufen.json", ms)
         status["ms"]["tag"] = NOW.date().isoformat()
     return f"{neu} neue Stundenwerte, {len(tage)} Pegeltage, Meldestufen fuer {len([k for k in ms if not k.startswith('_')])} Pegel"
+
+
+def teil_pegel_hu(status):
+    """Pegel Ungarn ins eigene Archiv: Zeit in UTC, wie beim bayerischen Archiv."""
+    from zoneinfo import ZoneInfo
+    bud = ZoneInfo("Europe/Budapest")
+    werte = {}   # (zeit, id) -> cm
+    try:
+        hj = json.load(open("hu.json", encoding="utf-8"))
+    except Exception:
+        hj = {}
+    for g in (hj.get("gewaesser") or {}).get("pegel", []):
+        for t, v in g.get("verlauf") or []:   # "YYYY-MM-DDTHH" Ortszeit Budapest (7 und 19 Uhr)
+            try:
+                u = datetime.strptime(t[:13], "%Y-%m-%dT%H").replace(tzinfo=bud).astimezone(timezone.utc)
+            except ValueError:
+                continue
+            if v is not None:
+                werte[(u.strftime("%Y-%m-%dT%H:%M"), g["id"])] = v
+        for t, v in g.get("stunden") or []:
+            if v is not None:
+                werte[(t[:16], g["id"])] = v
+    try:
+        for pid, reihe in json.load(open("hu-pegel-roh.json", encoding="utf-8")).items():
+            for t, v in reihe:
+                if v is not None:
+                    werte[(t[:16], pid)] = v
+    except Exception:
+        pass
+    pdir = path("pegel-hu", "x")[:-2]
+    os.makedirs(pdir, exist_ok=True)
+    neu, seen = 0, {}
+    for (ts, pid), v in sorted(werte.items()):
+        mon = ts[:7]
+        p = os.path.join(pdir, f"{mon}.csv")
+        if mon not in seen:
+            seen[mon] = set()
+            if os.path.exists(p):
+                with open(p, encoding="utf-8") as f:
+                    next(f, None)
+                    seen[mon] = {";".join(l.split(";")[:2]) for l in f}
+        key = f"{ts};{pid}"
+        if key in seen[mon]:
+            continue
+        new_file = not os.path.exists(p)
+        with open(p, "a", encoding="utf-8") as f:
+            if new_file:
+                f.write("zeit;id;stand_cm\n")
+            f.write(f"{key};{v:g}\n")
+        seen[mon].add(key)
+        neu += 1
+    tage = {}
+    for fn in sorted(os.listdir(pdir)):
+        if not fn.endswith(".csv"):
+            continue
+        with open(os.path.join(pdir, fn), encoding="utf-8") as f:
+            next(f, None)
+            for l in f:
+                try:
+                    ts, pid, v = l.strip().split(";")
+                    v = float(v)
+                except ValueError:
+                    continue
+                d = datetime.strptime(ts, "%Y-%m-%dT%H:%M").replace(tzinfo=timezone.utc).astimezone(bud).date().isoformat()
+                a = tage.setdefault((d, pid), [0, 0.0, -1e9, 1e9])
+                a[0] += 1; a[1] += v; a[2] = max(a[2], v); a[3] = min(a[3], v)
+    with open(path("pegel-hu-tage.csv"), "w", encoding="utf-8") as f:
+        f.write("datum;id;mittel;max;min;werte\n")
+        for (d, pid), (n, s, mx, mn) in sorted(tage.items()):
+            f.write(f"{d};{pid};{s / n:.1f};{mx:g};{mn:g};{n}\n")
+    return f"{neu} neue Werte, {len(tage)} Pegeltage Ungarn"
 
 
 KEY_PEGEL = {"15228008", "15202300", "15204000", "15246000", "15243001", "15210206", "15214003",
@@ -776,7 +850,7 @@ def main():
     status["fehler"] = {}
     status.pop("pegel_seen", None)
     # schnelle, häufige Teile zuerst; nach jedem Teil Zwischenstand sichern (falls der Lauf abgebrochen wird)
-    for name, fn in [("pegel", teil_pegel), ("pegellage", teil_pegellage), ("odl", teil_odl), ("chmi", teil_chmi), ("tage", teil_tage), ("bayern", teil_bayern)]:
+    for name, fn in [("pegel", teil_pegel), ("pegel_hu", teil_pegel_hu), ("pegellage", teil_pegellage), ("odl", teil_odl), ("chmi", teil_chmi), ("tage", teil_tage), ("bayern", teil_bayern)]:
         t0 = datetime.now(timezone.utc)
         try:
             status.setdefault("ergebnis", {})[name] = fn(status)

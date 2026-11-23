@@ -1,7 +1,9 @@
 """Holt Daten fuer die Region Ungarn der Wetterseite und schreibt sie nach hu.json:
 - 10-Minuten-Messwerte aller Automatikstationen von HungaroMet (odp.met.hu, offene Daten),
   dazu Tiefst-/Hoechstwerte 12 h und 24 h, Regen heute und letzte Stunde, Gamma-Ortsdosisleistung
-- Pegel Donau, Balaton und Velencei-to mit Wassertemperatur von hydroinfo.hu (OVF), eigener Verlauf 45 Tage
+- Pegel Donau, Balaton und Velencei-to mit Wassertemperatur von hydroinfo.hu (OVF), eigener Verlauf 45 Tage,
+  dazu Stundenwerte und Alarmstufen je Pegel von vizugy.hu (OVF, Vízmérce-Seiten); die volle Stundenreihe geht
+  nach hu-pegel-roh.json (nicht eingecheckt) und wird von archiv.py ins eigene Archiv uebernommen
 - Unwetterwarnungen fuer Ungarn ueber MeteoAlarm (Atom-Feed)
 Jede Quelle ist unabhaengig: faellt eine aus, bleibt der Rest erhalten (Fehler unter "errors").
 Quelle der Messwerte: HungaroMet Nonprofit Zrt. (Nennung ist Nutzungsbedingung)."""
@@ -313,7 +315,110 @@ def gewaesser():
             out.append(g)
     if not out:
         raise RuntimeError("; ".join(fehler) or "keine Pegel gefunden")
-    return {"pegel": out, "fehler": fehler}
+    ids = {}
+    try:
+        ids = stundenwerte(out, alt_ids(), fehler)
+    except Exception as e:
+        fehler.append(f"vizugy: {e}"[:200])
+    return {"pegel": out, "fehler": fehler, "vizugy": ids}
+
+
+# Stundenwerte je Pegel: vizugy.hu, Seite "Vízmérce" (OpGrafikon, OrasIdosor). Die Seiten haben eine GUID je Pegel;
+# bekannte stehen hier, die uebrigen werden aus den Links der landesweiten Pegelliste auf derselben Seite ermittelt.
+VIZUGY = "https://www.vizugy.hu/?mapModule=OpGrafikon&AllomasVOA={}&mapData=OrasIdosor"
+VIZUGY_BEKANNT = {"442550": "164961A4-97AB-11D4-BB62-00508BA24287", "442527": "16496053-97AB-11D4-BB62-00508BA24287"}
+VIZUGY_NAMEN = {"442025": ["esztergom"], "442527": ["nagymaros"], "442026": ["vac"], "442027": ["budapest", "budapest vigado ter"],
+                "442533": ["budafok", "budapest-budafok", "budapest budafok"], "442028": ["dunaujvaros"], "442550": ["siofok"],
+                "442633": ["tihany", "tihany-rev", "tihany rev", "tihanyi rev"], "442632": ["balatonakali"], "442558": ["agard"]}
+ROH = "hu-pegel-roh.json"
+
+
+def alt_ids():
+    try:
+        return json.load(open(OUT, encoding="utf-8")).get("gewaesser", {}).get("vizugy") or {}
+    except Exception:
+        return {}
+
+
+def norm(t):
+    import unicodedata
+    t = unicodedata.normalize("NFKD", html.unescape(str(t))).encode("ascii", "ignore").decode().lower()
+    return " ".join(re.sub(r"[^a-z0-9-]+", " ", t).split())
+
+
+def vizugy_seite(guid):
+    return decode(get_bytes(VIZUGY.format(guid), timeout=30))
+
+
+def guid_links(seite):
+    """Alle Pegel-Links einer vizugy-Seite: normierter Name -> GUID."""
+    out = {}
+    for g, txt in re.findall(r'<a[^>]+AllomasVOA=([0-9A-Fa-f-]{36})[^>]*>(.*?)</a>', seite, re.S | re.I):
+        n = norm(re.sub(r"<[^>]+>", " ", txt))
+        if n and n not in out:
+            out[n] = g.upper()
+    return out
+
+
+def reihe(seite):
+    """Stundenwerte (UTC-Zeit, cm) und Kenndaten (Alarmstufen I-III, LNV, LKV) aus einer Vízmérce-Seite."""
+    txt = " ".join(html.unescape(re.sub(r"<[^>]+>", " ", seite)).split())
+    werte = {}
+    for y, mo, d, h, mi, v in re.findall(r"(\d{4})\.(\d{2})\.(\d{2})\.\s*(\d{2}):(\d{2})\s+(-?\d+(?:[.,]\d+)?)", txt):
+        if mi != "00":
+            continue
+        t = datetime(int(y), int(mo), int(d), int(h), tzinfo=TZ).astimezone(timezone.utc)
+        werte[t.strftime("%Y-%m-%dT%H:00")] = float(v.replace(",", "."))
+    ms = {}
+    for stufe, cm in re.findall(r"\b(I{1,3})\.\s*k[ée]sz[üu]lts[ée]gi szint:\s*(-?\d+)\s*cm", txt):
+        ms[str(len(stufe))] = int(cm)
+    for k, rx in (("LNV", r"\(LNV\):\s*(-?\d+)"), ("LKV", r"\(LKV\):\s*(-?\d+)")):
+        m = re.search(rx, txt)
+        if m:
+            ms[k] = int(m.group(1))
+    return sorted(werte.items()), ms
+
+
+def stundenwerte(pegel, ids, fehler):
+    """Holt je Pegel die Stundenreihe; haengt die letzten 7 Tage als "stunden" an, den aktuellen Wert als "aktuell"."""
+    ids = {**VIZUGY_BEKANNT, **ids}
+    seiten, links, roh, fehlschlaege = {}, {}, {}, 0
+    if any(g["id"] in VIZUGY_NAMEN and g["id"] not in ids for g in pegel):
+        for guid in list(dict.fromkeys(ids.values()))[:3]:   # die Pegelliste steht auf jeder Vízmérce-Seite
+            try:
+                seiten[guid] = vizugy_seite(guid)
+                links = guid_links(seiten[guid])
+            except Exception as e:
+                fehler.append(f"vizugy Liste: {e}"[:160])
+            if links:
+                break
+        for g in pegel:
+            for n in VIZUGY_NAMEN.get(g["id"], []):
+                if g["id"] not in ids and n in links:
+                    ids[g["id"]] = links[n]
+    grenze = (datetime.now(timezone.utc) - timedelta(days=7)).strftime("%Y-%m-%dT%H:00")
+    for g in pegel:
+        guid = ids.get(g["id"])
+        if not guid or fehlschlaege >= 3:
+            continue
+        try:
+            werte, ms = reihe(seiten.get(guid) or vizugy_seite(guid))
+        except Exception as e:
+            fehlschlaege += 1
+            fehler.append(f"vizugy {g['name']}: {e}"[:160])
+            continue
+        if ms:
+            g["ms"] = ms
+        if werte:
+            roh[g["id"]] = werte
+            g["stunden"] = [[t, v] for t, v in werte if t >= grenze]
+            g["aktuell"], g["aktuell_zeit"] = werte[-1][1], werte[-1][0] + ":00Z"
+    try:
+        with open(ROH, "w", encoding="utf-8") as f:
+            json.dump(roh, f, separators=(",", ":"))
+    except OSError:
+        pass
+    return ids
 
 
 METEOALARM = "https://feeds.meteoalarm.org/feeds/meteoalarm-legacy-atom-hungary"

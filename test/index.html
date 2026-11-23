@@ -292,6 +292,7 @@ h2 small{font:500 .72rem var(--f-body);letter-spacing:.04em;text-transform:none;
 .rscale{display:flex;margin-top:8px;font-size:.66rem;color:var(--mu)}
 .rscale span{flex:1;padding-top:6px;border-top:6px solid var(--c);text-align:left}
 /* Pegel */
+.pg-vl + .odl-spark{display:none}
 .pg{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:10px;padding:7px 0;border-top:1px solid var(--line)}
 .pg .nm b{font-weight:600}.pg .nm a{color:inherit;text-decoration:none}.pg .nm small{display:block;color:var(--mu);font-size:.72rem}
 .pv{text-align:right;font-size:.75rem;color:var(--mu)}.pv b{font:700 1.15rem var(--f-disp);color:var(--fg);margin-right:2px}
@@ -1401,16 +1402,17 @@ function pgOpen(row) {
   const s = (window.PEGEL_DATA?.stations || []).find(x => x.id === row.dataset.id); if (!s) return;
   row.setAttribute("aria-expanded", "true");
   const box = document.createElement("div"); box.className = "pg-vl"; box.dataset.id = s.id;
-  const lg = ARC.pegelLage?.[s.id];
+  const lg = pLage(s);
   box.innerHTML = `<div class="vl-body"></div>` + (lg ? `<div class="subh">${TR("Lage")}</div><div class="minimap"></div><a class="maplink" href="${kartenUrl(lg.lat, lg.lon, s.name)}" target="_blank" rel="noopener">${TR("In Karten-App öffnen ↗")}</a>` : "");
   row.after(box); pgVerlauf(box.querySelector(".vl-body"), s);
   if (lg) miniKarte(box.querySelector(".minimap"), lg.lat, lg.lon, s.name, s.stage > 0 ? "#e88a2e" : "#4f86c6");
 }
-async function pegelStunden(id) {   // eigenes Archiv (Monatsdateien) + aktuelle Werte aus pegel.json
+function pLage(s) { return s.lat != null ? {lat: s.lat, lon: s.lon} : ARC.pegelLage?.[s.id]; }
+async function pegelStunden(id) {   // eigenes Archiv (Monatsdateien; Ungarn: pegel-hu/) + aktuelle Werte aus pegel.json bzw. hu.json
   const now = new Date(), mons = [dayKey(now).slice(0, 7), dayKey(new Date(now - 8 * 864e5)).slice(0, 7)];
   await Promise.all([...new Set(mons)].map(async m => {
     if (PGV.std[m]) return;
-    try { PGV.std[m] = parseCsv(await fetchText(ARCHIV + `pegel/${m}.csv`)); } catch { PGV.std[m] = []; }
+    try { PGV.std[m] = parseCsv(await fetchText(ARCHIV + `${HU ? "pegel-hu" : "pegel"}/${m}.csv`)); } catch { PGV.std[m] = []; }
   }));
   const map = new Map(), grenze = Date.now() - 7 * 864e5;
   for (const m of new Set(mons)) for (const r of PGV.std[m]) if (String(r.id) === id) map.set(r.zeit.slice(0, 16), r.stand_cm);
@@ -1422,12 +1424,13 @@ async function pgVerlauf(box, s) {
   const range = PGV.range, see = /see|talsperre/i.test(s.name + s.river) && s.level > 100;
   const seg = `<div class="seg">${[["7", "7 Tage"], ["30", "30 Tage"], ["365", "1 Jahr"]].map(([k, t]) => `<button type="button" data-r="${k}" aria-pressed="${range === k}">${TR(t)}</button>`).join("")}</div>`;
   const SP = SPEICHER[s.id], tf = SP ? SP.wert : (v => v);
-  const ms = ARC.ms?.[s.id] || {}, unit = SP ? SP.unit : see ? "m" : "cm", yF = SP ? SP.yF : (v => see ? nf(v, 2) : nf(v, 0));
-  const foot = ZW(`<div class="note">${SP ? SP.info + " " : ""}Eigenes Archiv aus den Werten des Hochwassernachrichtendienstes Bayern, gesammelt seit 26.10.2026.${s.url ? ` <a href="${esc(s.url)}" target="_blank" rel="noopener">Pegel beim HND ansehen ↗</a>` : ""}</div>`, `<div class="note">${SP ? SP.info + " " : ""}Saját archívum a bajor árvízjelző szolgálat (HND) adataiból, gyűjtve 2026.10.26. óta.${s.url ? ` <a href="${esc(s.url)}" target="_blank" rel="noopener">Vízmérce a HND oldalán ↗</a>` : ""}</div>`);
+  const ms = (s.hu ? s.ms : ARC.ms?.[s.id]) || {}, unit = SP ? SP.unit : see ? "m" : "cm", yF = SP ? SP.yF : (v => see ? nf(v, 2) : nf(v, 0));
+  const foot = s.hu ? ZW(`<div class="note">Stundenwerte von vizugy.hu, Morgen- und Abendwerte von hydroinfo.hu (beide OVF), im eigenen Archiv gesammelt seit 23.11.2026; 30 Tage und 1 Jahr füllen sich Tag für Tag.${ms["1"] ? ` Gelbe Linie = Alarmstufe I (${ms["1"]} cm).` : ""} <a href="${esc(s.url)}" target="_blank" rel="noopener">Pegel bei ${s.guid ? "vizugy.hu" : "hydroinfo.hu"} ansehen ↗</a></div>`,
+      `<div class="note">Órás értékek: vizugy.hu, reggeli és esti értékek: hydroinfo.hu (mindkettő OVF), saját archívumban gyűjtve 2026.11.23. óta; a 30 napos és az 1 éves nézet napról napra bővül.${ms["1"] ? ` Sárga vonal = I. fokú készültség (${ms["1"]} cm).` : ""} <a href="${esc(s.url)}" target="_blank" rel="noopener">Vízmérce a ${s.guid ? "vizugy.hu" : "hydroinfo.hu"} oldalán ↗</a></div>`) : ZW(`<div class="note">${SP ? SP.info + " " : ""}Eigenes Archiv aus den Werten des Hochwassernachrichtendienstes Bayern, gesammelt seit 26.10.2026.${s.url ? ` <a href="${esc(s.url)}" target="_blank" rel="noopener">Pegel beim HND ansehen ↗</a>` : ""}</div>`, `<div class="note">${SP ? SP.info + " " : ""}Saját archívum a bajor árvízjelző szolgálat (HND) adataiból, gyűjtve 2026.10.26. óta.${s.url ? ` <a href="${esc(s.url)}" target="_blank" rel="noopener">Vízmérce a HND oldalán ↗</a>` : ""}</div>`);
   if (s.level == null) { box.innerHTML = ZW(`<div class="note">An diesem Pegel wird nur der Abfluss gemeldet, kein Wasserstand.</div>`, `<div class="note">Ennél a vízmércénél csak a vízhozamot jelentik, vízállást nem.</div>`) + foot; return; }
   const hl = [];
   if (!see && ms.MW) hl.push({type: "hline", v: ms.MW, color: "rgba(238,243,251,.5)", label: "Mittelwasser"});
-  if (!see && ms["1"]) hl.push({type: "hline", v: ms["1"], color: "#f2cd4b", label: ZW("Meldestufe 1", "1. jelzőszint")});
+  if (!see && ms["1"]) hl.push({type: "hline", v: ms["1"], color: "#f2cd4b", label: s.hu ? ZW("Alarmstufe I", "I. fokú készültség") : ZW("Meldestufe 1", "1. jelzőszint")});
   box.innerHTML = seg + '<div class="load">Lade Verlauf …</div>';
   if (range === "7") {
     const pts = await pegelStunden(s.id);
@@ -1439,12 +1442,12 @@ async function pgVerlauf(box, s) {
     box.innerHTML = seg + ZW(`<p class="rb-sum">jetzt ${yF(vals.at(-1))} ${unit} · Spanne ${yF(mn)} – ${yF(mx)} ${unit}${ms.MW && !see ? ` · Mittelwasser ${ms.MW} cm` : ""}</p><div class="rbc"></div>`, `<p class="rb-sum">most ${yF(vals.at(-1))} ${unit} · tartomány ${yF(mn)} – ${yF(mx)} ${unit}${ms.MW && !see ? ` · középvíz ${ms.MW} cm` : ""}</p><div class="rbc"></div>`) + foot;
     const step = Math.max(1, Math.round(n / Math.max(1, span) * (span > 3 ? 2 : 1)));
     drawChart(box.querySelector(".rbc"), {n, h: 160, aria: `Wasserstand ${s.name}`, fromZero: false, yFmt: yF,
-      xLabel: i => { const k = n - 1 - i; return k === 0 ? "jetzt" : (k % step === 0 && i > n * 0.08 && k > n * 0.12 ? tag(pts[i].t).replace(/\.$/, "") : null); },
+      xLabel: i => { const k = n - 1 - i; return k === 0 ? ZW("jetzt", "most") : (k % step === 0 && i > n * 0.08 && k > n * 0.12 ? tag(pts[i].t).replace(/\.$/, "") : null); },
       layers: [{type: "line", vals, color: "#6fb7ff", width: 1.8, dots: n < 12}, ...hl],
       tip: i => `<b>${tag(pts[i].t)} ${hhmm(pts[i].t)}</b><span class="tt" style="color:#6fb7ff">${yF(vals[i])} ${unit}</span>`});
     return;
   }
-  const P = ARC.pegelTage || [], today = dayKey(new Date()), dates = [];
+  const P = (s.hu ? ARC.pegelTageHU : ARC.pegelTage) || [], today = dayKey(new Date()), dates = [];
   for (let i = +range - 1; i >= 0; i--) dates.push(addDays(today, -i));
   const m = new Map(P.filter(r => String(r.id) === s.id).map(r => [r.datum, r]));
   const rows = dates.map(d => { const r = m.get(d); return r ? {...r, mittel: tf(r.mittel), min: tf(r.min), max: tf(r.max)} : null; }), ok = rows.filter(Boolean);
@@ -2818,9 +2821,9 @@ async function loadODLHU() {
 }
 /* Gewässer Ungarn: Pegel Donau, Balaton, Velencei-tó (OVF/hydroinfo über hu.json); Messung je Tag um 7 und 19 Uhr */
 const PEGEL_HAUPT = {budapest:"442027", csomad:"442026", veszprem:"442600", balatonfured:"442633", siofok:"442550", szekesfehervar:"442558"};
-function miniVerlauf(v) {   // kleiner Verlauf aus [Zeit, cm]
+function miniVerlauf(v) {   // kleiner Verlauf aus [Zeit UTC "YYYY-MM-DDTHH:MM", cm]
   if (!v || v.length < 2) return "";
-  const W = 320, H = 54, P = 6, ts = v.map(x => Date.parse(x[0] + ":00:00+01:00")), vs = v.map(x => x[1]);
+  const W = 320, H = 54, P = 6, ts = v.map(x => Date.parse(x[0].slice(0, 16) + ":00Z")), vs = v.map(x => x[1]);
   const lo = Math.min(...vs), hi = Math.max(...vs), sp = Math.max(4, hi - lo);
   const X = t => P + (t - ts[0]) / Math.max(1, ts.at(-1) - ts[0]) * (W - 2 * P), Y = c => P + (hi + sp * .15 - c) / (sp * 1.3) * (H - 2 * P);
   const d = "M" + v.map((x, i) => `${X(ts[i]).toFixed(1)},${Y(x[1]).toFixed(1)}`).join("L");
@@ -2828,28 +2831,52 @@ function miniVerlauf(v) {   // kleiner Verlauf aus [Zeit, cm]
   return `<div class="sp-h">${TR("Verlauf {0} Tage", Math.max(1, tage))} <span>${Math.round(lo)} – ${Math.round(hi)} cm</span></div>
     <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="${TR("Wasserstand")}"><path d="${d}" fill="none" stroke="#6fb2ff" stroke-width="1.8" vector-effect="non-scaling-stroke"/></svg>`;
 }
+function huUtc(t) {   // "YYYY-MM-DDTHH" Ortszeit Budapest (hydroinfo, 7 und 19 Uhr) -> "YYYY-MM-DDTHH:MM" UTC
+  const d = new Date(t.slice(0, 13) + ":00:00Z"), off = (new Date(d.toLocaleString("en-US", {timeZone: "Europe/Budapest"})) - new Date(d.toLocaleString("en-US", {timeZone: "UTC"})));
+  return new Date(+d - off).toISOString().slice(0, 16);
+}
+function huStation(g) {   // ungarischer Pegel im Format der bayerischen Pegel (Liste, Verlauf, Karte)
+  const hist = new Map();
+  for (const [t, v] of g.verlauf || []) if (v != null) hist.set(huUtc(t), v);
+  for (const [t, v] of g.stunden || []) if (v != null) hist.set(t.slice(0, 16), v);
+  const guid = HUDATA?.gewaesser?.vizugy?.[g.id];
+  return {id: g.id, name: TR(g.name), river: g.gewaesser, level: g.aktuell ?? g.stand, flow: g.abfluss ?? null, hu: true, guid,
+    stage: {gelb: 1, orange: 2, rot: 3, lila: 4}[g.stufeOk] || 0, ms: g.ms || {}, lat: g.lat, lon: g.lon, roh: g,
+    hist: [...hist].sort((a, b) => a[0] < b[0] ? -1 : 1).map(([t, v]) => [t + ":00+00:00", v]),
+    url: guid ? `https://www.vizugy.hu/?mapModule=OpGrafikon&AllomasVOA=${guid}&mapData=OrasIdosor` : "https://www.hydroinfo.hu/en/hidinfo/duna.html"};
+}
 async function loadPegelHU() {
   if (!HUDATA) await loadHU();
-  const all = (HUDATA?.gewaesser?.pegel || []).filter(g => g.stand != null);
+  const all = (HUDATA?.gewaesser?.pegel || []).filter(g => g.stand != null || g.aktuell != null);
   if (!all.length) throw new Error(TR("keine Pegelwerte"));
+  if (!ARC.pegelTageHU) fetchText(ARCHIV + "pegel-hu-tage.csv").then(t => { ARC.pegelTageHU = parseCsv(t); }).catch(() => {});
   const stufen = new Set(all.map(g => g.stufe || ""));
-  const stufe = g => stufen.size > 1 && /gelb|orange|rot|lila/.test(g.stufe || "") ? g.stufe : null;   // gleiche Farbe überall = nur Tabellenstil
+  for (const g of all) g.stufeOk = stufen.size > 1 && /gelb|orange|rot|lila/.test(g.stufe || "") ? g.stufe : null;   // gleiche Farbe überall = nur Tabellenstil
+  const ST = all.map(huStation), byId = Object.fromEntries(ST.map(s => [s.id, s]));
+  window.PEGEL_DATA = {stations: ST, updated: HUDATA.updated};
   const haupt = all.find(g => g.id === PEGEL_HAUPT[ORT.key]) || [...all].sort((a, b) => km(ORT.lat, ORT.lon, a.lat, a.lon) - km(ORT.lat, ORT.lon, b.lat, b.lon))[0];
-  const name = g => TR(g.name);
   const zeile = (g, nr) => {
-    const d = g.aenderung, tt = d == null ? "" : Math.abs(d) >= 2 ? `<span class="pt ${d > 0 ? "up" : "dn"}">${d > 0 ? "▲ +" : "▼ "}${Math.round(d)} cm/24 h</span>` : `<span class="pt">${TR("gleich")}</span>`;
-    const st = stufe(g), ms = st ? `<span class="ms ms${{gelb:1, orange:2, rot:3, lila:4}[st]}">${TR("Alarmstufe")}</span>` : "";
+    const s = byId[g.id], tr = g.stunden?.length > 3 ? pTrend(s) : null;
+    const d = tr ? tr.d : g.aenderung, std = tr ? Math.round(tr.hrs) : 24;
+    const tt = d == null ? "" : Math.abs(d) >= 2 ? `<span class="pt ${d > 0 ? "up" : "dn"}">${d > 0 ? "▲ +" : "▼ "}${Math.round(d)} cm/${std} h</span>` : `<span class="pt">${TR("gleich")}</span>`;
+    const ms = g.stufeOk ? `<span class="ms ms${s.stage}">${TR("Alarmstufe")}</span>` : "";
     const info = [`${Math.round(km(ORT.lat, ORT.lon, g.lat, g.lon))} km`, g.gewaesser, g.abfluss != null ? `${Math.round(g.abfluss)} m³/s` : "", g.wassertemp != null ? `${TR("Wasser")} ${f1(g.wassertemp)} °C` : ""].filter(Boolean).join(" · ");
-    return `<div class="pg"><div class="nm"><b>${nr ? `<span class="nr">${nr}</span>` : ""}${esc(name(g))} ${ms}</b><small>${esc(info)}</small></div><div class="pv"><b>${Math.round(g.stand)}</b> cm${tt}</div></div>`;
+    return `<div class="pg pgx" role="button" tabindex="0" data-id="${esc(g.id)}" aria-expanded="false"><div class="nm"><b>${nr ? `<span class="nr">${nr}</span>` : ""}${esc(s.name)} ${ms}</b><small>${esc(info)}</small></div><div class="pv"><b>${Math.round(s.level)}</b> cm${tt}</div></div>`;
   };
   const balaton = all.find(g => g.id === "442550" && g.wassertemp != null) || all.find(g => g.gewaesser === "Balaton" && g.wassertemp != null);
   const siofok = huStationen().find(x => /^Siófok$/.test(x.name) && x.wasser != null);
   const wt = balaton || siofok ? `<div class="rain3"><span><small>${TR("Balaton Wasser")}</small><b>${f1(siofok?.wasser ?? balaton.wassertemp)} °C</b></span><span><small>${TR("gemessen")}</small><b class="st">${siofok ? `Siófok, ${hhmm(new Date(siofok.at))}${UHR}` : `Siófok, ${TR("morgens")}`}</b></span>${all.find(g => g.id === "442600") ? `<span><small>${TR("Balaton (Mittel)")}</small><b>${Math.round(all.find(g => g.id === "442600").stand)} cm</b></span>` : ""}</div>` : "";
   const rest = all.filter(g => g !== haupt).sort((a, b) => km(ORT.lat, ORT.lon, a.lat, a.lon) - km(ORT.lat, ORT.lon, b.lat, b.lon));
+  const hs = byId[haupt.id], spark = hs.hist.length > 1 ? miniVerlauf(hs.hist.filter(x => Date.parse(x[0]) > Date.now() - 7 * 864e5)) : "";
+  const neu = all.filter(g => g.aktuell_zeit).map(g => g.aktuell_zeit).sort().at(-1);
   const datum = haupt.datum ? `${dm(new Date(haupt.datum + "T12:00:00"))}.` : "";
-  $("pegel").innerHTML = wt + `<div class="grp"><div class="grp-h">${TR("Wichtigster Pegel für {0}", esc(ORT.name))}</div>${zeile(haupt)}<div class="odl-spark">${miniVerlauf(haupt.verlauf)}</div></div>`
-    + `<div class="grp"><div class="grp-h">${TR("Weitere Pegel")} <small>${TR("nach Entfernung zu {0}", esc(ORT.name))}</small></div>${rest.map((g, i) => zeile(g, i + 1)).join("")}</div>`
-    + `<div class="unit">${TR("Wasserstand morgens 7 Uhr, {0} · Quelle: hydroinfo.hu (OVF)", datum)}</div>`;
+  const stand = neu ? ZW(`Stand ${hhmm(new Date(neu))}${UHR} (Stundenwerte vizugy.hu), sonst 7 Uhr`, `Frissítve ${hhmm(new Date(neu))} (órás értékek: vizugy.hu), egyébként reggel 7 óra`) : TR("Wasserstand morgens 7 Uhr, {0} · Quelle: hydroinfo.hu (OVF)", datum);
+  kartenWeg($("pegel"));
+  $("pegel").innerHTML = wt + ansichtSchalter("pegel") + `<div class="lv"><div class="grp"><div class="grp-h">${TR("Wichtigster Pegel für {0}", esc(ORT.name))}</div>${zeile(haupt)}<div class="odl-spark">${spark}</div></div>`
+    + `<div class="grp"><div class="grp-h">${TR("Weitere Pegel")} <small>${TR("nach Entfernung zu {0}", esc(ORT.name))}</small></div>${rest.map((g, i) => zeile(g, i + 1)).join("")}</div></div>`
+    + `<div class="kv" hidden><div class="bigmap"></div><div class="legend"><span><i style="background:#4f86c6"></i>${TR("normal")}</span><span><i style="background:#c98a2b"></i>${ZW("steigt ab 5 cm", "5 cm-től emelkedik")}</span><span><i style="background:#e88a2e"></i>${TR("Alarmstufe")}</span></div></div>`
+    + `<div class="unit">${stand}${neu ? ZW(" · Quelle: OVF (hydroinfo.hu, vizugy.hu)", " · Forrás: OVF (hydroinfo.hu, vizugy.hu)") : ""} · ${ZW("Pegel antippen für den Verlauf", "koppintson a vízmércére az idősorért")}</div>`;
+  ansichtAnwenden("pegel");
 }
 /* UV-Index und Pollen Ungarn: Copernicus-Modell (CAMS) über Open-Meteo, je Ort, stündlich */
 let LUFT = null;
@@ -3154,7 +3181,8 @@ function zurListe(bereich, sel) {   // Tipp auf "Details" im Kartenschild: zur L
   row.click(); row.scrollIntoView({behavior: "smooth", block: "center"});
 }
 function pegelKarte(el) {
-  const LG = ARC.pegelLage || {}, st = (window.PEGEL_DATA?.stations || []).filter(s => LG[s.id]);
+  const LG = {}; for (const s of window.PEGEL_DATA?.stations || []) { const l = pLage(s); if (l) LG[s.id] = l; }
+  const st = (window.PEGEL_DATA?.stations || []).filter(s => LG[s.id]);
   const m = grundkarte(el); if (!m || !st.length) return;
   for (const s of st) {
     const tr = pTrend(s), sp = SPEICHER[s.id];
@@ -3164,7 +3192,7 @@ function pegelKarte(el) {
     if (s.stage > 0) farbe = ["#e3c13b", "#e88a2e", "#d9473b", "#9c3fc9"][Math.min(4, s.stage) - 1];
     const L_ = LG[s.id];
     wertMarke(m, L_.lat, L_.lon, txt, farbe, s.name, () => L.popup({closeButton: false}).setLatLng([L_.lat, L_.lon]).setContent(
-      `<b>${esc(s.name)}</b> <small>${esc(s.river)}</small><br>${sp && s.level != null ? sp.zeile(s.level, sp.wert(s.level)).big : s.level != null ? Math.round(s.level) + " cm" : f1(s.flow) + " m³/s"}${tr && Math.abs(tr.d) >= 2 ? ` · ${tr.d > 0 ? "▲" : "▼"} ${Math.abs(Math.round(tr.d))} cm` : ""}${s.stage > 0 ? ` · Meldestufe ${s.stage}` : ""}<br>${Math.round(km(ORT.lat, ORT.lon, L_.lat, L_.lon))} km · <a href="#" data-zu="${esc(s.id)}">Details ›</a>`).openOn(m), farbe === "#e3c13b");
+      `<b>${esc(s.name)}</b> <small>${esc(s.river)}</small><br>${sp && s.level != null ? sp.zeile(s.level, sp.wert(s.level)).big : s.level != null ? Math.round(s.level) + " cm" : f1(s.flow) + " m³/s"}${tr && Math.abs(tr.d) >= 2 ? ` · ${tr.d > 0 ? "▲" : "▼"} ${Math.abs(Math.round(tr.d))} cm` : ""}${s.stage > 0 ? ` · ${s.hu ? TR("Alarmstufe") : "Meldestufe"} ${s.stage}` : ""}<br>${Math.round(km(ORT.lat, ORT.lon, L_.lat, L_.lon))} km · <a href="#" data-zu="${esc(s.id)}">${ZW("Details", "Részletek")} ›</a>`).openOn(m), farbe === "#e3c13b");
   }
   m.on("popupopen", e => e.popup.getElement().querySelector("[data-zu]")?.addEventListener("click", ev => { ev.preventDefault(); m.closePopup(); zurListe("pegel", `.pgx[data-id="${ev.target.dataset.zu}"]`); }));
   ortMarker(m);
@@ -3237,7 +3265,7 @@ async function stVerlauf(box, r) {
     const n = pts.length, span = (pts.at(-1).t - pts[0].t) / 864e5, step = Math.max(1, Math.round(n / Math.max(1, span) * (span > 3 ? 2 : 1)));
     box.innerHTML = seg + sum + '<div class="rbc"></div>' + foot;
     drawChart(box.querySelector(".rbc"), {n, h: 160, aria: `Temperatur ${r.name}`, yFmt: yF,
-      xLabel: i => { const k = n - 1 - i; return k === 0 ? "jetzt" : (k % step === 0 && i > n * 0.08 && k > n * 0.12 ? tag(pts[i].t).replace(/\.$/, "") : null); },
+      xLabel: i => { const k = n - 1 - i; return k === 0 ? ZW("jetzt", "most") : (k % step === 0 && i > n * 0.08 && k > n * 0.12 ? tag(pts[i].t).replace(/\.$/, "") : null); },
       layers: [{type: "line", vals, color: "#f2a65a", width: 1.8, dots: n < 12}],
       tip: i => `<b>${tag(pts[i].t)} ${hhmm(pts[i].t)}</b><span class="tt" style="color:#f2a65a">${f1(vals[i])} °C</span>`});
     return;
