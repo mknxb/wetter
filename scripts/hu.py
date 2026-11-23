@@ -320,32 +320,19 @@ def gewaesser():
         ids = stundenwerte(out, alt_ids(), fehler)
     except Exception as e:
         fehler.append(f"vizugy: {e}"[:200])
-    try:   # Diagnose (voruebergehend): neue Seite paks.vizugy.hu
-        sp = ""
-        for u in ("https://paks.vizugy.hu/",):
-            try:
-                sp = decode(get_bytes(u, timeout=30))
-            except urllib.error.URLError as e:
-                if "CERTIFICATE_VERIFY_FAILED" not in str(e):
-                    raise
-                with urllib.request.urlopen(urllib.request.Request(u, headers=UA), timeout=30, context=vizugy_ctx()) as r:
-                    sp = decode(r.read())
-        PROBE["paks"] = {"laenge": len(sp), "skripte": re.findall(r'src="([^"]+)"', sp)[:20], "links": re.findall(r'href="([^"]+)"', sp)[:60],
-                         "api": re.findall(r'["\'`]([^"\'`\s]*(?:api|json|csv|data|vizall|allomas|merce)[^"\'`\s]*)["\'`]', sp, re.I)[:40], "anfang": sp[:2500]}
-    except Exception as e:
-        PROBE["paks"] = {"fehler": str(e)[:200]}
-    return {"pegel": out, "fehler": fehler, "vizugy": ids, **PROBE}
+    return {"pegel": out, "fehler": fehler, "vizugy": ids}
 
 
 # Stundenwerte je Pegel: vizugy.hu, Seite "Vízmérce" (OpGrafikon, OrasIdosor). Die Seiten haben eine GUID je Pegel;
 # bekannte stehen hier, die uebrigen werden aus den Links der landesweiten Pegelliste auf derselben Seite ermittelt.
-VIZUGY = "https://www.vizugy.hu/?mapModule=OpGrafikon&AllomasVOA={}&mapData=OrasIdosor"
+VIZUGY_HOST = "paks.vizugy.hu"   # seit Nov. 2026 leitet www.vizugy.hu dorthin um
+VIZUGY = "https://" + VIZUGY_HOST + "/?mapModule=OpGrafikon&AllomasVOA={}&mapData=OrasIdosor"
+VIZUGY_LISTE = "https://" + VIZUGY_HOST + "/index.php?mapModule=OpVizallas&mapData=VizmerceLista"
 VIZUGY_BEKANNT = {"442550": "164961A4-97AB-11D4-BB62-00508BA24287", "442527": "16496053-97AB-11D4-BB62-00508BA24287"}
 VIZUGY_NAMEN = {"442025": ["esztergom"], "442527": ["nagymaros"], "442026": ["vac"], "442027": ["budapest", "budapest vigado ter"],
                 "442533": ["budafok", "budapest-budafok", "budapest budafok"], "442028": ["dunaujvaros"], "442550": ["siofok"],
                 "442633": ["tihany", "tihany-rev", "tihany rev", "tihanyi rev"], "442632": ["balatonakali"], "442558": ["agard"]}
 ROH = "hu-pegel-roh.json"
-PROBE = {}
 
 
 def alt_ids():
@@ -372,7 +359,7 @@ def vizugy_ctx():
     if _VIZ_CTX:
         return _VIZ_CTX
     import ssl, subprocess
-    cert = subprocess.run(["openssl", "s_client", "-connect", "www.vizugy.hu:443", "-servername", "www.vizugy.hu"],
+    cert = subprocess.run(["openssl", "s_client", "-connect", VIZUGY_HOST + ":443", "-servername", VIZUGY_HOST],
                           input=b"", capture_output=True, timeout=30).stdout
     kette = []
     for _ in range(4):   # Kette nach oben verfolgen, bis ein Zertifikat sich selbst ausgestellt hat
@@ -396,8 +383,7 @@ def vizugy_ctx():
     return ctx
 
 
-def vizugy_seite(guid):
-    url = VIZUGY.format(guid)
+def vizugy_get(url):
     try:
         return decode(get_bytes(url, timeout=30))
     except urllib.error.URLError as e:
@@ -405,6 +391,10 @@ def vizugy_seite(guid):
             raise
     with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=30, context=vizugy_ctx()) as r:
         return decode(r.read())
+
+
+def vizugy_seite(guid):
+    return vizugy_get(VIZUGY.format(guid))
 
 
 def guid_links(seite):
@@ -441,18 +431,19 @@ def stundenwerte(pegel, ids, fehler):
     ids = {**VIZUGY_BEKANNT, **ids}
     seiten, links, roh, fehlschlaege = {}, {}, {}, 0
     if any(g["id"] in VIZUGY_NAMEN and g["id"] not in ids for g in pegel):
-        for guid in list(dict.fromkeys(ids.values()))[:3]:   # die Pegelliste steht auf jeder Vízmérce-Seite
+        for quelle in [VIZUGY_LISTE] + [VIZUGY.format(g) for g in list(dict.fromkeys(ids.values()))[:2]]:   # landesweite Pegelliste
             try:
-                seiten[guid] = vizugy_seite(guid)
-                links = guid_links(seiten[guid])
+                links = guid_links(vizugy_get(quelle))
             except Exception as e:
                 fehler.append(f"vizugy Liste: {e}"[:160])
-            if links:
+            if len(links) > 5:
                 break
         for g in pegel:
             for n in VIZUGY_NAMEN.get(g["id"], []):
                 if g["id"] not in ids and n in links:
                     ids[g["id"]] = links[n]
+        if len(links) <= 5:
+            fehler.append(f"vizugy Liste: nur {len(links)} Pegel-Links gefunden")
     grenze = (datetime.now(timezone.utc) - timedelta(days=7)).strftime("%Y-%m-%dT%H:00")
     for g in pegel:
         guid = ids.get(g["id"])
@@ -465,12 +456,8 @@ def stundenwerte(pegel, ids, fehler):
             fehlschlaege += 1
             fehler.append(f"vizugy {g['name']}: {e}"[:160])
             continue
-        if not werte and "probe" not in PROBE:   # Diagnose: Aufbau der Seite festhalten (voruebergehend)
-            sp = seiten.get(guid) or ""
-            i = max(0, sp.find("Időpont"))
-            PROBE["probe"] = {"laenge": len(sp), "allomas_links": sp.count("AllomasVOA"), "idopont": sp.count("Időpont"),
-                              "skripte": re.findall(r'src="([^"]+)"', sp)[:15], "ajax": re.findall(r'["\']([^"\']*(?:ajax|json|Idosor|getData)[^"\']*)["\']', sp, re.I)[:20],
-                              "titel": re.findall(r"<title>(.*?)</title>", sp, re.S)[:1], "ausschnitt": sp[i:i + 2500], "anfang": sp[:1500]}
+        if not werte:
+            fehler.append(f"vizugy {g['name']}: keine Stundenwerte erkannt ({len(seiten[guid])} Zeichen)")
         if ms:
             g["ms"] = ms
         if werte:
