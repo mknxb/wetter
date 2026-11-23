@@ -320,6 +320,20 @@ def gewaesser():
         ids = stundenwerte(out, alt_ids(), fehler)
     except Exception as e:
         fehler.append(f"vizugy: {e}"[:200])
+    try:   # Diagnose (voruebergehend): neue Seite paks.vizugy.hu
+        sp = ""
+        for u in ("https://paks.vizugy.hu/",):
+            try:
+                sp = decode(get_bytes(u, timeout=30))
+            except urllib.error.URLError as e:
+                if "CERTIFICATE_VERIFY_FAILED" not in str(e):
+                    raise
+                with urllib.request.urlopen(urllib.request.Request(u, headers=UA), timeout=30, context=vizugy_ctx()) as r:
+                    sp = decode(r.read())
+        PROBE["paks"] = {"laenge": len(sp), "skripte": re.findall(r'src="([^"]+)"', sp)[:20], "links": re.findall(r'href="([^"]+)"', sp)[:60],
+                         "api": re.findall(r'["\'`]([^"\'`\s]*(?:api|json|csv|data|vizall|allomas|merce)[^"\'`\s]*)["\'`]', sp, re.I)[:40], "anfang": sp[:2500]}
+    except Exception as e:
+        PROBE["paks"] = {"fehler": str(e)[:200]}
     return {"pegel": out, "fehler": fehler, "vizugy": ids, **PROBE}
 
 
