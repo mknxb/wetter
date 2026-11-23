@@ -69,6 +69,18 @@ button,select{font:inherit;color:inherit}
 @media (prefers-reduced-motion:reduce){.clouds .cw{animation-play-state:paused}}
 .ridge{position:absolute;left:0;right:0;bottom:0;width:100%;height:clamp(300px,28vw,360px);z-index:-1;display:block}
 .ridge .mist{opacity:.55;transition:opacity 1s}
+.ridge .lit{fill:#ffd88a;opacity:0;transition:opacity 1s}
+.hero[data-sky="night"] .ridge .lit,.hero[data-sky="cloudy-night"] .ridge .lit{opacity:.9}.hero[data-sky="dusk"] .ridge .lit{opacity:.65}
+.ridge .flut{fill:#0c1426;transition:fill 1s}
+.hero[data-sky="night"] .ridge .flut,.hero[data-sky="cloudy-night"] .ridge .flut{fill:#7a5a26}.hero[data-sky="dusk"] .ridge .flut{fill:#2a2230}
+.ridge .wasser{fill:var(--sky3);transition:fill 1s}
+.ridge .refl{opacity:.32}.ridge .wellen{stroke:rgba(255,255,255,.16)}
+.hero[data-sky="night"] .ridge .wellen,.hero[data-sky="cloudy-night"] .ridge .wellen{stroke:rgba(255,216,138,.14)}
+.ridge .mondweg{stroke:rgba(255,244,214,0);transition:stroke 1s}
+.hero[data-sky="night"][data-moon="1"] .ridge .mondweg,.hero[data-sky="night"][data-moon="2"] .ridge .mondweg{stroke:rgba(255,244,214,.35)}
+.hero[data-sky="day"] .ridge .mondweg{stroke:rgba(255,255,255,.22)}
+.ridge .leucht{fill:#ffe9a8}
+@media (prefers-reduced-motion:no-preference){.ridge .leucht{animation:blink 4s infinite}@keyframes blink{0%,70%,100%{opacity:1}80%{opacity:.1}}}
 .ridge .radom{fill:rgba(238,242,248,.9);transition:fill 1s}
 .hero[data-sky="fog"] .ridge .radom,.hero[data-sky="rain"] .ridge .radom{fill:rgba(225,230,238,.55)}
 .hero[data-sky="night"] .ridge .radom,.hero[data-sky="cloudy-night"] .ridge .radom{fill:rgba(150,165,192,.42)}
@@ -2989,6 +3001,7 @@ function initOrt() {
     if (!ORTE[sel.value]) return;
     ORT = {key: sel.value, ...ORTE[sel.value]};
     showStar();
+    if (HU) initSzeneHU();
     for (const id of ["chart","days","st-jetzt"]) $(id).innerHTML = `<div class="load">${TR("Lade …")}</div>`;
     $("hours").innerHTML = ""; $("st-12h").innerHTML = "";
     $("odl").innerHTML = '<div class="load">Lade …</div>'; $("odl-spark").innerHTML = ""; $("odl-cz").innerHTML = ""; $("odl-skala").innerHTML = ""; ODLV.open = null; forceODL = true;
@@ -3280,7 +3293,187 @@ function initTabs() {
 }
 
 /* ---------- Bergsilhouette Bayerischer Wald: weiche Rücken, Dunst, Fichtenwald, Großer Arber mit Radarkuppeln ---------- */
+/* ---------- Hintergrund Ungarn: Budapest (Parlament, Donau, Kettenbrücke), Veszprém (Burgberg), Balaton (Tihany), Velencei-tó ----------
+   Gleicher Scherenschnitt-Stil wie der Bayerwald. Nachts leuchten Fenster und angestrahlte Bauten, das Wasser spiegelt den Himmel. */
+const SZENE_HU = {budapest: "bp", csomad: "bp", veszprem: "vp", balatonfured: "bal", siofok: "bal", szekesfehervar: "vel"};
+function initSzeneHU() {
+  // gezeichnet wird bis y = 420 und dann nach oben verschoben: der untere Rand liegt hinter den Karten
+  const W = 1200, H = 420, f = v => (+v).toFixed(1);
+  let seed = 4711;
+  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const ink = "12,20,38";
+  const welle = (base, amp, waves, bump, x0 = -20, x1 = W + 20) => {   // Hügelkontur
+    const ph = waves.map(() => rnd() * 6.283), pts = [];
+    for (let x = x0; x <= x1; x += 6) {
+      let y = base; waves.forEach(([per, a], i) => { y -= amp * a * Math.sin(6.283 * x / per + ph[i]); });
+      if (bump) y -= bump(x);
+      pts.push([x, y]);
+    }
+    return pts;
+  };
+  const flaeche = (pts, unten = H) => `M${pts[0][0]} ${unten}` + pts.map(([x, y]) => `L${f(x)} ${f(y)}`).join("") + `L${pts.at(-1)[0]} ${unten}Z`;
+  const yAt = (pts, x) => { let i = pts.findIndex(p => p[0] >= x); if (i <= 0) return pts[0][1]; const [a, b] = [pts[i - 1], pts[i]]; return a[1] + (b[1] - a[1]) * (x - a[0]) / (b[0] - a[0]); };
+  const rect = (x, y, w, h, cls = "") => `<rect${cls ? ` class="${cls}"` : ""} x="${f(x)}" y="${f(y)}" width="${f(w)}" height="${f(h)}"/>`;
+  const spitze = (x, yb, w, h) => `M${f(x - w / 2)} ${f(yb)}L${f(x)} ${f(yb - h)}L${f(x + w / 2)} ${f(yb)}Z`;
+  const fenster = (x0, x1, y, h, dx, w = 3, quote = 0.55) => { let s = ""; for (let x = x0; x <= x1; x += dx) if (rnd() < quote) s += rect(x, y, w, h); return s; };
+  const krone = (x, yb, r) => { let s = ""; for (let i = 0; i < 4; i++) s += `<circle cx="${f(x + (rnd() - .5) * r)}" cy="${f(yb - r * (0.8 + rnd() * 0.7))}" r="${f(r * (0.55 + rnd() * 0.35))}"/>`; return s + rect(x - 1, yb - r * 0.6, 2, r * 0.6); };
+  const baeume = (pts, von, bis, rMin, rMax, gap) => { let s = ""; for (let x = von; x < bis; x += gap * (0.6 + rnd() * 0.8)) s += krone(x, yAt(pts, x) + 2, rMin + rnd() * (rMax - rMin)); return s; };
+  const zwiebel = (x, yb, w, h) => `M${f(x - w / 2)} ${f(yb)}C${f(x - w * 0.75)} ${f(yb - h * 0.45)} ${f(x - w * 0.1)} ${f(yb - h * 0.6)} ${f(x)} ${f(yb - h)}C${f(x + w * 0.1)} ${f(yb - h * 0.6)} ${f(x + w * 0.75)} ${f(yb - h * 0.45)} ${f(x + w / 2)} ${f(yb)}Z`;
+  const wasser = (y0, spiegel) => {   // Himmel im Wasser, Spiegelbild, Wellenlinien
+    let wellen = "";
+    for (let i = 0; i < 70; i++) { const y = y0 + 4 + rnd() ** 1.6 * (H - y0 - 4), x = rnd() * W, l = 8 + rnd() * 34 * (1 + (y - y0) / 60); wellen += `M${f(x)} ${f(y)}h${f(l)}`; }
+    return `<rect class="wasser" x="0" y="${y0}" width="${W}" height="${H - y0}"/>
+      <rect x="0" y="${y0}" width="${W}" height="${H - y0}" fill="url(#wasser-g)"/>
+      <g class="refl" transform="translate(0 ${2 * y0}) scale(1 -1)" clip-path="url(#unter-wasser)">${spiegel}</g>
+      <path class="wellen" d="${wellen}" stroke-width="1.2" fill="none"/>`;
+  };
+  const defs = y0 => `<defs>
+      <linearGradient id="mist-g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".55" stop-color="#fff" stop-opacity=".16"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+      <linearGradient id="wasser-g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0c1426" stop-opacity=".25"/><stop offset="1" stop-color="#0c1426" stop-opacity=".85"/></linearGradient>
+      <clipPath id="unter-wasser"><rect x="0" y="${y0}" width="${W}" height="${H - y0}" transform="translate(0 ${2 * y0}) scale(1 -1)"/></clipPath></defs>`;
+  const szene = SZENE_HU[ORT.key] || "bp";
+  let svg = "";
+
+  if (szene === "bp") {
+    const y0 = 302, ufer = 294;
+    // Budaer Berge mit Elisabeth-Aussichtsturm (János-hegy), dahinter flacher Horizont
+    const berge = welle(232, 14, [[700, 1], [260, .4]], x => 46 * Math.exp(-(((x - 170) / 210) ** 2)) + 18 * Math.exp(-(((x - 1080) / 180) ** 2)));
+    const ty = yAt(berge, 170);
+    const turm = rect(165, ty - 16, 10, 16) + `<path d="${spitze(170, ty - 16, 14, 8)}"/>`;
+    // Pester Häuser hinter dem Parlament, Kuppel der Basilika
+    const stadt = (() => { let s = ""; for (let x = 0; x < W; x += 14 + rnd() * 18) { const h = 14 + rnd() * 18; s += rect(x, ufer - h, 12 + rnd() * 14, h); } return s; })();
+    const basilika = rect(1000, 236, 44, 40) + `<path d="M1004 236C1004 214 1040 214 1040 236Z"/>` + rect(1019, 204, 6, 12) + `<path d="${spitze(1022, 204, 6, 10)}"/>`;
+    // Parlament (Országház): lange neugotische Front, Kuppel mit Spitze, Türmchenreihen
+    let p = rect(330, 244, 540, ufer - 244) + `<path d="M334 244L344 234H856L866 244Z"/>`;
+    for (let x = 340; x <= 860; x += 10.5) if (Math.abs(x - 600) > 52) p += `<path d="${spitze(x, 235, 3.6, 11)}"/>`;
+    for (const [x, end] of [[352, 1], [432, 0], [516, 0], [684, 0], [768, 0], [848, 1]]) {
+      const top = end ? 214 : 222;
+      p += rect(x - 14, top, 28, ufer - top) + `<path d="${spitze(x, top, 30, end ? 26 : 20)}"/><path d="${spitze(x, top - (end ? 24 : 18), 4, end ? 18 : 12)}"/>`
+        + `<path d="${spitze(x - 12, top, 4, 12)}"/><path d="${spitze(x + 12, top, 4, 12)}"/>`;
+    }
+    p += rect(552, 200, 96, 44) + `<path d="M556 200C556 158 586 132 600 125C614 132 644 158 644 200Z"/>` + rect(592, 110, 16, 16)
+      + `<path d="${spitze(600, 110, 14, 30)}"/>` + rect(599.3, 66, 1.4, 16);
+    for (const x of [548, 652]) p += rect(x - 4, 176, 8, 68) + `<path d="${spitze(x, 176, 9, 28)}"/>`;
+    for (const x of [536, 664]) p += `<path d="${spitze(x, 205, 5, 18)}"/>` + rect(x - 2.5, 205, 5, 39);
+    const pf = fenster(338, 860, 254, 5, 9, 2.2, .4) + fenster(338, 860, 270, 6, 9, 2.2, .45) + fenster(340, 858, 283, 5, 9, 2.2, .3)
+      + fenster(560, 636, 210, 14, 9, 4, .9) + `<circle cx="600" cy="170" r="3"/>`;
+    // Kettenbrücke (Széchenyi Lánchíd): zwei Triumphbogen-Pfeiler, durchhängende Ketten
+    let b = "";
+    for (const x of [930, 1120]) b += `<path fill-rule="evenodd" d="M${x - 18} ${y0}V212H${x + 18}V${y0}ZM${x - 9} ${y0 - 14}V246A9 9 0 0 1 ${x + 9} 246V${y0 - 14}Z"/>` + rect(x - 20, 208, 40, 5);
+    b += rect(820, 283, 380, 5);
+    const kette = (x0, y0k, x1, y1k, cy) => `M${x0} ${y0k}Q${(x0 + x1) / 2} ${cy} ${x1} ${y1k}`;
+    const ketten = kette(930, 214, 1120, 214, 318) + kette(820, 272, 930, 214, 262) + kette(1120, 214, 1220, 262, 258);
+    let haenger = "", lampen = "";
+    for (let x = 944; x < 1110; x += 10) { const t = (x - 930) / 190, yk = (1 - t) * (1 - t) * 214 + 2 * t * (1 - t) * 318 + t * t * 214; haenger += `M${x} ${f(yk)}V283`; lampen += `<circle cx="${x}" cy="${f(yk)}" r="1.6"/>`; }
+    const bruecke = `<g fill="rgba(10,24,32,.88)">${b}</g><path d="${ketten}" stroke="rgba(10,24,32,.9)" stroke-width="3" fill="none"/><path d="${haenger}" stroke="rgba(10,24,32,.6)" stroke-width="1" fill="none"/><g class="lit">${lampen}</g>`;
+    const parlament = `<g class="flut">${p}</g><g class="lit">${pf}</g>`;
+    svg = defs(y0) + `
+      <path d="${flaeche(berge)}" fill="rgba(${ink},.24)"/><g fill="rgba(${ink},.24)">${turm}</g>
+      <g fill="rgba(${ink},.4)">${stadt}${basilika}</g><g class="lit" opacity=".7">${fenster(0, 1200, 284, 3, 11, 2, .25)}</g>
+      <rect class="mist" x="0" y="236" width="${W}" height="60" fill="url(#mist-g)"/>
+      ${parlament}${bruecke}
+      <rect x="0" y="${ufer}" width="${W}" height="${y0 - ufer}" fill="#0c1426"/>
+      ${wasser(y0, `<g class="flut">${p}</g><g class="lit">${pf}</g>${bruecke}`)}`;
+  }
+
+  if (szene === "vp") {
+    const tal = 318;
+    const bakony = welle(236, 16, [[620, 1], [240, .35]]);
+    // Benedek-hegy links mit Kreuz, Burgberg in der Mitte (Dolomitfels mit Steilwänden), Viadukt rechts
+    const benedek = welle(tal, 0, [[100, 0]], x => 82 * Math.exp(-(((x - 150) / 120) ** 2.2)), -20, 330);
+    const kreuzY = yAt(benedek, 150);
+    const fels = `M300 ${tal}C318 ${tal - 20} 330 250 352 222L362 214H862L878 222C886 236 892 280 908 ${tal}Z`;
+    let risse = ""; for (let i = 0; i < 26; i++) { const x = 350 + rnd() * 540, y = 226 + rnd() * 70; risse += `M${f(x)} ${f(y)}l${f((rnd() - .5) * 6)} ${f(8 + rnd() * 18)}`; }
+    // Häuserzeile auf dem Burgberg (Barockhäuser, Erzbischöflicher Palast)
+    let haus = "", hf = "";
+    for (let x = 366; x < 856;) {
+      const w = 20 + rnd() * 22, h = 14 + rnd() * 14;
+      if (!(x > 380 && x < 424) && !(x > 590 && x < 712)) { haus += rect(x, 214 - h, w, h) + `<path d="M${f(x - 1)} ${f(214 - h)}L${f(x + w / 2)} ${f(214 - h - 9)}L${f(x + w + 1)} ${f(214 - h)}Z"/>`; hf += fenster(x + 3, x + w - 5, 214 - h + 4, 4, 6, 2.4, .5); }
+      x += w + 1;
+    }
+    haus += rect(470, 186, 92, 28) + `<path d="M466 186L480 172H552L566 186Z"/>`; hf += fenster(476, 556, 192, 6, 8, 3, .7) + fenster(476, 556, 203, 6, 8, 3, .6);
+    // Feuerturm (Tűztorony) mit barocker Haube und Galerie
+    const tt = rect(392, 132, 22, 82) + rect(388, 146, 30, 5) + rect(394, 124, 18, 10) + `<path d="${zwiebel(403, 124, 22, 22)}"/>` + rect(401, 94, 4, 8) + `<path d="${spitze(403, 94, 5, 12)}"/>`;
+    const ttf = rect(400, 156, 6, 9) + rect(400, 176, 6, 8);
+    // Dom St. Michael: Langhaus, Apsis, zwei Westtürme mit Spitzhelmen
+    const dom = rect(616, 178, 84, 36) + `<path d="M612 178L630 160H700L704 178Z"/><path d="M700 214V184A16 16 0 0 1 716 200V214Z"/>`
+      + rect(598, 134, 15, 80) + rect(618, 134, 15, 80) + `<path d="${spitze(605.5, 134, 17, 40)}"/><path d="${spitze(625.5, 134, 17, 40)}"/>` + rect(613, 160, 5, 54);
+    const domf = rect(602, 150, 3, 10) + rect(608, 150, 3, 10) + rect(622, 150, 3, 10) + rect(628, 150, 3, 10) + `<circle cx="615.5" cy="188" r="4"/>` + fenster(640, 694, 190, 12, 11, 3, .9);
+    // Stephan-und-Gisela-Denkmal an der Burgspitze
+    const denkmal = rect(866, 200, 18, 14) + `<path d="M869 200V184C869 180 875 180 875 184V200Z"/><circle cx="872" cy="178" r="3"/><path d="M877 200V186C877 182 883 182 883 186V200Z"/><circle cx="880" cy="181" r="2.8"/>`;
+    // Szent-István-Talbrücke: großer Betonbogen, Fahrbahn, Stützen
+    let vi = rect(912, 236, 300, 6);
+    vi += `<path d="M960 ${tal}Q1070 180 1180 ${tal}L1172 ${tal}Q1070 198 968 ${tal}Z"/>`;
+    for (let x = 980; x <= 1160; x += 20) { const t = (x - 960) / 220, ya = (1 - t) * (1 - t) * tal + 2 * t * (1 - t) * 180 + t * t * tal; vi += rect(x - 1.5, 242, 3, ya - 242); }
+    vi += rect(916, 242, 8, tal - 242);
+    const lampenVi = (() => { let s = ""; for (let x = 920; x < 1200; x += 24) s += `<circle cx="${x}" cy="233" r="1.5"/>`; return s; })();
+    const vorne = welle(340, 6, [[300, 1], [120, .5]]);
+    svg = defs(400) + `
+      <path d="${flaeche(bakony)}" fill="rgba(${ink},.22)"/>
+      <rect class="mist" x="0" y="240" width="${W}" height="70" fill="url(#mist-g)"/>
+      <g fill="rgba(${ink},.5)"><path d="${flaeche(benedek)}"/>${rect(149, kreuzY - 18, 2, 18)}${rect(144, kreuzY - 13, 12, 2)}</g>
+      <g fill="rgba(10,24,32,.82)">${vi}</g><g class="lit">${lampenVi}</g>
+      <path d="${fels}" fill="#0c1426"/><g class="flut">${haus}${tt}${dom}${denkmal}</g>
+      <path d="${risse}" stroke="rgba(255,255,255,.06)" stroke-width="1.4" fill="none"/>
+      <g class="lit">${hf}${ttf}${domf}</g>
+      <g fill="#0c1426"><path d="${flaeche(vorne)}"/>${baeume(vorne, -10, 1210, 9, 17, 22)}</g>`;
+  }
+
+  if (szene === "bal" || szene === "vel") {
+    const y0 = 266, bal = szene === "bal";
+    // Nordufer: Zeugenberge (Badacsony als Tafelberg, Gulács, Szent György-hegy) bzw. Velencei-hegység
+    const berge = bal ? welle(y0 - 4, 0, [[100, 0]], x => 72 * Math.exp(-(((x - 210) / 95) ** 6)) + 52 * Math.exp(-(((x - 380) / 34) ** 2)) + 46 * Math.exp(-(((x - 490) / 60) ** 4)) + 14 * Math.exp(-(((x - 1050) / 260) ** 2)))
+      : welle(y0 - 6, 6, [[420, 1], [160, .4]], x => 30 * Math.exp(-(((x - 300) / 220) ** 2)) + 22 * Math.exp(-(((x - 950) / 200) ** 2)));
+    let mitte = "", lichter = "";
+    if (bal) {
+      // Halbinsel Tihany mit Benediktinerabtei: zwei Barocktürme mit Zwiebelhauben, Langhaus, Klosterflügel
+      const tihany = welle(y0, 0, [[100, 0]], x => 54 * Math.exp(-(((x - 760) / 150) ** 2)) + 16 * Math.exp(-(((x - 620) / 70) ** 2)), 540, 1010);
+      const ty = yAt(tihany, 762);
+      const abtei = rect(742, ty - 26, 62, 26) + `<path d="M738 ${f(ty - 26)}L750 ${f(ty - 38)}H800L808 ${f(ty - 26)}Z"/>` + rect(804, ty - 18, 46, 18) + `<path d="M802 ${f(ty - 18)}L826 ${f(ty - 28)}L852 ${f(ty - 18)}Z"/>`
+        + rect(732, ty - 64, 13, 64) + rect(751, ty - 64, 13, 64) + `<path d="${zwiebel(738.5, ty - 64, 15, 18)}"/><path d="${zwiebel(757.5, ty - 64, 15, 18)}"/>`
+        + rect(737.6, ty - 92, 1.8, 10) + rect(756.6, ty - 92, 1.8, 10);
+      lichter += rect(735, ty - 52, 3, 7) + rect(740, ty - 52, 3, 7) + rect(754, ty - 52, 3, 7) + rect(759, ty - 52, 3, 7) + fenster(770, 800, ty - 18, 6, 7, 2.6, .8) + fenster(808, 846, ty - 12, 5, 7, 2.6, .6);
+      mitte = `<path d="${flaeche(tihany, y0 + 1)}" fill="#0c1426"/><g class="flut">${abtei}</g><g fill="rgba(10,24,32,.75)">${baeume(tihany, 560, 720, 5, 9, 14)}${baeume(tihany, 860, 1000, 5, 9, 14)}</g>`;
+      // Leuchtturm an der Hafenmole
+      mitte += `<g fill="rgba(10,24,32,.9)">${rect(1060, y0 - 3, 110, 4)}<path d="M1131 ${y0 - 3}L1134 ${y0 - 40}H1142L1145 ${y0 - 3}Z"/>${rect(1132, y0 - 46, 12, 6)}<path d="${spitze(1138, y0 - 46, 14, 8)}"/></g>`;
+      lichter += `<circle class="leucht" cx="1138" cy="${y0 - 43}" r="3.2"/>`;
+    }
+    if (!bal) {
+      // Velencei-tó mit Blick nach Westen: am Ufer die Stadt Székesfehérvár mit der barocken Kathedrale (zwei Türme)
+      let st = "", sl = "";
+      for (let x = 430; x < 800; x += 10 + rnd() * 14) { const h = 8 + rnd() * 14; st += rect(x, y0 - h, 9 + rnd() * 10, h); sl += fenster(x + 2, x + 8, y0 - h + 3, 2.5, 5, 1.8, .35); }
+      const kx = 612, kb = y0 - 10;
+      st += rect(kx - 20, kb - 30, 56, 30) + `<path d="M${kx - 24} ${kb - 30}L${kx - 10} ${kb - 40}H${kx + 32}L${kx + 40} ${kb - 30}Z"/>`
+        + rect(kx - 24, kb - 70, 11, 70) + rect(kx - 7, kb - 70, 11, 70)
+        + `<path d="${zwiebel(kx - 18.5, kb - 70, 13, 14)}"/><path d="${zwiebel(kx - 1.5, kb - 70, 13, 14)}"/>` + rect(kx - 19.2, kb - 92, 1.4, 9) + rect(kx - 2.2, kb - 92, 1.4, 9);
+      sl += rect(kx - 21, kb - 58, 2.5, 6) + rect(kx - 4, kb - 58, 2.5, 6) + fenster(kx + 2, kx + 30, kb - 22, 6, 7, 2.4, .8);
+      // Aussichtsturm auf dem Bence-hegy in den Velencei-Bergen
+      const by = yAt(berge, 950);
+      mitte = `<g fill="rgba(${ink},.5)">${st}</g><g fill="rgba(${ink},.4)">${rect(948, by - 18, 5, 18)}${rect(944, by - 22, 13, 4)}</g>`;
+      lichter += sl;
+    }
+    // Segelboote
+    const boot = (x, s, links) => `<path d="M${x} ${y0 + 2 + s * .2}l${f(s * .5)} ${f(-s * 1.05)}V${f(y0 + 2 + s * .2)}Z" opacity=".95"/><path d="M${f(x + s * .55)} ${f(y0 - s * .95)}V${f(y0 + s * .2)}H${f(x + s * (links ? .2 : .95))}Z" opacity=".8"/><path d="M${f(x - s * .15)} ${f(y0 + s * .22)}H${f(x + s * 1.1)}L${f(x + s * .95)} ${f(y0 + s * .36)}H${f(x)}Z"/>`;
+    const boote = `<g fill="rgba(10,24,32,.85)">${boot(400, 34)}${boot(492, 22, 1)}${boot(1000, 26)}${bal ? "" : boot(760, 30, 1)}</g>`;
+    // Schilf im Vordergrund
+    let schilf = "";
+    const sb = 372;   // Schilf wächst knapp unter dem sichtbaren Rand aus dem Wasser
+    for (let x = -10; x < 420; x += 3 + rnd() * 4) { const h = 30 + rnd() * 70 * (1 - x / 520), k = (rnd() - .5) * 14; schilf += `M${f(x)} ${sb}Q${f(x + k * .3)} ${f(sb - h * .6)} ${f(x + k)} ${f(sb - h)}`; if (rnd() < .25) schilf += `M${f(x + k)} ${f(sb - h)}m-1.5 0a1.5 5 0 1 0 3 0a1.5 5 0 1 0 -3 0`; }
+    if (!bal) for (let x = 860; x < 1210; x += 3 + rnd() * 4) { const h = 24 + rnd() * 50, k = (rnd() - .5) * 12; schilf += `M${f(x)} ${sb}Q${f(x + k * .3)} ${f(sb - h * .6)} ${f(x + k)} ${f(sb - h)}`; }
+    svg = defs(y0) + `
+      <path d="${flaeche(berge, y0 + 1)}" fill="rgba(${ink},${bal ? .32 : .28})"/>
+      <rect class="mist" x="0" y="${y0 - 40}" width="${W}" height="56" fill="url(#mist-g)"/>
+      ${mitte}<g class="lit">${lichter}</g>
+      ${wasser(y0, `<path d="${flaeche(berge, y0 + 1)}" fill="rgba(${ink},.4)"/>${mitte}<g class="lit">${lichter}</g>`)}
+      <path class="mondweg" d="M${bal ? 300 : 620} ${y0 + 4}h40M${bal ? 290 : 610} ${y0 + 14}h60M${bal ? 282 : 602} ${y0 + 28}h80M${bal ? 270 : 590} ${y0 + 46}h100M${bal ? 262 : 582} ${y0 + 68}h120" stroke-width="2" fill="none"/>
+      ${boote}
+      <path d="${schilf}" stroke="#0c1426" stroke-width="2" fill="none" stroke-linecap="round"/>`;
+  }
+  const hoch = {bp: 52, vp: 48, bal: 40, vel: 40}[szene];
+  $("ridge").innerHTML = `<g transform="translate(0 ${-hoch})">${svg}</g>`;
+}
 function initRidge() {
+  if (HU) return initSzeneHU();
   const W = 1200, H = 360, step = 6;
   let seed = 20260;
   const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
