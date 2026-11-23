@@ -357,14 +357,24 @@ def vizugy_ctx():
     if _VIZ_CTX:
         return _VIZ_CTX
     import ssl, subprocess
-    leaf = subprocess.run(["openssl", "s_client", "-connect", "www.vizugy.hu:443", "-servername", "www.vizugy.hu"],
+    cert = subprocess.run(["openssl", "s_client", "-connect", "www.vizugy.hu:443", "-servername", "www.vizugy.hu"],
                           input=b"", capture_output=True, timeout=30).stdout
-    aia = subprocess.run(["openssl", "x509", "-noout", "-ext", "authorityInfoAccess"], input=leaf, capture_output=True, timeout=10).stdout.decode()
-    m = re.search(r"CA Issuers - URI:(\S+)", aia)
-    if not m:
+    kette = []
+    for _ in range(4):   # Kette nach oben verfolgen, bis ein Zertifikat sich selbst ausgestellt hat
+        aia = subprocess.run(["openssl", "x509", "-noout", "-ext", "authorityInfoAccess"], input=cert, capture_output=True, timeout=10).stdout.decode()
+        m = re.search(r"CA Issuers - URI:(\S+)", aia)
+        if not m:
+            break
+        der = get_bytes(m.group(1), timeout=30)
+        pem = der.decode() if der.startswith(b"-----") else ssl.DER_cert_to_PEM_cert(der)
+        cert = pem.encode()
+        sub = subprocess.run(["openssl", "x509", "-noout", "-subject", "-issuer", "-nameopt", "RFC2253"], input=cert, capture_output=True, timeout=10).stdout.decode().splitlines()
+        if len(sub) == 2 and sub[0].split("=", 1)[1] == sub[1].split("=", 1)[1]:
+            break   # Stammzertifikat aus dem Netz wird nie als vertrauenswuerdig uebernommen, nur die des Systems
+        kette.append(pem)
+    if not kette:
         raise RuntimeError("Zwischenzertifikat nicht auffindbar")
-    der = get_bytes(m.group(1), timeout=30)
-    pem = der.decode() if der.startswith(b"-----") else ssl.DER_cert_to_PEM_cert(der)
+    pem = "\n".join(kette)
     ctx = ssl.create_default_context()
     ctx.load_verify_locations(cadata=pem)
     _VIZ_CTX = ctx
