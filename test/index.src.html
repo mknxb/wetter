@@ -382,6 +382,16 @@ footer{max-width:1200px;margin:0 auto;color:var(--mu);font-size:.72rem;line-heig
   padding-block:4px calc(22px + env(safe-area-inset-bottom,0px));padding-left:max(18px,env(safe-area-inset-left,0px));padding-right:max(18px,env(safe-area-inset-right,0px))}
 footer a{color:var(--accent)}
 @media (prefers-reduced-motion:no-preference){.fade{animation:fd .6s ease-out both}@keyframes fd{from{opacity:.35;transform:translateY(4px)}to{opacity:1;transform:none}}}
+/* Webcams */
+.camgrid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
+.cam{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:rgba(0,0,0,.25);min-width:0}
+.cam .f{position:relative;height:0;padding-top:62.5%}
+.cam iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:0}
+.cam .t{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 10px;font-size:.78rem;color:var(--mu)}
+.cam .t b{color:var(--tx,#eef3fb);font-weight:600}
+.cam .t a{color:var(--accent);text-decoration:none;white-space:nowrap}
+.cam .t small{display:block;font-size:.68rem;font-weight:400}
+.cam-weit{margin:10px 0 0;font-size:.8rem}.cam-weit a{color:var(--accent)}
 </style>
 </head>
 <body>
@@ -473,6 +483,17 @@ footer a{color:var(--accent)}
     </section>
   </aside>
 
+  <section class="card full" id="card-cams">
+    <h2>Webcams <small id="cam-quelle">in der Nähe</small></h2>
+    <div class="seg" id="cam-mode" role="group" aria-label="Anzeige">
+      <button type="button" data-m="live" aria-pressed="true">Live</button>
+      <button type="button" data-m="day" aria-pressed="false">Tagesverlauf</button>
+    </div>
+    <div class="camgrid" id="camgrid"><div class="load">Lade Webcams …</div></div>
+    <p class="cam-weit" id="cam-weit"></p>
+    <div class="note" id="cam-note">Bilder und Streams kommen direkt von Windy und den jeweiligen Betreibern (z. B. feratel, Panomax). Dabei wird deine IP-Adresse an diese Anbieter übermittelt. Nicht jede Kamera sendet rund um die Uhr, nachts oft nur dunkel.</div>
+  </section>
+
   <section class="card full" id="rueckblick">
     <h2>Rückblick</h2>
     <div class="tabs" role="tablist" id="rb-tabs">
@@ -531,6 +552,11 @@ const START_JE = {by: "blaibach", hu: "budapest", at: "kramsach"};
 /* Übersetzungen Deutsch → Ungarisch. Schlüssel ist der deutsche Text; fehlt ein Eintrag, bleibt Deutsch stehen.
    {0}, {1} … sind Platzhalter für Werte. */
 const HU_TXT = {
+  // Webcams
+  "Webcams":"Webkamerák", "Live":"Élő", "Tagesverlauf":"Napi lejátszás", "Anzeige":"Megjelenítés", "Lade Webcams …":"Webkamerák betöltése …",
+  "in der Nähe":"a közelben", "in der Nähe von {0}":"{0} közelében", "öffnen":"megnyitás",
+  "Bilder und Streams kommen direkt von Windy und den jeweiligen Betreibern (z. B. feratel, Panomax). Dabei wird deine IP-Adresse an diese Anbieter übermittelt. Nicht jede Kamera sendet rund um die Uhr, nachts oft nur dunkel.":
+    "A képek és élő közvetítések közvetlenül a Windytől és az üzemeltetőktől (pl. feratel, Panomax) érkeznek. Ennek során az IP-címed eljut ezekhez a szolgáltatókhoz. Nem minden kamera közvetít éjjel-nappal, éjszaka gyakran csak sötét a kép.",
   // Kopf, Überschriften, Ladehinweise
   "Bayerischer Wald · Böhmerwald":"Bajor-erdő · Cseh-erdő", "Ungarn · Budapest · Balaton":"Magyarország · Budapest · Balaton",
   "Heute im Bayerwald":"Ma a Bajor-erdőben", "Heute in Ungarn":"Ma Magyarországon", "Heute in Tirol":"Ma Tirolban", "Tirol · Unterinntal · Zillertal":"Tirol · Alsó-Inn-völgy · Ziller-völgy", "100 km um den Ort, AT und DE":"100 km-en belül, AT és DE",
@@ -3108,16 +3134,67 @@ function initOrt() {
     showStar();
   });
   showStar();
+  baueWebcams();
   sel.addEventListener("change", () => {
     if (!ORTE[sel.value]) return;
     ORT = {key: sel.value, ...ORTE[sel.value]};
     showStar();
+    baueWebcams();
     if (HU || AT) initSzeneHU();
     for (const id of ["chart","days","st-jetzt"]) $(id).innerHTML = `<div class="load">${TR("Lade …")}</div>`;
     $("hours").innerHTML = ""; $("st-12h").innerHTML = "";
     $("odl").innerHTML = '<div class="load">Lade …</div>'; $("odl-spark").innerHTML = ""; $("odl-cz").innerHTML = ""; $("odl-skala").innerHTML = ""; ODLV.open = null; forceODL = true;
     $("rb-body").innerHTML = '<div class="load">Lade Archiv …</div>'; $("pegel").innerHTML = '<div class="load">Lade …</div>';
     refresh();
+  });
+}
+/* ---------- Webcams: Windy-Player, je Ort die nächstgelegenen Kameras ---------- */
+const CAMKEY = "wetter-cam-modus";
+let camModus = lsGet(CAMKEY) === "day" ? "day" : "live";
+// id = Windy-Webcam-ID (Player-Einbettung geprüft), lat/lon = ungefährer Standort der Kamera
+const WEBCAMS = [
+  {id:"1746057268", lat:49.1767, lon:12.8547, de:"Bad Kötzting – Rathaus",             hu:"Bad Kötzting – városháza"},
+  {id:"1793902075", lat:49.1125, lon:13.1350, de:"Großer Arber – Arber-Stadl",         hu:"Großer Arber – Arber-Stadl"},
+  {id:"1592498076", lat:49.0236, lon:13.2312, de:"Zwiesel – Panorama",                 hu:"Zwiesel – panoráma"},
+  {id:"1327243740", lat:48.8353, lon:12.9644, de:"Deggendorf – Altstadt",              hu:"Deggendorf – óváros"},
+  {id:"1299837060", lat:47.4436, lon:11.8761, de:"Kramsach – Reintaler See",           hu:"Kramsach – Reintaler See"},
+  {id:"1793913044", lat:47.3486, lon:11.8536, de:"Fügen – Therme",                     hu:"Fügen – fürdő (Therme)"},
+  {id:"1255261318", lat:47.0930, lon:17.9093, de:"Veszprém – Vörösmarty Mihály tér",   hu:"Veszprém – Vörösmarty Mihály tér"},
+  {id:"1294221464", lat:47.4815, lon:19.0560, de:"Budapest – Duna utca",               hu:"Budapest – Duna utca"},
+  {id:"1623585620", lat:47.5500, lon:19.0800, de:"Budapest – Himmelskamera (Wolken)",  hu:"Budapest – égbolt-kamera (felhők)"}
+];
+const CAM_MAXKM = 35, CAM_MAX = 4;
+const camUrl = id => `https://webcams.windy.com/webcams/public/embed/player/${id}/${camModus}`;
+let camInit = false;
+function baueWebcams() {
+  const grid = $("camgrid"); if (!grid) return;
+  const mit = WEBCAMS.map(c => ({...c, d: km(ORT.lat, ORT.lon, c.lat, c.lon)})).sort((a, b) => a.d - b.d);
+  let liste = mit.filter(c => c.d <= CAM_MAXKM).slice(0, CAM_MAX);
+  const weit = !liste.length;
+  if (weit) liste = mit.slice(0, 1);   // nichts in der Nähe: wenigstens die nächste Kamera, mit ehrlicher Entfernung
+  $("cam-quelle").textContent = TR("in der Nähe von {0}", ORT.name);
+  grid.innerHTML = "";
+  for (const c of liste) {
+    const n = Math.max(1, Math.round(c.d)), titel = ZW(c.de, c.hu);
+    const d = document.createElement("div"); d.className = "cam";
+    d.innerHTML = `<div class="f"><iframe loading="lazy" allowfullscreen referrerpolicy="no-referrer"></iframe></div>`
+      + `<div class="t"><span><b></b><small></small></span><a target="_blank" rel="noopener"></a></div>`;
+    const f = d.querySelector("iframe"); f.title = titel; f.dataset.id = c.id; f.src = camUrl(c.id);
+    d.querySelector("b").textContent = titel;
+    d.querySelector("small").textContent = ZW(`ca. ${n} km von ${ORT.name}`, `${ORT.name}: kb. ${n} km`);
+    const a = d.querySelector("a"); a.href = `https://www.windy.com/webcams/${c.id}`; a.textContent = TR("öffnen") + " ↗";
+    grid.appendChild(d);
+  }
+  $("cam-weit").innerHTML = (weit ? esc(ZW("Keine Kamera in unmittelbarer Nähe gefunden. ", "Nincs kamera a közvetlen közelben. ")) : "")
+    + `<a href="https://www.windy.com/-Webcams/webcams?${ORT.lat},${ORT.lon},10" target="_blank" rel="noopener">${esc(ZW("Alle Webcams in der Umgebung bei Windy", "Az összes webkamera a környéken (Windy)"))} ↗</a>`;
+  document.querySelectorAll("#cam-mode button").forEach(b => b.setAttribute("aria-pressed", b.dataset.m === camModus));
+  if (camInit) return;
+  camInit = true;
+  $("cam-mode").addEventListener("click", e => {
+    const b = e.target.closest("button[data-m]"); if (!b || b.dataset.m === camModus) return;
+    camModus = b.dataset.m === "day" ? "day" : "live"; lsSet(CAMKEY, camModus === "day" ? "day" : null);
+    document.querySelectorAll("#cam-mode button").forEach(x => x.setAttribute("aria-pressed", x.dataset.m === camModus));
+    document.querySelectorAll("#camgrid iframe").forEach(f => { f.src = camUrl(f.dataset.id); });
   });
 }
 /* ---------- Karten: kleine Lagekarte in den Details und große Kartenansicht je Bereich ---------- */
