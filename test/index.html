@@ -457,6 +457,9 @@ footer a{color:var(--accent)}
 /* Vollbild innerhalb der App (kein Verlassen der Seite): Karte füllt den Bildschirm, ein Tipp auf „Zurück“ schließt */
 .cam.vo{position:fixed;top:0;left:0;right:0;bottom:0;z-index:2000;border-radius:0;border:0;background:#000;display:flex;flex-direction:column}
 .cam.vo .f{flex:1 1 auto;height:auto;padding-top:0}
+/* Player nicht zur Hochformat-Säule strecken (zeigt sonst das Bild doppelt): Bildformat 16:10, mittig auf Schwarz */
+.cam.vo .f{display:flex;align-items:center;justify-content:center;background:#000}
+.cam.vo iframe{position:static;width:100%;height:62.5vw;max-height:100%}
 .cam.vo .t{order:-1;padding:max(10px,env(safe-area-inset-top,0px)) max(14px,env(safe-area-inset-right,0px)) 10px max(14px,env(safe-area-inset-left,0px));background:#0c1426;font-size:.9rem}
 .cam.vo .cam-fs{padding:8px 16px;font-size:.9rem;background:var(--accent);color:var(--ink);border-color:var(--accent)}
 .cam.vo .t a{display:none}
