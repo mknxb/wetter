@@ -450,8 +450,8 @@ footer a{color:var(--accent)}
   <svg class="ridge" id="ridge" viewBox="0 0 1200 360" preserveAspectRatio="xMidYMax slice" aria-hidden="true"></svg>
   <div class="hero-in">
     <div class="topbar">
-      <span class="brand"><span class="testbadge">Testseite · Stand 23.11. 22:15</span> <span id="brand-txt">Bayerischer Wald · Böhmerwald</span></span>
-      <span class="umsch"><span class="tg" id="region-tg" role="group" aria-label="Region"><button type="button" data-region="by" aria-pressed="true">Bayerwald</button><button type="button" data-region="hu" aria-pressed="false">Magyarország</button></span>
+      <span class="brand"><span class="testbadge">Testseite · Stand 27.11. 21:00</span> <span id="brand-txt">Bayerischer Wald · Böhmerwald</span></span>
+      <span class="umsch"><span class="tg" id="region-tg" role="group" aria-label="Region"><button type="button" data-region="by" aria-pressed="true">Bayerwald</button><button type="button" data-region="at" aria-pressed="false">Tirol</button><button type="button" data-region="hu" aria-pressed="false">Magyarország</button></span>
         <span class="tg" id="lang-tg" role="group" aria-label="Sprache"><button type="button" data-lang="de" aria-pressed="true">DE</button><button type="button" data-lang="hu" aria-pressed="false">HU</button></span></span>
       <span class="stand"><span id="stand">lädt …</span>
         <button class="icon-btn" id="reload" type="button" aria-label="Aktualisieren"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg></button></span>
@@ -522,7 +522,7 @@ footer a{color:var(--accent)}
       <div id="st-24h" class="st2" hidden></div>
       <div id="st-karte" hidden></div>
     </section>
-    <section class="card">
+    <section class="card" id="card-odl">
       <h2>Strahlung <small id="odl-quelle">BfS-Messnetz</small></h2>
       <div id="odl"><div class="load">Lade Messwerte …</div></div>
       <div id="odl-cz"></div>
@@ -552,6 +552,12 @@ footer a{color:var(--accent)}
     <li>UV-Index und Pollen (Modell): Copernicus Atmosphere Monitoring Service (CAMS) über <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a></li>
     <li>Polarlicht (Kp-Index): <a href="https://www.swpc.noaa.gov" target="_blank" rel="noopener">NOAA SWPC</a> · Karte: © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>-Mitwirkende</li>
   </ul>
+  <ul class="quellen" id="quellen-at" hidden>
+    <li>Vorhersage (DWD-MOSMIX) und Wetterstationen (SYNOP) über <a href="https://brightsky.dev" target="_blank" rel="noopener">Bright Sky</a> · Regenradar: <a href="https://www.rainviewer.com" target="_blank" rel="noopener">RainViewer</a></li>
+    <li>Warnungen: <a href="https://warnungen.geosphere.at" target="_blank" rel="noopener">GeoSphere Austria</a></li>
+    <li>UV-Index und Pollen (Modell): Copernicus Atmosphere Monitoring Service (CAMS) über <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a></li>
+    <li>Polarlicht (Kp-Index): <a href="https://www.swpc.noaa.gov" target="_blank" rel="noopener">NOAA SWPC</a> · Karte: © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>-Mitwirkende</li>
+  </ul>
   <ul class="quellen" id="quellen-by">
     <li>Wetter, Vorhersage, Radar, Warnungen: Deutscher Wetterdienst (DWD Open Data) über <a href="https://brightsky.dev" target="_blank" rel="noopener">Bright Sky</a>; tschechische Wetterstationen über den internationalen SYNOP-Austausch</li>
     <li>UV-Index, Pollenflug, Biowetter, Klima-Tageswerte seit 1991, Bayern-Jahresmittel seit 1881: <a href="https://opendata.dwd.de" target="_blank" rel="noopener">DWD Open Data</a></li>
@@ -562,6 +568,7 @@ footer a{color:var(--accent)}
   </ul>
   <p id="fuss-doku">Wie die App aufgebaut ist und rechnet: <a href="../dokumentation.pdf" target="_blank" rel="noopener">Dokumentation (PDF) ↗</a></p>
   <p id="fuss-hu" hidden>Messwerte alle 10 Minuten bei HungaroMet, über GitHub alle 30 Minuten. Keine amtliche Warnung, maßgeblich ist <a href="https://www.met.hu/idojaras/veszelyjelzes/" target="_blank" rel="noopener">met.hu</a>.</p>
+  <p id="fuss-at" hidden>Vorhersage und Messwerte über Bright Sky (DWD), Radar RainViewer. Keine amtliche Warnung, maßgeblich ist <a href="https://warnungen.geosphere.at" target="_blank" rel="noopener">warnungen.geosphere.at</a>.</p>
   <p id="fuss-by">Live-Werte alle 10 Minuten, Pegel, Strahlung und Archiv alle 30 Minuten über GitHub. Keine amtliche Warnung, maßgeblich sind <a href="https://www.dwd.de/warnungen" target="_blank" rel="noopener">dwd.de</a> und <a href="https://www.hnd.bayern.de" target="_blank" rel="noopener">hnd.bayern.de</a>.</p>
 </footer>
 
@@ -589,13 +596,16 @@ const lsSet = (k, v) => {
 const LANG = lsGet(LANGKEY) === "hu" ? "hu" : "de";
 const LOC = LANG === "hu" ? "hu-HU" : "de-DE";
 const UHR = LANG === "hu" ? "" : " Uhr", UHR_H = LANG === "hu" ? ":00" : " Uhr";
-const START_JE = { by: "blaibach", hu: "budapest" };
+const START_JE = { by: "blaibach", hu: "budapest", at: "kramsach" };
 const HU_TXT = {
   // Kopf, Überschriften, Ladehinweise
   "Bayerischer Wald · Böhmerwald": "Bajor-erdő · Cseh-erdő",
   "Ungarn · Budapest · Balaton": "Magyarország · Budapest · Balaton",
   "Heute im Bayerwald": "Ma a Bajor-erdőben",
   "Heute in Ungarn": "Ma Magyarországon",
+  "Heute in Tirol": "Ma Tirolban",
+  "Tirol · Unterinntal · Zillertal": "Tirol · Alsó-Inn-völgy · Ziller-völgy",
+  "100 km um den Ort, AT und DE": "100 km-en belül, AT és DE",
   "Nächste 36 Stunden": "Következő 36 óra",
   "Regenradar": "Csapadékradar",
   "Die nächsten Tage": "A következő napok",
@@ -791,7 +801,7 @@ const HU_TXT = {
   "Ambrosia": "parlagfű",
   "keine Sichtdaten": "nincs látótávolság-adat",
   "Regen, Chamb, Donau": "Regen, Chamb, Duna",
-  "Testseite · Stand 23.11. 22:15": "Tesztoldal · 23.11. 22:15",
+  "Testseite · Stand 27.11. 21:00": "Tesztoldal · 23.11. 22:15",
   "Granitböden wie im Bayerischen Wald liefern eher höhere natürliche Werte. Quelle: BfS-Messnetz (ODL), Werte über den eigenen Abholdienst.": "A Bajor-erdőhöz hasonló gránittalajokon a természetes értékek inkább magasabbak. Forrás: BfS ODL mérőhálózat, saját letöltő szolgáltatáson át.",
   "Gräser": "fűfélék",
   "Birke": "nyír",
@@ -882,19 +892,26 @@ const ORTE_HU = {
   veszprem: { name: "Veszprém", lat: 47.093, lon: 17.9093, h: 250, megye: ["Veszprém", "Central Transdanubia", "Közép-Dunántúl"] },
   balatonfured: { name: "Balatonfüred", lat: 46.959, lon: 17.889, h: 130, megye: ["Veszprém", "Central Transdanubia", "Közép-Dunántúl"] },
   siofok: { name: "Siófok", lat: 46.9047, lon: 18.049, h: 110, megye: ["Somogy", "Southern Transdanubia", "Dél-Dunántúl"] },
-  szekesfehervar: { name: "Székesfehérvár", lat: 47.186, lon: 18.4221, h: 115, megye: ["Fejér", "Central Transdanubia", "Közép-Dunántúl"] }
+  szekesfehervar: { name: "Székesfehérvár", lat: 47.186, lon: 18.4221, h: 115, megye: ["Fejér", "Central Transdanubia", "Közép-Dunántúl"] },
+  papa: { name: "Pápa", lat: 47.3301, lon: 17.4672, h: 150, megye: ["Veszprém", "Central Transdanubia", "Közép-Dunántúl"] }
 };
-const ORTE_ALL = { ...ORTE_BY, ...ORTE_HU };
+const ORTE_AT = {
+  kramsach: { name: "Kramsach", lat: 47.4436, lon: 11.8761, h: 520 },
+  fuegen: { name: "Fügen im Zillertal", lat: 47.3486, lon: 11.8536, h: 545 }
+};
+const ORTE_ALL = { ...ORTE_BY, ...ORTE_HU, ...ORTE_AT };
 function regionVonOrt() {
   const p = new URLSearchParams(location.search), k = p.get("ort");
   if (ORTE_HU[k]) return "hu";
+  if (ORTE_AT[k]) return "at";
   if (ORTE_BY[k]) return "by";
-  if (p.get("lat") && p.get("lon")) return +p.get("lon") > 16 ? "hu" : "by";
-  return lsGet(REGIONKEY) === "hu" ? "hu" : "by";
+  if (p.get("lat") && p.get("lon")) return +p.get("lon") > 16 ? "hu" : +p.get("lat") < 47.7 && +p.get("lon") > 9.5 ? "at" : "by";
+  const g = lsGet(REGIONKEY);
+  return g === "hu" || g === "at" ? g : "by";
 }
 const REGION = regionVonOrt();
-const HU = REGION === "hu";
-const ORTE = HU ? ORTE_HU : ORTE_BY;
+const HU = REGION === "hu", AT = REGION === "at";
+const ORTE = HU ? ORTE_HU : AT ? ORTE_AT : ORTE_BY;
 const START_ORT = START_JE[REGION];
 const WARNPUNKTE = ["blaibach", "cham", "walderbach", "zwiesel", "regen", "arber", "deggendorf"];
 const $ = (id) => document.getElementById(id);
@@ -1054,7 +1071,7 @@ function tcol(t, a = 1) {
   const c = c0.map((v, j) => Math.round(v + (c1[j] - v) * k));
   return "rgba(".concat(c[0], ",").concat(c[1], ",").concat(c[2], ",").concat(a, ")");
 }
-const STARTKEY = HU ? "wetter-startort-hu" : "wetter-startort";
+const STARTKEY = HU ? "wetter-startort-hu" : AT ? "wetter-startort-at" : "wetter-startort";
 function startOrt() {
   try {
     const k = localStorage.getItem(STARTKEY);
@@ -1512,7 +1529,7 @@ function radarMap() {
   L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 13,
     className: "darktiles",
-    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> · Radar: ' + (HU ? '<a href="https://www.rainviewer.com">RainViewer</a>' : "DWD")
+    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> · Radar: ' + (HU || AT ? '<a href="https://www.rainviewer.com">RainViewer</a>' : "DWD")
   }).addTo(RAD.map);
   return RAD.map;
 }
@@ -3421,8 +3438,8 @@ function renderSignals() {
       return null;
     }
   };
-  const liste = HU ? [sigBalaton, sigPollenHU, sigUVHU, sigRadl, sigFrost, sigPV, sigSterne, sigAurora] : [sigInversionOrt, sigFernsicht, sigRadl, sigFrost, sigFeuer, sigPV, sigSterne, sigUVOrt, sigPollenOrt, sigBio, sigAurora, sigSchneeOrt];
-  SIGS = liste.map(safe).filter((s) => s && !(HU && s.state === "na")).map((s, i) => ({ ...s, i })).sort((a, b) => order[a.state] - order[b.state] || a.i - b.i);
+  const liste = AT ? [sigPollenHU, sigUVHU, sigRadl, sigFrost, sigPV, sigSterne, sigAurora, sigSchneeOrt] : HU ? [sigBalaton, sigPollenHU, sigUVHU, sigRadl, sigFrost, sigPV, sigSterne, sigAurora] : [sigInversionOrt, sigFernsicht, sigRadl, sigFrost, sigFeuer, sigPV, sigSterne, sigUVOrt, sigPollenOrt, sigBio, sigAurora, sigSchneeOrt];
+  SIGS = liste.map(safe).filter((s) => s && !((HU || AT) && s.state === "na")).map((s, i) => ({ ...s, i })).sort((a, b) => order[a.state] - order[b.state] || a.i - b.i);
   const shown = SIG_ALL ? SIGS : SIGS.slice(0, 6);
   $("sig").innerHTML = shown.map((s) => '<button type="button" class="sg '.concat(s.state, '" data-k="').concat(s.key, '" aria-expanded="').concat(SIG_OPEN === s.key, '" aria-controls="sig-detail">\n      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">').concat(SIG_ICON[s.key], "</svg>\n      <small>").concat(TR(s.title), "</small><b>").concat(TR(s.short), "</b></button>")).join("") + (SIGS.length > 6 ? '<button type="button" class="sg-more" aria-expanded="'.concat(SIG_ALL, '">').concat(SIG_ALL ? TR("Weniger anzeigen") : TR("Alle {0} anzeigen", SIGS.length), "</button>") : "");
   showSig(SIG_OPEN);
@@ -3586,8 +3603,9 @@ async function loadRadarHU() {
   if (!matchMedia("(prefers-reduced-motion: reduce)").matches && !RAD.playing) togglePlay(true);
 }
 function radSumHU() {
-  const note = "<br><small>".concat(TR("Für Ungarn gibt es Radarbilder der letzten 2 Stunden, aber keine Radar-Vorhersage."), "</small>");
-  if (!LAST) return TR("Für Ungarn gibt es Radarbilder der letzten 2 Stunden, aber keine Radar-Vorhersage.");
+  const hinweis = AT ? ZW("Für Tirol gibt es Radarbilder der letzten 2 Stunden, aber keine Radar-Vorhersage.", "Tirolhoz az elmúlt 2 óra radarképei érhetők el, radar-előrejelzés nincs.") : TR("Für Ungarn gibt es Radarbilder der letzten 2 Stunden, aber keine Radar-Vorhersage.");
+  const note = "<br><small>".concat(hinweis, "</small>");
+  if (!LAST) return hinweis;
   const now = Date.now();
   const hit = LAST.recs.find((r) => {
     const t = Date.parse(r.timestamp);
@@ -3659,6 +3677,49 @@ async function loadWarningsHU() {
   const ok = (t) => '<div class="ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M7.5 12.5l3 3 6-6.5"/></svg>'.concat(t, "</div>");
   const h = sort(hier), u = sort(umg);
   $("warn").innerHTML = (h.length ? h.map((a) => card(a)).join("") : ok(TR("Keine Warnungen für {0}.", esc(ORT.name)))) + (u.length ? '<div class="subh">'.concat(TR("In der Umgebung"), "</div>") + u.map((a) => card(a, [...a.orte].join(", "))).join("") : "") + '<div class="note"><a href="https://www.met.hu/idojaras/veszelyjelzes/" target="_blank" rel="noopener">'.concat(TR("Amtliche Warnungen"), ": met.hu ↗</a></div>");
+}
+async function loadForecastAT() {
+  try {
+    await loadForecast();
+    return;
+  } catch {
+  }
+  const now = /* @__PURE__ */ new Date();
+  const start = new Date(now.getTime() - 74 * 36e5), end = new Date(now.getTime() + 8 * 864e5);
+  const wx = await getJSON("/weather", { lat: ORT.lat, lon: ORT.lon, date: start.toISOString(), last_date: dayKey(end) });
+  const recs = wx.weather || [];
+  if (!recs.length) throw new Error("keine Vorhersage");
+  LAST = { recs, now };
+  const base = recs.filter((r) => Date.parse(r.timestamp) <= now.getTime() + 30 * 6e4).pop() || recs[0];
+  calcRain(recs, wx.sources, base, now);
+  renderCurrent({ weather: { ...base }, sources: wx.sources || [] }, recs, now, wx.sources);
+  renderChart(recs, now);
+  renderTiles(recs, now);
+  renderDays(recs, now, base.temperature);
+}
+const AT_WARNTYP = { 1: ["Sturm", "szélvihar"], 2: ["Regen", "eső"], 3: ["Schnee", "hó"], 4: ["Glatteis", "ónos eső, jég"], 5: ["Gewitter", "zivatar"], 6: ["Hitze", "hőség"], 7: ["Kälte", "hideg"] };
+async function loadWarningsAT() {
+  var _a;
+  const link = '<div class="note"><a href="https://warnungen.geosphere.at" target="_blank" rel="noopener">'.concat(TR("Amtliche Warnungen"), ": warnungen.geosphere.at ↗</a></div>");
+  const ok = (t2) => '<div class="ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M7.5 12.5l3 3 6-6.5"/></svg>'.concat(t2, "</div>");
+  let j;
+  try {
+    const r = await fetch("https://warnungen.zamg.at/wsapp/api/getWarningsForCoords?lon=".concat(ORT.lon, "&lat=").concat(ORT.lat, "&lang=de"));
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    j = await r.json();
+  } catch {
+    $("warn").innerHTML = '<div class="note">'.concat(ZW("Warnungen von GeoSphere Austria lassen sich hier gerade nicht direkt abrufen.", "A GeoSphere Austria figyelmeztetései most nem érhetők el közvetlenül."), "</div>") + link;
+    return;
+  }
+  const t = (v) => v == null || v === "" ? null : new Date(/^\d+$/.test(String(v)) ? +v * 1e3 : v);
+  const now = Date.now(), stufe = { 1: "moderate", 2: "severe", 3: "extreme" };
+  const list = (((_a = j == null ? void 0 : j.properties) == null ? void 0 : _a.warnings) || []).map((w) => w.properties || w).filter((w) => !(t(w.end) && t(w.end) < now)).sort((a, b) => (b.warnstufeid || 0) - (a.warnstufeid || 0));
+  const fmt = (d) => d ? "".concat(wd(d), " ").concat(hhmm(d)) : TR("bis auf Weiteres");
+  const farbe = { 1: ["Gelbe", "Sárga"], 2: ["Orange", "Narancs"], 3: ["Rote", "Piros"] };
+  $("warn").innerHTML = (list.length ? list.map((w) => {
+    const art = AT_WARNTYP[w.warntypid] || ["Wetter", "időjárás"], f = farbe[w.warnstufeid] || farbe[1];
+    return '<div class="warn '.concat(stufe[w.warnstufeid] || "moderate", '"><b>').concat(esc(ZW("".concat(f[0], " Warnung: ").concat(art[0]), "".concat(f[1], " figyelmeztetés: ").concat(art[1]))), "</b><small>").concat(fmt(t(w.begin)), " – ").concat(fmt(t(w.end))).concat(w.text ? " · " + esc(w.text) : "", "</small></div>");
+  }).join("") : ok(TR("Keine Warnungen für {0}.", esc(ORT.name)))) + link;
 }
 async function loadODLHU() {
   if (!HUDATA) await loadHU();
@@ -3809,7 +3870,7 @@ function sigPollenHU() {
   const ragweed = liste.find((x) => x.n === TR("Ambrosia"));
   const fmt = (x) => "".concat(x.n, " ").concat(wort(x.s), " (").concat(Math.round(x.v), " ").concat(TR("Pollen/m³"), ")");
   const aktiv = liste.filter((x) => x.s > 0), mo = liste.filter((x) => x.sw > 0).map((x) => "".concat(x.n, " ").concat(wort(x.sw))).join(", ");
-  const quelle = TR("Modellwerte Copernicus (CAMS) über Open-Meteo, Tageshöchstwert. Ambrosia (Ragweed) blüht in Ungarn vor allem von August bis Oktober.");
+  const quelle = TR("Modellwerte Copernicus (CAMS) über Open-Meteo, Tageshöchstwert. Ambrosia (Ragweed) blüht in Ungarn vor allem von August bis Oktober.").replace(AT ? / Ambrosia \(Ragweed\).*$/ : /$^/, "");
   if (!aktiv.length) return {
     key: "pol",
     title: "Pollen",
@@ -3869,6 +3930,16 @@ function regionAnwenden() {
     for (const id of ["quellen-hu", "fuss-hu"]) $(id).hidden = false;
     document.title = document.title.replace("Bayerwald", "Ungarn");
   }
+  if (AT) {
+    $("brand-txt").textContent = "Tirol · Unterinntal · Zillertal";
+    $("h-heute").textContent = "Heute in Tirol";
+    $("rad-quelle").textContent = "RainViewer · letzte 2 Stunden";
+    $("warn-quelle").textContent = "GeoSphere Austria";
+    $("st-quelle").textContent = "100 km um den Ort, AT und DE";
+    for (const id of ["rueckblick", "rscale", "quellen-by", "fuss-by", "card-pegel", "card-odl"]) $(id).hidden = true;
+    for (const id of ["quellen-at", "fuss-at"]) $(id).hidden = false;
+    document.title = document.title.replace("Bayerwald", "Tirol");
+  }
   uebersetzeSeite();
   if (LANG === "hu") fussUngarisch();
   const wechsel = (key, val) => {
@@ -3877,7 +3948,7 @@ function regionAnwenden() {
   };
   $("region-tg").addEventListener("click", (e) => {
     const b = e.target.closest("button[data-region]");
-    if (b && b.dataset.region !== REGION) wechsel(REGIONKEY, b.dataset.region);
+    if (b && b.dataset.region !== REGION) wechsel(REGIONKEY, b.dataset.region === "by" ? null : b.dataset.region);
   });
   $("lang-tg").addEventListener("click", (e) => {
     const b = e.target.closest("button[data-lang]");
@@ -3921,6 +3992,18 @@ async function refresh() {
     } catch {
     }
     await run(loadODLHU, ["odl"]);
+  } else if (AT) {
+    await Promise.all([
+      run(loadForecastAT, ["cur", "chart", "hours", "days"]),
+      run(loadWarningsAT, ["warn"]),
+      run(loadStations, ["st-jetzt", "st-12h"]),
+      run(loadRadarHU, ["rad-sum"]),
+      loadLuftHU()
+    ]);
+    try {
+      if (RAD.layers) $("rad-sum").innerHTML = radSumHU();
+    } catch {
+    }
   } else {
     await Promise.all([
       run(loadForecast, ["cur", "chart", "hours", "days"]),
@@ -4442,7 +4525,7 @@ function initTabs() {
   });
   initKarten();
 }
-const SZENE_HU = { budapest: "bp", csomad: "bp", veszprem: "vp", balatonfured: "bal", siofok: "bal", szekesfehervar: "vel" };
+const SZENE_HU = { budapest: "bp", csomad: "bp", veszprem: "vp", papa: "vp", balatonfured: "bal", siofok: "bal", szekesfehervar: "vel" };
 function initSzeneHU() {
   const W = 1200, H = 420, f = (v) => (+v).toFixed(1);
   let seed = 4711;
