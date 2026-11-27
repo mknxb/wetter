@@ -3178,16 +3178,18 @@ const WEBCAMS = [
   {id:"1746057268", orte:["koetzting"], lat:49.1767, lon:12.8547, de:"Bad Kötzting – Rathaus", hu:"Bad Kötzting – városháza"},
   {id:"1367422908", orte:["cham"], lat:49.2210, lon:12.6600, de:"Cham – Stadtpfarrkirche St. Jakob", hu:"Cham – Szent Jakab plébániatemplom", nde:"Blick nach Nordwesten", nhu:"kilátás északnyugat felé"},
   {id:"1793902075", orte:["arber"], lat:49.1125, lon:13.1350, de:"Großer Arber – Arber-Stadl", hu:"Großer Arber – Arber-Stadl"},
-  {id:"1592498076", orte:["zwiesel"], lat:49.0236, lon:13.2312, de:"Zwiesel – Panorama", hu:"Zwiesel – panoráma"},
+  {id:"1592498076", orte:["zwiesel"], lat:49.0236, lon:13.2312, de:"Zwiesel – Krankenhaus", hu:"Zwiesel – kórház", nde:"Blick über die Stadt", nhu:"kilátás a városra"},
   {id:"1327243740", orte:["deggendorf"], lat:48.8353, lon:12.9644, de:"Deggendorf – Altstadt", hu:"Deggendorf – óváros"},
   {id:"1706619375", orte:["deggendorf"], lat:48.8000, lon:13.0100, de:"Deggendorf – Gut Aiderbichl", hu:"Deggendorf – Gut Aiderbichl", nde:"Panomax-Panorama", nhu:"Panomax-panoráma"},
   {id:"1299837060", orte:["kramsach"], lat:47.4436, lon:11.8761, de:"Kramsach – Reintaler See", hu:"Kramsach – Reintaler See"},
   {id:"1793913044", orte:["fuegen"], lat:47.3486, lon:11.8536, de:"Fügen – Therme", hu:"Fügen – fürdő (Therme)"},
+  {id:"1674123367", orte:["veszprem"], lat:47.1000, lon:17.9100, de:"Veszprém – Füredi utca", hu:"Veszprém – Füredi utca", nde:"Straßenkamera Richtung Zentrum", nhu:"útkamera a belváros felé"},
   {id:"1255261318", orte:["veszprem"], lat:47.0930, lon:17.9093, de:"Veszprém – Vörösmarty Mihály tér", hu:"Veszprém – Vörösmarty Mihály tér"},
   {id:"1674122248", orte:["siofok"], lat:46.9047, lon:18.0490, de:"Siófok – Vak Bottyán út", hu:"Siófok – Vak Bottyán út", nde:"Straßenkamera, Blick Richtung Budapest", nhu:"útkamera, Budapest felé"},
   {id:"1294221464", orte:["budapest"], lat:47.4815, lon:19.0560, de:"Budapest – Duna utca", hu:"Budapest – Duna utca"},
   {id:"1623585620", orte:["budapest"], lat:47.5500, lon:19.0800, de:"Budapest – Himmelskamera Nord", hu:"Budapest – égbolt-kamera (észak)", nde:"zeigt Wolken und Himmel", nhu:"felhőket és az égboltot mutatja"}
 ];
+const CAM_MAX = 5;        // höchstens so viele Kameras je Ort
 const CAM_CUSTOMKM = 3;   // eigener Standort (?lat=&lon=): nur Kameras höchstens so weit entfernt
 const camUrl = id => `https://webcams.windy.com/webcams/public/embed/player/${id}/${camModus}`;
 let camInit = false;
@@ -3207,8 +3209,8 @@ function camVoll(an, el) {   // Vollbild: echtes Browser-Vollbild, wo das Gerät
 // Verlässt man das echte Vollbild per Geste oder Esc, geht auch die Karte zurück in die App
 ["fullscreenchange", "webkitfullscreenchange"].forEach(ev => document.addEventListener(ev, () => { if (!fsEl() && document.querySelector("#camgrid .cam.vo")) camVoll(false); }));
 function camsFuerOrt() {
-  if (ORT.key === "custom") return WEBCAMS.filter(c => km(ORT.lat, ORT.lon, c.lat, c.lon) <= CAM_CUSTOMKM);
-  return WEBCAMS.filter(c => c.orte.includes(ORT.key));
+  if (ORT.key === "custom") return WEBCAMS.filter(c => km(ORT.lat, ORT.lon, c.lat, c.lon) <= CAM_CUSTOMKM).slice(0, CAM_MAX);
+  return WEBCAMS.filter(c => c.orte.includes(ORT.key)).slice(0, CAM_MAX);
 }
 function baueWebcams() {
   const grid = $("camgrid"); if (!grid) return;
