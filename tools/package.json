@@ -1,0 +1,8 @@
+{
+  "name": "wetter-tools",
+  "private": true,
+  "type": "module",
+  "description": "Build-Werkzeuge: übersetzt test/index.src.html in eine für iOS 12 (Safari 12) taugliche test/index.html",
+  "scripts": { "build": "node build-compat.mjs", "check": "node build-compat.mjs --check" },
+  "devDependencies": { "esbuild": "^0.25.0", "postcss": "^8.4.49", "fflate": "^0.8.2", "es-check": "^9.0.0" }
+}
