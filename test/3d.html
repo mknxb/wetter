@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#05080f">
+<title>Wetter 3D · Bayerwald Test</title>
+<link rel="stylesheet" href="../assets/fonts.css">
+<style>
+:root{--g:rgba(10,16,28,.62);--b:rgba(255,255,255,.14);--t:#e8eef8;--m:#9fb0c8;--a:#5ee1ff;--w:#ffb84d}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#05080f;color:var(--t);font-family:Barlow,system-ui,sans-serif;overflow:hidden;-webkit-user-select:none;user-select:none}
+canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
+.glass{background:var(--g);backdrop-filter:blur(14px) saturate(1.3);-webkit-backdrop-filter:blur(14px) saturate(1.3);border:1px solid var(--b);border-radius:16px}
+#top{position:fixed;top:max(10px,env(safe-area-inset-top));left:10px;right:10px;display:flex;gap:10px;align-items:flex-start;justify-content:space-between;pointer-events:none}
+#top>*{pointer-events:auto}
+#info{padding:10px 14px;min-width:210px}
+#info h1{font:800 26px/1 "Big Shoulders Display",sans-serif;margin:0 0 4px;letter-spacing:.5px}
+#info .big{font:700 44px/1 "Big Shoulders Display",sans-serif}
+#info .row{display:flex;gap:12px;flex-wrap:wrap;color:var(--m);font-size:14px;margin-top:4px}
+#info .row b{color:var(--t);font-weight:600}
+#info select{background:transparent;color:var(--t);border:1px solid var(--b);border-radius:8px;font:inherit;padding:3px 6px;margin-top:6px}
+#info select option{background:#10182a}
+#modes{display:flex;gap:4px;padding:4px}
+#modes button,.chip{background:transparent;color:var(--m);border:0;border-radius:12px;padding:8px 12px;font:600 14px Barlow,sans-serif;cursor:pointer}
+#modes button.on{background:rgba(94,225,255,.16);color:var(--a)}
+#layers{position:fixed;right:10px;top:max(92px,calc(env(safe-area-inset-top) + 82px));display:flex;flex-direction:column;gap:2px;padding:6px}
+.chip{display:flex;align-items:center;gap:8px;text-align:left;padding:6px 10px}
+.chip i{width:10px;height:10px;border-radius:50%;background:#445;display:inline-block}
+.chip.on{color:var(--t)} .chip.on i{background:var(--a);box-shadow:0 0 8px var(--a)}
+#bottom{position:fixed;left:10px;right:10px;bottom:max(10px,env(safe-area-inset-bottom));padding:10px 14px;display:flex;align-items:center;gap:12px}
+#play{width:42px;height:42px;border-radius:50%;border:1px solid var(--b);background:rgba(94,225,255,.15);color:var(--a);font-size:18px;cursor:pointer;flex:none}
+#zeit{flex:1;accent-color:var(--a)}
+#zeitlabel{font:700 20px "Big Shoulders Display",sans-serif;min-width:118px;text-align:right}
+#legend{position:fixed;left:10px;bottom:calc(max(10px,env(safe-area-inset-bottom)) + 74px);padding:8px 12px;font-size:12px;color:var(--m)}
+#legend .bar{height:8px;width:180px;border-radius:4px;background:linear-gradient(90deg,#3b6cff,#22e0ff,#4dff9a,#ffe94d,#ff8a3d,#ff3d6e,#d14dff);margin:4px 0}
+#legend .lbl{display:flex;justify-content:space-between;width:180px}
+#load{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:radial-gradient(circle at 50% 40%,#0d1a33,#03050a);z-index:9;transition:opacity .8s}
+#load .ring{width:64px;height:64px;border-radius:50%;border:3px solid rgba(94,225,255,.15);border-top-color:var(--a);animation:s 1s linear infinite}
+@keyframes s{to{transform:rotate(360deg)}}
+#load p{color:var(--m);margin:0;font-size:15px}
+#cams{position:fixed;inset:0;padding:calc(max(10px,env(safe-area-inset-top)) + 150px) 10px 100px;overflow:auto;display:none;z-index:2}
+#cams .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;max-width:1300px;margin:auto}
+#cams .cam{overflow:hidden;padding:0}
+#cams .cam .f{position:relative;aspect-ratio:16/9;background:#000}
+#cams iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+#cams .cam .t{padding:8px 12px;display:flex;justify-content:space-between;gap:8px;font-size:14px}
+#cams a{color:var(--a);text-decoration:none}
+#cams .wide{grid-column:1/-1}
+#cams .wide .f{aspect-ratio:21/9}
+#tip{position:fixed;padding:8px 12px;font-size:13px;pointer-events:none;display:none;max-width:260px;z-index:3}
+#quellen{position:fixed;right:10px;bottom:calc(max(10px,env(safe-area-inset-bottom)) + 74px);font-size:10px;color:rgba(255,255,255,.45);text-align:right;max-width:55%}
+#quellen a{color:inherit}
+#back{color:var(--m);font-size:13px;text-decoration:none;display:inline-block;margin-top:6px}
+#nnhint{position:fixed;left:50%;transform:translateX(-50%);top:calc(max(10px,env(safe-area-inset-top)) + 150px);padding:8px 14px;font-size:13px;color:var(--m);display:none;text-align:center;max-width:92vw}
+@media (max-width:700px){
+  #top{flex-direction:column}
+  #info{min-width:0;width:100%}
+  #info .big{font-size:34px}
+  #layers{top:auto;bottom:calc(max(10px,env(safe-area-inset-bottom)) + 74px);right:10px}
+  #legend{display:none}
+  #quellen{display:none}
+  #cams{padding-top:calc(max(10px,env(safe-area-inset-top)) + 200px)}
+}
+</style>
+<script type="importmap">{"imports":{"three":"../assets/three/three.module.min.js"}}</script>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="load"><div class="ring"></div><p id="loadtxt">Gelände und Satellitenbild werden geladen …</p></div>
+
+<div id="top">
+  <div id="info" class="glass">
+    <h1 id="ortname">–</h1>
+    <div class="big" id="temp">–</div>
+    <div class="row"><span>Wind <b id="wind">–</b></span><span>Böen <b id="boe">–</b></span><span>Wolken <b id="wolk">–</b></span><span>Regen <b id="regen">–</b></span></div>
+    <select id="ortwahl" aria-label="Ort"></select>
+    <a id="back" href="./">← zur Wetterseite</a>
+  </div>
+  <div id="modes" class="glass">
+    <button data-m="land" class="on">Landschaft 3D</button>
+    <button data-m="nn">Neuronales Netz</button>
+    <button data-m="cam">Webcams</button>
+  </div>
+</div>
+
+<div id="layers" class="glass">
+  <button class="chip on" data-l="wind"><i></i>Wind 10 m</button>
+  <button class="chip on" data-l="hoch"><i></i>Höhenwind 1500 m</button>
+  <button class="chip on" data-l="wolken"><i></i>Wolken</button>
+  <button class="chip on" data-l="regen"><i></i>Regen/Schnee</button>
+  <button class="chip on" data-l="auto"><i></i>Kamera kreist</button>
+</div>
+
+<div id="legend" class="glass">Windgeschwindigkeit<div class="bar"></div><div class="lbl"><span>0</span><span>20</span><span>40</span><span>60+ km/h</span></div></div>
+<div id="nnhint" class="glass">Jeder Knoten ist eine Wettergröße. Linien zeigen, wie stark sie in den nächsten 48 h zusammenhängen (Korrelation) – <span style="color:#5ee1ff">blau gleichläufig</span>, <span style="color:#ff8a3d">orange gegenläufig</span>. Tippen für Details.</div>
+
+<div id="cams"><div class="grid" id="camgrid"></div></div>
+<div id="tip" class="glass"></div>
+
+<div id="bottom" class="glass">
+  <button id="play" aria-label="Abspielen">▶</button>
+  <input id="zeit" type="range" min="0" max="47" value="0" step="1" aria-label="Zeit">
+  <div id="zeitlabel">–</div>
+</div>
+<div id="quellen">Wetter: <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a> (ICON/DWD u.a.) · Satellit: Esri, Maxar, Earthstar Geographics · Höhe: AWS Terrain Tiles (Mapzen) · Webcams: <a href="https://www.windy.com/webcams" target="_blank" rel="noopener">Windy</a></div>
+
+<script type="module">
+import * as THREE from "three";
+import { OrbitControls } from "../assets/three/OrbitControls.js";
+import { Sky } from "../assets/three/Sky.js";
+
+/* ---------- Orte ---------- */
+const ORTE = {
+  "Bayerwald": {blaibach:["Blaibach",49.1636,12.8086],koetzting:["Bad Kötzting",49.1767,12.8547],cham:["Cham",49.2183,12.6650],furth:["Furth im Wald",49.3097,12.84],arber:["Großer Arber",49.1125,13.135],zwiesel:["Zwiesel",49.0236,13.2312],regen:["Regen",48.97,13.127],deggendorf:["Deggendorf",48.8353,12.9644]},
+  "Österreich": {kramsach:["Kramsach",47.4436,11.8761],fuegen:["Fügen im Zillertal",47.3486,11.8536]},
+  "Ungarn": {budapest:["Budapest",47.4979,19.0402],csomad:["Csomád",47.6539,19.2366],veszprem:["Veszprém",47.093,17.9093],balatonfured:["Balatonfüred",46.959,17.889],papa:["Pápa",47.3301,17.4672]}
+};
+const ALLE = Object.assign({}, ...Object.values(ORTE));
+const P = new URLSearchParams(location.search);
+let ORT;
+if (P.get("lat") && P.get("lon")) ORT = {key:"custom", name:P.get("name")||"Standort", lat:+P.get("lat"), lon:+P.get("lon")};
+else { const k = P.get("ort") || (()=>{try{return localStorage.getItem("wetter3d-ort")}catch(e){return null}})() || "blaibach"; const o = ALLE[k] || ALLE.blaibach; ORT = {key: ALLE[k]?k:"blaibach", name:o[0], lat:o[1], lon:o[2]}; }
+const sel = document.getElementById("ortwahl");
+for (const [g, os] of Object.entries(ORTE)) { const og = document.createElement("optgroup"); og.label = g; for (const [k,o] of Object.entries(os)) { const op = new Option(o[0], k); if (k===ORT.key) op.selected = true; og.appendChild(op);} sel.appendChild(og); }
+sel.onchange = () => { try{localStorage.setItem("wetter3d-ort", sel.value)}catch(e){} location.search = "?ort=" + sel.value; };
+document.getElementById("ortname").textContent = ORT.name;
+
+const MOBIL = matchMedia("(max-width:700px)").matches || navigator.hardwareConcurrency <= 4;
+const $ = id => document.getElementById(id);
+const loadtxt = t => $("loadtxt").textContent = t;
+
+/* ---------- Kacheln ---------- */
+const Z = 10, N = 5, TS = 256;
+const lon2t = (lon,z) => (lon+180)/360*2**z;
+const lat2t = (lat,z) => { const r = lat*Math.PI/180; return (1 - Math.log(Math.tan(r)+1/Math.cos(r))/Math.PI)/2*2**z; };
+const t2lon = (x,z) => x/2**z*360-180;
+const t2lat = (y,z) => { const n = Math.PI - 2*Math.PI*y/2**z; return 180/Math.PI*Math.atan(.5*(Math.exp(n)-Math.exp(-n))); };
+const cx = lon2t(ORT.lon,Z), cy = lat2t(ORT.lat,Z);
+const X0 = Math.floor(cx) - 2, Y0 = Math.floor(cy) - 2;
+const EXT = {w:t2lon(X0,Z), e:t2lon(X0+N,Z), n:t2lat(Y0,Z), s:t2lat(Y0+N,Z)};
+const KMX = (EXT.e-EXT.w)*111.32*Math.cos(ORT.lat*Math.PI/180), KMZ = (EXT.n-EXT.s)*110.57;
+const SIZE = KMX; // Welteinheit = km
+const EXAG = 2.6;
+const ll2w = (lat,lon) => [ (lon-EXT.w)/(EXT.e-EXT.w)*KMX - KMX/2, (EXT.n-lat)/(EXT.n-EXT.s)*KMZ - KMZ/2 ];
+
+function img(url){ return new Promise((res,rej)=>{ const i = new Image(); i.crossOrigin="anonymous"; i.onload=()=>res(i); i.onerror=rej; i.src=url; }); }
+async function mosaic(urlFn){
+  const cv = document.createElement("canvas"); cv.width = cv.height = N*TS; const g = cv.getContext("2d");
+  let ok = 0;
+  await Promise.all([...Array(N*N)].map(async (_,i)=>{ const x=i%N, y=(i/N)|0; try{ const im = await img(urlFn(X0+x,Y0+y)); g.drawImage(im,x*TS,y*TS); ok++; }catch(e){} }));
+  return {cv, ok};
+}
+
+/* ---------- Szene ---------- */
+const renderer = new THREE.WebGLRenderer({canvas:$("c"), antialias:!MOBIL, powerPreference:"high-performance"});
+renderer.setPixelRatio(Math.min(devicePixelRatio, MOBIL?1.5:2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = .55;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(50, 1, .1, 4000);
+camera.position.set(0, 55, 95);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true; controls.maxPolarAngle = Math.PI*.47; controls.minDistance = 8; controls.maxDistance = 260; controls.autoRotate = true; controls.autoRotateSpeed = .35;
+controls.target.set(0,2,0);
+renderer.domElement.addEventListener("pointerdown", ()=>{ controls.autoRotate=false; document.querySelector('[data-l="auto"]').classList.remove("on"); });
+
+const sky = new Sky(); sky.scale.setScalar(3000); scene.add(sky);
+const su = sky.material.uniforms; su.turbidity.value = 6; su.rayleigh.value = 1.6; su.mieCoefficient.value = .005; su.mieDirectionalG.value = .8;
+const sunDir = new THREE.Vector3();
+const sunL = new THREE.DirectionalLight(0xfff1dd, 2.4); scene.add(sunL); scene.add(sunL.target);
+const hemi = new THREE.HemisphereLight(0xbfd8ff, 0x3a3020, .8); scene.add(hemi);
+scene.fog = new THREE.FogExp2(0xa8c0dd, .0045);
+
+// Sterne
+{ const g = new THREE.BufferGeometry(), n = 2500, p = new Float32Array(n*3);
+  for(let i=0;i<n;i++){ const u=Math.random()*2*Math.PI, v=Math.acos(Math.random()*.95); p.set([Math.sin(v)*Math.cos(u)*1500, Math.cos(v)*1500, Math.sin(v)*Math.sin(u)*1500], i*3); }
+  g.setAttribute("position", new THREE.BufferAttribute(p,3));
+  var stars = new THREE.Points(g, new THREE.PointsMaterial({color:0xffffff, size:2, sizeAttenuation:false, transparent:true, opacity:0, fog:false, depthWrite:false})); scene.add(stars); }
+
+/* ---------- Gelände ---------- */
+let HGT, HW = N*TS;
+function heightKm(x,z){ // Welt → Höhe (km, überhöht)
+  if(!HGT) return 0;
+  const u = (x/KMX+.5)*(HW-1), v = (z/KMZ+.5)*(HW-1);
+  if(u<0||v<0||u>HW-1||v>HW-1) return 0;
+  const i=u|0, j=v|0, fu=u-i, fv=v-j, i1=Math.min(i+1,HW-1), j1=Math.min(j+1,HW-1);
+  const h = HGT[j*HW+i]*(1-fu)*(1-fv)+HGT[j*HW+i1]*fu*(1-fv)+HGT[j1*HW+i]*(1-fu)*fv+HGT[j1*HW+i1]*fu*fv;
+  return h/1000*EXAG;
+}
+let terrain, minH = 0;
+async function baueGelaende(){
+  loadtxt("Höhenmodell wird geladen …");
+  const dem = await mosaic((x,y)=>`https://s3.amazonaws.com/elevation-tiles-prod/terrarium/${Z}/${x}/${y}.png`);
+  if (dem.ok) {
+    const d = dem.cv.getContext("2d").getImageData(0,0,HW,HW).data; HGT = new Float32Array(HW*HW);
+    for(let i=0;i<HW*HW;i++) HGT[i] = Math.max(-50, d[i*4]*256 + d[i*4+1] + d[i*4+2]/256 - 32768);
+    let m = 1e9; for (let i=0;i<HGT.length;i+=97) m = Math.min(m,HGT[i]); minH = m/1000*EXAG;
+  }
+  loadtxt("Satellitenbild wird geladen …");
+  const sat = await mosaic((x,y)=>`https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${Z}/${y}/${x}`);
+  const seg = MOBIL ? 180 : 300;
+  const geo = new THREE.PlaneGeometry(KMX, KMZ, seg, seg); geo.rotateX(-Math.PI/2);
+  const pos = geo.attributes.position;
+  for(let i=0;i<pos.count;i++) pos.setY(i, heightKm(pos.getX(i), pos.getZ(i)) - minH);
+  geo.computeVertexNormals();
+  let map;
+  if (sat.ok > N*N/2) { map = new THREE.CanvasTexture(sat.cv); }
+  else { const cv=document.createElement("canvas"); cv.width=cv.height=512; const g=cv.getContext("2d"); const id=g.createImageData(512,512);
+    for(let j=0;j<512;j++)for(let i=0;i<512;i++){ const h=HGT?HGT[((j/511*(HW-1))|0)*HW+((i/511*(HW-1))|0)]:300; const t=Math.min(1,Math.max(0,(h-200)/1200)); const k=(j*512+i)*4; id.data[k]=40+t*150; id.data[k+1]=90+t*110; id.data[k+2]=40+t*120; id.data[k+3]=255; }
+    g.putImageData(id,0,0); map = new THREE.CanvasTexture(cv); }
+  map.colorSpace = THREE.SRGBColorSpace; map.anisotropy = renderer.capabilities.getMaxAnisotropy();
+  terrain = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({map, roughness:.95, metalness:0}));
+  scene.add(terrain);
+  // Sockel
+  const rim = new THREE.Mesh(new THREE.BoxGeometry(KMX, 3, KMZ), new THREE.MeshStandardMaterial({color:0x0b0f18, roughness:1}));
+  rim.position.y = -1.55; scene.add(rim);
+  // Ortsmarke
+  const [ox,oz] = ll2w(ORT.lat, ORT.lon), oy = heightKm(ox,oz)-minH;
+  const pin = new THREE.Mesh(new THREE.CylinderGeometry(.08,.08,6,8), new THREE.MeshBasicMaterial({color:0xffb84d}));
+  pin.position.set(ox, oy+3, oz); scene.add(pin);
+  const ring = new THREE.Mesh(new THREE.RingGeometry(.6,.9,40), new THREE.MeshBasicMaterial({color:0xffb84d, side:THREE.DoubleSide, transparent:true}));
+  ring.rotation.x = -Math.PI/2; ring.position.set(ox, oy+.15, oz); scene.add(ring); window._ring = ring;
+  scene.add(label(ORT.name, ox, oy+7, oz, "#ffb84d", 1.2));
+  for (const [k,o] of Object.entries(ALLE)) { if (k===ORT.key) continue; const [x,z]=ll2w(o[1],o[2]); if (Math.abs(x)<KMX/2-2 && Math.abs(z)<KMZ/2-2) scene.add(label(o[0], x, heightKm(x,z)-minH+2.5, z, "#ffffff", .8)); }
+}
+function label(txt,x,y,z,col,s){
+  const cv=document.createElement("canvas"), g=cv.getContext("2d"); g.font="600 44px Barlow,sans-serif"; const w=g.measureText(txt).width+40; cv.width=w; cv.height=64;
+  g.font="600 44px Barlow,sans-serif"; g.fillStyle="rgba(5,8,15,.55)"; g.beginPath(); g.roundRect(0,4,w,56,28); g.fill(); g.fillStyle=col; g.textBaseline="middle"; g.fillText(txt,20,33);
+  const t=new THREE.CanvasTexture(cv); t.colorSpace=THREE.SRGBColorSpace;
+  const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:t, depthTest:false, transparent:true, fog:false})); sp.scale.set(w/64*2.2*s, 2.2*s, 1); sp.position.set(x,y,z); sp.renderOrder=10; return sp;
+}
+
+/* ---------- Wetterdaten ---------- */
+const GN = 6; let W = null; // Raster GN×GN
+const VARS = "temperature_2m,relative_humidity_2m,dew_point_2m,precipitation,snowfall,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,pressure_msl,wind_speed_10m,wind_direction_10m,wind_gusts_10m,wind_speed_850hPa,wind_direction_850hPa,shortwave_radiation,visibility,cape";
+async function ladeWetter(){
+  loadtxt("Wettermodell (Wind, Wolken, Regen) wird geladen …");
+  const lats=[], lons=[], pts=[];
+  for(let j=0;j<GN;j++) for(let i=0;i<GN;i++){ const lat = EXT.n - (j+.5)/GN*(EXT.n-EXT.s), lon = EXT.w + (i+.5)/GN*(EXT.e-EXT.w); lats.push(lat.toFixed(3)); lons.push(lon.toFixed(3)); pts.push([i,j]); }
+  lats.push(ORT.lat.toFixed(4)); lons.push(ORT.lon.toFixed(4));
+  const u = `https://api.open-meteo.com/v1/forecast?latitude=${lats}&longitude=${lons}&hourly=${VARS}&forecast_days=3&timezone=Europe%2FBerlin&wind_speed_unit=kmh`;
+  const r = await fetch(u); if(!r.ok) throw new Error("Open-Meteo " + r.status);
+  const arr = await r.json();
+  const now = new Date(); const t0 = arr[0].hourly.time.findIndex(t => new Date(t) > new Date(now.getTime()-3600e3));
+  const H = 48;
+  W = {time: arr[0].hourly.time.slice(t0,t0+H), grid: arr.slice(0,GN*GN).map(a=>{ const o={}; for(const k in a.hourly) o[k]=a.hourly[k].slice(t0,t0+H); return o; }), ort: (()=>{ const a=arr[GN*GN], o={}; for(const k in a.hourly) o[k]=a.hourly[k].slice(t0,t0+H); return o; })(), H};
+  $("zeit").max = W.time.length-1;
+}
+// bilineare Interpolation eines Feldes
+function feld(key, x, z, t){
+  const fx = Math.min(GN-1.001, Math.max(0,(x/KMX+.5)*GN-.5)), fz = Math.min(GN-1.001, Math.max(0,(z/KMZ+.5)*GN-.5));
+  const i=fx|0, j=fz|0, a=fx-i, b=fz-j, g=W.grid;
+  const v=(ii,jj)=>g[jj*GN+ii][key][t] ?? 0;
+  return v(i,j)*(1-a)*(1-b)+v(i+1,j)*a*(1-b)+v(i,j+1)*(1-a)*b+v(i+1,j+1)*a*b;
+}
+// u/v-Raster je Stunde vorberechnen (km/h → Weltgeschwindigkeit)
+let UV10, UV85;
+function uvRaster(){
+  const mk = (s,d) => W.grid.map(g => g[s].map((sp,t)=>{ const r=(g[d][t]??0)*Math.PI/180; return [-(sp??0)*Math.sin(r), -(sp??0)*Math.cos(r)]; }));
+  UV10 = mk("wind_speed_10m","wind_direction_10m"); UV85 = mk("wind_speed_850hPa","wind_direction_850hPa");
+}
+function uvAt(R, x, z, t){
+  const fx = Math.min(GN-1.001, Math.max(0,(x/KMX+.5)*GN-.5)), fz = Math.min(GN-1.001, Math.max(0,(z/KMZ+.5)*GN-.5));
+  const i=fx|0, j=fz|0, a=fx-i, b=fz-j;
+  const A=R[j*GN+i][t], B=R[j*GN+i+1][t], C=R[(j+1)*GN+i][t], D=R[(j+1)*GN+i+1][t];
+  return [A[0]*(1-a)*(1-b)+B[0]*a*(1-b)+C[0]*(1-a)*b+D[0]*a*b, A[1]*(1-a)*(1-b)+B[1]*a*(1-b)+C[1]*(1-a)*b+D[1]*a*b];
+}
+// Farbskala Wind
+const STOPS=[[0,[.23,.42,1]],[8,[.13,.88,1]],[16,[.3,1,.6]],[25,[1,.91,.3]],[35,[1,.54,.24]],[48,[1,.24,.43]],[65,[.82,.3,1]]];
+function windCol(v){ for(let k=1;k<STOPS.length;k++){ if(v<=STOPS[k][0]){ const [a,ca]=STOPS[k-1],[b,cb]=STOPS[k], f=(v-a)/(b-a); return ca.map((c,i)=>c+(cb[i]-c)*f);} } return STOPS.at(-1)[1]; }
+
+/* ---------- Windpartikel (Strömungslinien) ---------- */
+function windSchicht(n, R, alt, tail, opac){
+  const geo = new THREE.BufferGeometry();
+  const pos = new Float32Array(n*6), col = new Float32Array(n*6), P = new Float32Array(n*4); // x,z,age,life
+  geo.setAttribute("position", new THREE.BufferAttribute(pos,3)); geo.setAttribute("color", new THREE.BufferAttribute(col,3));
+  const mat = new THREE.LineBasicMaterial({vertexColors:true, transparent:true, opacity:opac, blending:THREE.AdditiveBlending, depthWrite:false, fog:false});
+  const obj = new THREE.LineSegments(geo, mat); obj.frustumCulled=false;
+  const spawn = k => { P[k*4]=(Math.random()-.5)*KMX; P[k*4+1]=(Math.random()-.5)*KMZ; P[k*4+2]=0; P[k*4+3]=80+Math.random()*160; };
+  for(let k=0;k<n;k++){ spawn(k); P[k*4+2]=Math.random()*P[k*4+3]; }
+  obj.userData.step = (t, dt, speed) => {
+    for(let k=0;k<n;k++){
+      let x=P[k*4], z=P[k*4+1];
+      const [u,v] = uvAt(R,x,z,t); const sp = Math.hypot(u,v);
+      const f = dt*speed; x += u*f; z -= v*f; // u: Ost = +x, v: Nord = −z
+      P[k*4]=x; P[k*4+1]=z; P[k*4+2]+=dt*60;
+      if (P[k*4+2]>P[k*4+3] || Math.abs(x)>KMX/2 || Math.abs(z)>KMZ/2) { spawn(k); x=P[k*4]; z=P[k*4+1]; }
+      const y = (alt<0 ? heightKm(x,z)-minH+(-alt) : Math.max(alt, heightKm(x,z)-minH+.6));
+      const L = tail*(.4+Math.min(sp,60)/30);
+      const nx = sp? u/sp:0, nz = sp? -v/sp:0;
+      pos[k*6]=x; pos[k*6+1]=y; pos[k*6+2]=z;
+      pos[k*6+3]=x-nx*L; pos[k*6+4]=y; pos[k*6+5]=z-nz*L;
+      const c = windCol(sp), fade = Math.min(1, P[k*4+2]/20, (P[k*4+3]-P[k*4+2])/20);
+      col[k*6]=c[0]*fade; col[k*6+1]=c[1]*fade; col[k*6+2]=c[2]*fade; col[k*6+3]=col[k*6+4]=col[k*6+5]=0;
+    }
+    geo.attributes.position.needsUpdate = geo.attributes.color.needsUpdate = true;
+  };
+  return obj;
+}
+
+/* ---------- Wolken ---------- */
+function puffTex(){ const cv=document.createElement("canvas"); cv.width=cv.height=128; const g=cv.getContext("2d");
+  for(let i=0;i<14;i++){ const x=64+(Math.random()-.5)*50, y=64+(Math.random()-.5)*30, r=20+Math.random()*26; const gr=g.createRadialGradient(x,y,0,x,y,r); gr.addColorStop(0,"rgba(255,255,255,.55)"); gr.addColorStop(1,"rgba(255,255,255,0)"); g.fillStyle=gr; g.fillRect(0,0,128,128); }
+  const t=new THREE.CanvasTexture(cv); t.colorSpace=THREE.SRGBColorSpace; return t; }
+const PUFF = puffTex();
+function wolkenSchicht(key, alt, dick, n, scale, tint){
+  const grp = new THREE.Group(); const items=[];
+  for(let k=0;k<n;k++){ const m=new THREE.SpriteMaterial({map:PUFF, transparent:true, depthWrite:false, color:tint, opacity:0}); const s=new THREE.Sprite(m);
+    const it={s, x:(Math.random()-.5)*KMX, z:(Math.random()-.5)*KMZ, y:alt+Math.random()*dick, sc:scale*(.6+Math.random()*.9), th:Math.random()};
+    s.scale.set(it.sc,it.sc*.6,1); grp.add(s); items.push(it); }
+  grp.userData.step=(t,dt,speed,light)=>{ for(const it of items){ const [u,v]=uvAt(UV85,it.x,it.z,t); it.x+=u*dt*speed*.6; it.z-=v*dt*speed*.6;
+      if(it.x>KMX/2)it.x-=KMX; if(it.x<-KMX/2)it.x+=KMX; if(it.z>KMZ/2)it.z-=KMZ; if(it.z<-KMZ/2)it.z+=KMZ;
+      const cc = feld(key,it.x,it.z,t)/100; const target = cc>it.th ? Math.min(.95, .35+cc*.6) : 0;
+      it.s.material.opacity += (target-it.s.material.opacity)*.05; it.s.material.color.setScalar(light).multiply(tint); it.s.position.set(it.x,it.y,it.z); } };
+  return grp;
+}
+
+/* ---------- Niederschlag ---------- */
+function regenSchicht(n){
+  const geo=new THREE.BufferGeometry(), pos=new Float32Array(n*6); geo.setAttribute("position", new THREE.BufferAttribute(pos,3));
+  const mat=new THREE.LineBasicMaterial({color:0x9fd4ff, transparent:true, opacity:.55, depthWrite:false});
+  const obj=new THREE.LineSegments(geo,mat); obj.frustumCulled=false;
+  const D=new Float32Array(n*3); for(let k=0;k<n;k++){ D[k*3]=(Math.random()-.5)*KMX; D[k*3+1]=(Math.random()-.5)*KMZ; D[k*3+2]=Math.random()*12; }
+  obj.userData.step=(t,dt)=>{ let schnee=0;
+    for(let k=0;k<n;k++){ const x=D[k*3], z=D[k*3+1]; const pr=feld("precipitation",x,z,t), sn=feld("snowfall",x,z,t);
+      const g=heightKm(x,z)-minH; const on = pr > .05 && (k/n) < Math.min(1, pr/3);
+      const isSn = sn>0.02; if(isSn) schnee++;
+      D[k*3+2] -= dt*(isSn? 2.5 : 22);
+      if (D[k*3+2] < g) { D[k*3]=(Math.random()-.5)*KMX; D[k*3+1]=(Math.random()-.5)*KMZ; D[k*3+2]=11+Math.random()*2; }
+      const y=D[k*3+2], L = on ? (isSn? .12 : .7) : 0;
+      pos[k*6]=x; pos[k*6+1]=y; pos[k*6+2]=z; pos[k*6+3]=x+(isSn?.1:0); pos[k*6+4]=y+L; pos[k*6+5]=z; }
+    mat.color.set(schnee>n*.3? 0xffffff : 0x9fd4ff); mat.opacity = schnee>n*.3? .9 : .5;
+    geo.attributes.position.needsUpdate=true; };
+  return obj;
+}
+
+/* ---------- Sonnenstand ---------- */
+function sonne(date, lat, lon){
+  const rad=Math.PI/180, d=(date - Date.UTC(2000,0,1,12))/864e5;
+  const L=(280.46+.9856474*d)%360, g=(357.528+.9856003*d)%360*rad;
+  const lam=(L+1.915*Math.sin(g)+.02*Math.sin(2*g))*rad, eps=23.439*rad;
+  const ra=Math.atan2(Math.cos(eps)*Math.sin(lam),Math.cos(lam)), dec=Math.asin(Math.sin(eps)*Math.sin(lam));
+  const gmst=(18.697374558+24.06570982441908*d)%24, lst=(gmst*15+lon)*rad, ha=lst-ra, la=lat*rad;
+  const el=Math.asin(Math.sin(la)*Math.sin(dec)+Math.cos(la)*Math.cos(dec)*Math.cos(ha));
+  const az=Math.atan2(-Math.sin(ha), Math.tan(dec)*Math.cos(la)-Math.sin(la)*Math.cos(ha));
+  return {el, az};
+}
+
+/* ---------- Neuronales Netz ---------- */
+const nnScene = new THREE.Scene(); nnScene.background = new THREE.Color(0x03060d); nnScene.fog = new THREE.FogExp2(0x03060d, .008);
+const NNV = [["temperature_2m","Temperatur","°C"],["dew_point_2m","Taupunkt","°C"],["relative_humidity_2m","Luftfeuchte","%"],["pressure_msl","Luftdruck","hPa"],["wind_speed_10m","Wind","km/h"],["wind_gusts_10m","Böen","km/h"],["wind_speed_850hPa","Höhenwind","km/h"],["cloud_cover","Bewölkung","%"],["cloud_cover_low","tiefe Wolken","%"],["cloud_cover_high","hohe Wolken","%"],["precipitation","Niederschlag","mm"],["shortwave_radiation","Sonnenstrahlung","W/m²"],["visibility","Sichtweite","m"],["cape","Gewitterenergie (CAPE)","J/kg"]];
+let NN = null;
+function pearson(a,b){ const n=Math.min(a.length,b.length); let sa=0,sb=0; for(let i=0;i<n;i++){sa+=a[i]??0;sb+=b[i]??0;} const ma=sa/n, mb=sb/n; let c=0,va=0,vb=0; for(let i=0;i<n;i++){const x=(a[i]??0)-ma,y=(b[i]??0)-mb; c+=x*y; va+=x*x; vb+=y*y;} return va&&vb? c/Math.sqrt(va*vb) : 0; }
+function baueNN(){
+  const o=W.ort, n=NNV.length, nodes=[], edges=[];
+  for(let i=0;i<n;i++){ const a=Math.random()*Math.PI*2, b=Math.acos(2*Math.random()-1); nodes.push({i, p:new THREE.Vector3(Math.sin(b)*Math.cos(a),Math.cos(b),Math.sin(b)*Math.sin(a)).multiplyScalar(30), v:new THREE.Vector3(), key:NNV[i][0], name:NNV[i][1], unit:NNV[i][2]}); }
+  for(let i=0;i<n;i++) for(let j=i+1;j<n;j++){ const r=pearson(o[NNV[i][0]],o[NNV[j][0]]); if(Math.abs(r)>.35) edges.push({a:i,b:j,r}); }
+  // Kräfte-Layout
+  for(let it=0;it<400;it++){
+    for(const A of nodes){ for(const B of nodes){ if(A===B) continue; const d=A.p.clone().sub(B.p); const l=Math.max(d.length(),1); A.v.add(d.multiplyScalar(60/(l*l*l))); } A.v.add(A.p.clone().multiplyScalar(-.002)); }
+    for(const e of edges){ const A=nodes[e.a], B=nodes[e.b], d=B.p.clone().sub(A.p), l=d.length(), want=40-30*Math.abs(e.r); const f=d.multiplyScalar((l-want)*.01*Math.abs(e.r)/l); A.v.add(f); B.v.sub(f); }
+    for(const A of nodes){ A.p.add(A.v); A.v.multiplyScalar(.6); }
+  }
+  const grp=new THREE.Group(); nnScene.add(grp);
+  nnScene.add(new THREE.AmbientLight(0x557799, 1.5)); const pl=new THREE.PointLight(0x88ccff, 800, 0, 1.6); nnScene.add(pl);
+  // Neuronen
+  const meshes=[];
+  for(const nd of nodes){
+    const series=o[nd.key].filter(v=>v!=null); const var_=series.length? (Math.max(...series)-Math.min(...series)) : 0;
+    const deg=edges.filter(e=>e.a===nd.i||e.b===nd.i).reduce((s,e)=>s+Math.abs(e.r),0);
+    const r=1.1+deg*.35;
+    const m=new THREE.Mesh(new THREE.IcosahedronGeometry(r,3), new THREE.MeshStandardMaterial({color:0x0e2233, emissive:new THREE.Color().setHSL(.53-deg*.04,.9,.5), emissiveIntensity:1.2, roughness:.3, metalness:.4}));
+    m.position.copy(nd.p); m.userData=nd; grp.add(m); meshes.push(m);
+    const halo=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex(), color:m.material.emissive, transparent:true, blending:THREE.AdditiveBlending, depthWrite:false, opacity:.7})); halo.scale.setScalar(r*7); m.add(halo);
+    const lb=label(nd.name, 0, r+2.2, 0, "#cfe8ff", .9); m.add(lb);
+    // Dendriten
+    const dg=new THREE.BufferGeometry(), dp=[]; for(let k=0;k<18;k++){ let p=new THREE.Vector3(); const dir=new THREE.Vector3().randomDirection(); for(let s=0;s<5;s++){ const q=p.clone().add(dir.clone().add(new THREE.Vector3().randomDirection().multiplyScalar(.6)).normalize().multiplyScalar(.9)); dp.push(p.x,p.y,p.z,q.x,q.y,q.z); p=q; } }
+    dg.setAttribute("position", new THREE.Float32BufferAttribute(dp,3)); const dl=new THREE.LineSegments(dg,new THREE.LineBasicMaterial({color:m.material.emissive, transparent:true, opacity:.35, blending:THREE.AdditiveBlending})); dl.scale.setScalar(r*.9); m.add(dl);
+    nd.var=var_; nd.deg=deg;
+  }
+  // Synapsen als Kurven + Impulse
+  const pulses=[]; const pg=new THREE.BufferGeometry(); const PN=edges.length*4; const pp=new Float32Array(PN*3), pc=new Float32Array(PN*3);
+  pg.setAttribute("position",new THREE.BufferAttribute(pp,3)); pg.setAttribute("color",new THREE.BufferAttribute(pc,3));
+  for(const e of edges){ const A=nodes[e.a].p, B=nodes[e.b].p, mid=A.clone().add(B).multiplyScalar(.5).add(new THREE.Vector3().randomDirection().multiplyScalar(6));
+    const curve=new THREE.QuadraticBezierCurve3(A,mid,B); const col=e.r>0? new THREE.Color(0x5ee1ff) : new THREE.Color(0xff8a3d);
+    const tube=new THREE.Mesh(new THREE.TubeGeometry(curve, 24, .05+Math.abs(e.r)*.22, 6), new THREE.MeshBasicMaterial({color:col, transparent:true, opacity:.15+Math.abs(e.r)*.45, blending:THREE.AdditiveBlending, depthWrite:false}));
+    grp.add(tube); for(let k=0;k<4;k++) pulses.push({curve, t:Math.random(), sp:(.1+Math.abs(e.r)*.35)*(k%2?1:-1), col}); }
+  const pts=new THREE.Points(pg,new THREE.PointsMaterial({size:1.4, vertexColors:true, map:glowTex(), transparent:true, blending:THREE.AdditiveBlending, depthWrite:false})); grp.add(pts);
+  // Nebelstaub
+  { const g=new THREE.BufferGeometry(), n=1500, p=new Float32Array(n*3); for(let i=0;i<n*3;i++) p[i]=(Math.random()-.5)*180; g.setAttribute("position",new THREE.BufferAttribute(p,3)); nnScene.add(new THREE.Points(g,new THREE.PointsMaterial({color:0x335577,size:.4}))); }
+  NN={grp, meshes, edges, nodes, step(dt,t){ grp.rotation.y+=dt*.05; pulses.forEach((p,k)=>{ p.t=(p.t+p.sp*dt+1)%1; const v=p.curve.getPoint(p.t); pp.set([v.x,v.y,v.z],k*3); pc.set([p.col.r,p.col.g,p.col.b],k*3); }); pg.attributes.position.needsUpdate=pg.attributes.color.needsUpdate=true;
+    // Aktivierung: aktueller Wert relativ zur 48h-Spanne lässt Neuronen pulsieren
+    for(const m of meshes){ const s=o[m.userData.key].filter(v=>v!=null); const mn=Math.min(...s), mx=Math.max(...s); const v=o[m.userData.key][t]; const act=mx>mn? (v-mn)/(mx-mn) : .5; m.material.emissiveIntensity=.4+act*2.2+Math.sin(performance.now()/300+m.userData.i)*.15; m.scale.setScalar(.85+act*.35); } }};
+}
+let _glow; function glowTex(){ if(_glow) return _glow; const cv=document.createElement("canvas"); cv.width=cv.height=64; const g=cv.getContext("2d"); const gr=g.createRadialGradient(32,32,0,32,32,32); gr.addColorStop(0,"rgba(255,255,255,1)"); gr.addColorStop(.25,"rgba(255,255,255,.5)"); gr.addColorStop(1,"rgba(255,255,255,0)"); g.fillStyle=gr; g.fillRect(0,0,64,64); _glow=new THREE.CanvasTexture(cv); return _glow; }
+
+/* ---------- Webcams ---------- */
+const CAMS = {
+  "Bayerwald": [["Großer Arber – Arber-Stadl","1793902075"],["Arnbruck (Zellertal)","1513953927"],["Freyung – Bayerischer Wald","1640044285"]],
+};
+function baueCams(){
+  const g=$("camgrid"); g.innerHTML="";
+  const reg = Object.entries(ORTE).find(([k,o])=>o[ORT.key])?.[0] || "Bayerwald";
+  const windyMap = (ov) => `https://embed.windy.com/embed2.html?lat=${ORT.lat}&lon=${ORT.lon}&detailLat=${ORT.lat}&detailLon=${ORT.lon}&zoom=8&level=surface&overlay=${ov}&product=icon&menu=&message=true&marker=true&calendar=now&type=map&location=coordinates&metricWind=km%2Fh&metricTemp=%C2%B0C`;
+  const card=(t,src,link,wide)=>{ const d=document.createElement("div"); d.className="cam glass"+(wide?" wide":""); d.innerHTML=`<div class="f"><iframe loading="lazy" allowfullscreen referrerpolicy="no-referrer"></iframe></div><div class="t"><span></span><a target="_blank" rel="noopener">öffnen ↗</a></div>`; d.querySelector("iframe").src=src; d.querySelector("span").textContent=t; d.querySelector("a").href=link; g.appendChild(d); };
+  card("Live-Windkarte (ICON) – Strömung in Echtzeit", windyMap("wind"), "https://www.windy.com/?"+ORT.lat+","+ORT.lon+",8", true);
+  for(const [t,id] of (CAMS[reg]||[])) card(t, `https://webcams.windy.com/webcams/public/embed/player/${id}/day`, `https://www.windy.com/webcams/${id}`);
+  card("Alle Webcams in der Umgebung (Windy)", windyMap("webcams")+"&overlay=wind", `https://www.windy.com/-Webcams/webcams?${ORT.lat},${ORT.lon},10`);
+  card("Regenradar live", windyMap("radar"), "https://www.windy.com/-Weather-radar-radar?radar,"+ORT.lat+","+ORT.lon+",8");
+}
+
+/* ---------- UI ---------- */
+let mode="land", T=0, tf=0, playing=false;
+const L={wind:true,hoch:true,wolken:true,regen:true};
+document.querySelectorAll("#modes button").forEach(b=>b.onclick=()=>{ document.querySelectorAll("#modes button").forEach(x=>x.classList.toggle("on",x===b)); mode=b.dataset.m;
+  $("cams").style.display = mode==="cam"?"block":"none"; $("layers").style.display = mode==="land"?"flex":"none"; $("legend").style.display = mode==="land"&&!MOBIL?"block":"none"; $("nnhint").style.display = mode==="nn"?"block":"none";
+  if(mode==="cam" && !$("camgrid").children.length) baueCams();
+  if(mode==="nn"){ camera.position.set(0,20,90); controls.target.set(0,0,0); controls.maxDistance=300; controls.maxPolarAngle=Math.PI; }
+  else if(mode==="land"){ camera.position.set(0,55,95); controls.target.set(0,2,0); controls.maxPolarAngle=Math.PI*.47; } });
+document.querySelectorAll(".chip").forEach(b=>b.onclick=()=>{ b.classList.toggle("on"); const k=b.dataset.l; if(k==="auto") controls.autoRotate=b.classList.contains("on"); else L[k]=b.classList.contains("on"); });
+$("zeit").oninput=e=>{ T=+e.target.value; tf=T; anzeigen(); };
+$("play").onclick=()=>{ playing=!playing; $("play").textContent=playing?"❚❚":"▶"; };
+const fmt=new Intl.DateTimeFormat("de-DE",{weekday:"short",hour:"2-digit",minute:"2-digit"});
+function anzeigen(){ if(!W) return; const o=W.ort, t=T;
+  $("temp").textContent=Math.round(o.temperature_2m[t])+"°";
+  $("wind").textContent=Math.round(o.wind_speed_10m[t])+" km/h "+["N","NO","O","SO","S","SW","W","NW"][Math.round(o.wind_direction_10m[t]/45)%8];
+  $("boe").textContent=Math.round(o.wind_gusts_10m[t])+" km/h"; $("wolk").textContent=Math.round(o.cloud_cover[t])+" %"; $("regen").textContent=(o.snowfall[t]>0? o.snowfall[t].toFixed(1)+" cm Schnee" : o.precipitation[t].toFixed(1)+" mm");
+  $("zeitlabel").textContent = t===0? "Jetzt" : fmt.format(new Date(W.time[t])); }
+
+// Tippen im NN
+const ray=new THREE.Raycaster(), mp=new THREE.Vector2();
+renderer.domElement.addEventListener("click", e=>{ if(mode!=="nn"||!NN) return; mp.set(e.clientX/innerWidth*2-1, -e.clientY/innerHeight*2+1); ray.setFromCamera(mp,camera);
+  const h=ray.intersectObjects(NN.meshes,false)[0]; const tip=$("tip"); if(!h){ tip.style.display="none"; return; }
+  const nd=h.object.userData, v=W.ort[nd.key][T];
+  const links=NN.edges.filter(e=>e.a===nd.i||e.b===nd.i).sort((a,b)=>Math.abs(b.r)-Math.abs(a.r)).slice(0,4).map(e=>{ const o=NN.nodes[e.a===nd.i?e.b:e.a]; return `${e.r>0?"↑↑":"↑↓"} ${o.name} <b>${e.r.toFixed(2)}</b>`; }).join("<br>");
+  tip.innerHTML=`<b style="font-size:15px">${nd.name}</b><br>jetzt: <b>${v==null?"–":(+v).toFixed(nd.unit==="mm"?1:0)} ${nd.unit}</b><br><span style="color:var(--m)">stärkste Verbindungen:</span><br>${links||"keine starke"}`;
+  tip.style.display="block"; tip.style.left=Math.min(e.clientX+12, innerWidth-270)+"px"; tip.style.top=Math.min(e.clientY+12, innerHeight-160)+"px"; });
+
+/* ---------- Start ---------- */
+let w10,w85,wl,wm,wh,rain;
+(async()=>{
+  try{ await Promise.all([baueGelaende(), ladeWetter()]); }
+  catch(e){ loadtxt("Fehler beim Laden: "+e.message+" – bitte neu laden."); console.error(e); return; }
+  uvRaster();
+  const n = MOBIL? 2500 : 6000;
+  w10 = windSchicht(n, UV10, -.35, .9, .9); scene.add(w10);
+  w85 = windSchicht(Math.round(n*.6), UV85, 7.5, 1.4, .55); scene.add(w85);
+  wl = wolkenSchicht("cloud_cover_low", 5.5, 2, MOBIL?160:300, 9, new THREE.Color(1,1,1)); scene.add(wl);
+  wm = wolkenSchicht("cloud_cover_mid", 10, 3, MOBIL?100:180, 12, new THREE.Color(.95,.96,1)); scene.add(wm);
+  wh = wolkenSchicht("cloud_cover_high", 18, 2, MOBIL?60:110, 16, new THREE.Color(.9,.94,1)); scene.add(wh);
+  rain = regenSchicht(MOBIL? 3000 : 7000); scene.add(rain);
+  baueNN(); anzeigen();
+  $("load").style.opacity=0; setTimeout(()=>$("load").remove(),900);
+  renderer.setAnimationLoop(loop);
+})();
+
+const clock=new THREE.Clock();
+function resize(){ const w=innerWidth,h=innerHeight; renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix(); } addEventListener("resize",resize); resize();
+function loop(){
+  const dt=Math.min(clock.getDelta(), .05);
+  if(playing){ tf+=dt*1.2; if(tf>W.time.length-1) tf=0; const nt=Math.floor(tf); if(nt!==T){ T=nt; $("zeit").value=T; anzeigen(); } }
+  controls.update();
+  if(mode==="nn"){ NN.step(dt,T); renderer.render(nnScene,camera); return; }
+  if(mode==="cam"){ return; }
+  // Sonne
+  const s=sonne(new Date(W.time[T]).getTime(), ORT.lat, ORT.lon);
+  sunDir.setFromSphericalCoords(1, Math.PI/2-s.el, -s.az+Math.PI);
+  su.sunPosition.value.copy(sunDir);
+  const day=THREE.MathUtils.smoothstep(s.el, -.12, .1), cc=W.ort.cloud_cover[T]/100;
+  sunL.position.copy(sunDir).multiplyScalar(200); sunL.intensity=2.6*day*(1-cc*.65);
+  sunL.color.setHSL(.09+.04*Math.min(1,Math.max(0,s.el*3)), .7, .6+.3*Math.min(1,s.el*2));
+  hemi.intensity=.15+.85*day; su.turbidity.value=4+cc*14; su.rayleigh.value=day>.05?1.6+cc:.2;
+  renderer.toneMappingExposure=.18+.42*day;
+  stars.material.opacity=(1-day)*(1-cc*.9);
+  scene.fog.color.setRGB(.05+.6*day*(1-cc*.3), .07+.7*day*(1-cc*.25), .12+.78*day*(1-cc*.2)); scene.fog.density=.0035+cc*.004+(W.ort.visibility[T]<5000? .01:0);
+  const light=.25+.75*day;
+  const sp=.0045; // Zeitraffer
+  w10.visible=L.wind; w85.visible=L.hoch; wl.visible=wm.visible=wh.visible=L.wolken; rain.visible=L.regen;
+  if(L.wind) w10.userData.step(T,dt,sp); if(L.hoch) w85.userData.step(T,dt,sp);
+  if(L.wolken){ wl.userData.step(T,dt,sp,light); wm.userData.step(T,dt,sp,light); wh.userData.step(T,dt,sp,light*1.05); }
+  if(L.regen) rain.userData.step(T,dt);
+  if(window._ring){ const k=1+(performance.now()/1000%1.5)*1.5; window._ring.scale.setScalar(k); window._ring.material.opacity=1-(k-1)/2.25; }
+  renderer.render(scene,camera);
+}
+</script>
+</body>
+</html>
