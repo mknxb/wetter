@@ -4074,7 +4074,7 @@ function initOrt() {
     if (!ORTE[sel.value]) return;
     ORT = { key: sel.value, ...ORTE[sel.value] };
     showStar();
-    if (HU) initSzeneHU();
+    if (HU || AT) initSzeneHU();
     for (const id of ["chart", "days", "st-jetzt"]) $(id).innerHTML = '<div class="load">'.concat(TR("Lade …"), "</div>");
     $("hours").innerHTML = "";
     $("st-12h").innerHTML = "";
@@ -4525,7 +4525,7 @@ function initTabs() {
   });
   initKarten();
 }
-const SZENE_HU = { budapest: "bp", csomad: "bp", veszprem: "vp", papa: "vp", balatonfured: "bal", siofok: "bal", szekesfehervar: "vel" };
+const SZENE_HU = { budapest: "bp", csomad: "bp", veszprem: "vp", papa: "papa", kramsach: "alp-k", fuegen: "alp-f", balatonfured: "bal", siofok: "bal", szekesfehervar: "vel" };
 function initSzeneHU() {
   const W = 1200, H = 420, f = (v) => (+v).toFixed(1);
   let seed = 4711;
@@ -4660,6 +4660,62 @@ function initSzeneHU() {
     const vorne = welle(340, 6, [[300, 1], [120, 0.5]]);
     svg = defs(400) + '\n      <path d="'.concat(flaeche(bakony), '" fill="rgba(').concat(ink, ',.22)"/>\n      <rect class="mist" x="0" y="240" width="').concat(W, '" height="70" fill="url(#mist-g)"/>\n      <g fill="rgba(').concat(ink, ',.5)"><path d="').concat(flaeche(benedek), '"/>').concat(rect(149, kreuzY - 18, 2, 18)).concat(rect(144, kreuzY - 13, 12, 2), '</g>\n      <g fill="rgba(10,24,32,.82)">').concat(vi, '</g><g class="lit">').concat(lampenVi, '</g>\n      <path d="').concat(fels, '" fill="#0c1426"/><g class="flut">').concat(haus).concat(tt).concat(dom).concat(denkmal, '</g>\n      <path d="').concat(risse, '" stroke="rgba(255,255,255,.06)" stroke-width="1.4" fill="none"/>\n      <g class="lit">').concat(hf).concat(ttf).concat(domf, '</g>\n      <g fill="#0c1426"><path d="').concat(flaeche(vorne), '"/>').concat(baeume(vorne, -10, 1210, 9, 17, 22), "</g>");
   }
+  if (szene === "papa") {
+    const y0 = 400, boden = 318;
+    const bakony = welle(262, 12, [[720, 1], [260, 0.3]], (x) => 22 * Math.exp(-(((x - 1e3) / 260) ** 2)));
+    let haus = "", hf = "";
+    for (let x = -10; x < W; ) {
+      const w = 18 + rnd() * 26, h = 12 + rnd() * 16;
+      if (!(x > 150 && x < 520) && !(x > 690 && x < 860)) {
+        haus += rect(x, boden - h, w, h) + '<path d="M'.concat(f(x - 1), " ").concat(f(boden - h), "L").concat(f(x + w / 2), " ").concat(f(boden - h - 8), "L").concat(f(x + w + 1), " ").concat(f(boden - h), 'Z"/>');
+        hf += fenster(x + 3, x + w - 5, boden - h + 4, 4, 6, 2.4, 0.45);
+      }
+      x += w + 1;
+    }
+    let sch = rect(160, 262, 350, boden - 262) + '<path d="M156 262L170 248H500L514 262Z"/>' + rect(300, 238, 70, 24) + '<path d="M296 238L335 220L374 238Z"/>';
+    for (const x of [160, 486]) sch += rect(x, 252, 24, boden - 252) + '<path d="M'.concat(x - 3, " 252L").concat(x + 12, " 240L").concat(x + 27, ' 252Z"/>');
+    const schf = fenster(170, 500, 272, 7, 10, 3, 0.55) + fenster(170, 500, 292, 7, 10, 3, 0.5) + fenster(306, 364, 244, 8, 10, 3, 0.8);
+    let ki = rect(700, 228, 150, boden - 228) + '<path d="M706 228L775 196L844 228Z"/>';
+    for (const x of [718, 832]) ki += rect(x - 14, 150, 28, boden - 150) + rect(x - 17, 172, 34, 4) + rect(x - 11, 134, 22, 16) + '<path d="'.concat(zwiebel(x, 134, 26, 26), '"/>') + rect(x - 2, 98, 4, 10) + '<path d="'.concat(spitze(x, 98, 6, 14), '"/>');
+    const kif = rect(714, 160, 8, 12) + rect(828, 160, 8, 12) + '<circle cx="775" cy="246" r="7"/>' + fenster(735, 815, 268, 18, 16, 5, 0.9);
+    const vorne = welle(342, 5, [[300, 1], [120, 0.5]]);
+    svg = defs(y0) + '\n      <path d="'.concat(flaeche(bakony), '" fill="rgba(').concat(ink, ',.2)"/>\n      <rect class="mist" x="0" y="250" width="').concat(W, '" height="60" fill="url(#mist-g)"/>\n      <g fill="rgba(').concat(ink, ',.45)">').concat(haus, '</g><g class="lit" opacity=".8">').concat(hf, '</g>\n      <g class="flut">').concat(sch).concat(ki, '</g><g class="lit">').concat(schf).concat(kif, '</g>\n      <g fill="#0c1426"><path d="').concat(flaeche(vorne), '"/>').concat(baeume(vorne, -10, 1210, 9, 16, 24), "</g>");
+  }
+  if (szene === "alp-k" || szene === "alp-f") {
+    const zill = szene === "alp-f", tal = 330;
+    const zacken = (base, amp) => {
+      const pts = [];
+      let x = -20, hoch2 = true;
+      while (x <= W + 40) {
+        pts.push([x, base - (hoch2 ? amp * (0.55 + rnd() * 0.45) : amp * (0.1 + rnd() * 0.3))]);
+        x += 30 + rnd() * 70;
+        hoch2 = !hoch2;
+      }
+      return pts;
+    };
+    const hinten = zill ? zacken(262, 135) : zacken(252, 115);
+    const mitte = zill ? welle(tal, 0, [[100, 0]], (x) => 170 * Math.exp(-(((x - 130) / 260) ** 2)) + 160 * Math.exp(-(((x - 1080) / 260) ** 2))) : welle(tal, 0, [[100, 0]], (x) => 140 * Math.exp(-(((x - 260) / 230) ** 2.4)) + 60 * Math.exp(-(((x - 980) / 300) ** 2)));
+    const schnee = zill ? 190 : 185;
+    let dorf = "", df = "";
+    for (let x = 420; x < 860; ) {
+      const w = 18 + rnd() * 20, h = 12 + rnd() * 10;
+      if (!(x > 600 && x < 660)) {
+        dorf += rect(x, tal - h, w, h) + '<path d="M'.concat(f(x - 4), " ").concat(f(tal - h), "L").concat(f(x + w / 2), " ").concat(f(tal - h - 9), "L").concat(f(x + w + 4), " ").concat(f(tal - h), 'Z"/>');
+        df += fenster(x + 3, x + w - 5, tal - h + 4, 4, 6, 2.4, 0.5);
+      }
+      x += w + 6 + rnd() * 10;
+    }
+    let kirche = rect(612, 290, 46, 40) + '<path d="M608 290L635 274L662 290Z"/>' + rect(600, 236, 16, 94);
+    kirche += zill ? '<path d="'.concat(spitze(608, 236, 18, 46), '"/>') : rect(602, 228, 12, 8) + '<path d="'.concat(zwiebel(608, 228, 18, 20), '"/>') + '<path d="'.concat(spitze(608, 208, 4, 12), '"/>');
+    const kf = rect(605, 246, 6, 8) + fenster(620, 652, 300, 9, 9, 3, 0.9);
+    const vorne = welle(348, 6, [[280, 1], [110, 0.5]]);
+    let wald = "";
+    for (let x = -10; x < W + 10; x += 9 + rnd() * 8) {
+      const y = yAt(mitte, x);
+      if (y < tal - 8) wald += '<path d="'.concat(spitze(x, y + 10, 9, 18 + rnd() * 8), '"/>');
+    }
+    svg = defs(400) + '\n      <defs><clipPath id="schnee-c"><rect x="0" y="0" width="'.concat(W, '" height="').concat(schnee, '"/></clipPath></defs>\n      <path d="').concat(flaeche(hinten), '" fill="rgba(').concat(ink, ',.26)"/>\n      <path d="').concat(flaeche(hinten), '" fill="rgba(255,255,255,.22)" clip-path="url(#schnee-c)"/>\n      <rect class="mist" x="0" y="250" width="').concat(W, '" height="70" fill="url(#mist-g)"/>\n      <path d="').concat(flaeche(mitte), '" fill="rgba(').concat(ink, ',.55)"/><g fill="rgba(').concat(ink, ',.62)">').concat(wald, '</g>\n      <g class="flut">').concat(dorf).concat(kirche, '</g><g class="lit">').concat(df).concat(kf, '</g>\n      <g fill="#0c1426"><path d="').concat(flaeche(vorne), '"/>').concat(baeume(vorne, -10, 1210, 8, 15, 26), "</g>");
+  }
   if (szene === "bal" || szene === "vel") {
     const y0 = 266, bal = szene === "bal";
     const berge = bal ? welle(y0 - 4, 0, [[100, 0]], (x) => 72 * Math.exp(-(((x - 210) / 95) ** 6)) + 52 * Math.exp(-(((x - 380) / 34) ** 2)) + 46 * Math.exp(-(((x - 490) / 60) ** 4)) + 14 * Math.exp(-(((x - 1050) / 260) ** 2))) : welle(y0 - 6, 6, [[420, 1], [160, 0.4]], (x) => 30 * Math.exp(-(((x - 300) / 220) ** 2)) + 22 * Math.exp(-(((x - 950) / 200) ** 2)));
@@ -4702,11 +4758,11 @@ function initSzeneHU() {
     }
     svg = defs(y0) + '\n      <path d="'.concat(flaeche(berge, y0 + 1), '" fill="rgba(').concat(ink, ",").concat(bal ? 0.32 : 0.28, ')"/>\n      <rect class="mist" x="0" y="').concat(y0 - 40, '" width="').concat(W, '" height="56" fill="url(#mist-g)"/>\n      ').concat(mitte, '<g class="lit">').concat(lichter, "</g>\n      ").concat(wasser(y0, '<path d="'.concat(flaeche(berge, y0 + 1), '" fill="rgba(').concat(ink, ',.4)"/>').concat(mitte, '<g class="lit">').concat(lichter, "</g>")), '\n      <path class="mondweg" d="M').concat(bal ? 300 : 620, " ").concat(y0 + 4, "h40M").concat(bal ? 290 : 610, " ").concat(y0 + 14, "h60M").concat(bal ? 282 : 602, " ").concat(y0 + 28, "h80M").concat(bal ? 270 : 590, " ").concat(y0 + 46, "h100M").concat(bal ? 262 : 582, " ").concat(y0 + 68, 'h120" stroke-width="2" fill="none"/>\n      ').concat(boote, '\n      <path d="').concat(schilf, '" stroke="#0c1426" stroke-width="2" fill="none" stroke-linecap="round"/>');
   }
-  const hoch = { bp: 52, vp: 48, bal: 40, vel: 40 }[szene];
+  const hoch = { bp: 52, vp: 48, bal: 40, vel: 40, papa: 48, "alp-k": 52, "alp-f": 52 }[szene];
   $("ridge").innerHTML = '<g transform="translate(0 '.concat(-hoch, ')">').concat(svg, "</g>");
 }
 function initRidge() {
-  if (HU) return initSzeneHU();
+  if (HU || AT) return initSzeneHU();
   const W = 1200, H = 360, step = 6;
   let seed = 20260;
   const rnd = () => (seed = seed * 16807 % 2147483647) / 2147483647;
