@@ -401,6 +401,8 @@ footer a{color:var(--accent)}
 .cam.vo .cam-fs{padding:8px 16px;font-size:.9rem;background:var(--accent);color:var(--ink);border-color:var(--accent)}
 .cam.vo .t a{display:none}
 body.cam-vo{overflow:hidden}
+/* backdrop-filter der Karte würde „fixed“ an die Karte binden statt an den Bildschirm → im Vollbild aus */
+body.cam-vo #card-cams{-webkit-backdrop-filter:none;backdrop-filter:none}
 </style>
 </head>
 <body>

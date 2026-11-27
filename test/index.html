@@ -461,6 +461,8 @@ footer a{color:var(--accent)}
 .cam.vo .cam-fs{padding:8px 16px;font-size:.9rem;background:var(--accent);color:var(--ink);border-color:var(--accent)}
 .cam.vo .t a{display:none}
 body.cam-vo{overflow:hidden}
+/* backdrop-filter der Karte würde „fixed“ an die Karte binden statt an den Bildschirm → im Vollbild aus */
+body.cam-vo #card-cams{-webkit-backdrop-filter:none;backdrop-filter:none}
 @supports not (background:color-mix(in srgb,red 50%,transparent)){.warn{background:rgba(242,205,75,0.16);border:1px solid rgba(242,205,75,0.45)}.warn.moderate{background:rgba(245,138,44,0.16);border:1px solid rgba(245,138,44,0.45)}.warn.severe{background:rgba(239,75,85,0.16);border:1px solid rgba(239,75,85,0.45)}.warn.extreme{background:rgba(180,106,224,0.16);border:1px solid rgba(180,106,224,0.45)}.pwarn.ms1{background:rgba(242,205,75,0.18);border:1px solid rgba(242,205,75,0.5)}.pwarn.ms2{background:rgba(245,138,44,0.18);border:1px solid rgba(245,138,44,0.5)}.pwarn.ms3{background:rgba(239,75,85,0.18);border:1px solid rgba(239,75,85,0.5)}.pwarn.ms4{background:rgba(180,106,224,0.18);border:1px solid rgba(180,106,224,0.5)}.pwarn.rise{background:rgba(255,180,84,0.18);border:1px solid rgba(255,180,84,0.5)}}
 </style>
 </head>
