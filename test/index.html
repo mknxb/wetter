@@ -4152,6 +4152,7 @@ const WEBCAMS = [
 const CAM_MAXKM = 35, CAM_MAX = 4;
 const camUrl = (id) => "https://webcams.windy.com/webcams/public/embed/player/".concat(id, "/").concat(camModus);
 let camInit = false;
+const fsEl = () => document.fullscreenElement || document.webkitFullscreenElement || null;
 function camVoll(an, el) {
   document.querySelectorAll("#camgrid .cam.vo").forEach((c) => {
     c.classList.remove("vo");
@@ -4161,8 +4162,30 @@ function camVoll(an, el) {
   if (an && el) {
     el.classList.add("vo");
     el.querySelector(".cam-fs").textContent = "✕ " + TR("Zurück zur App");
+    const rq = el.requestFullscreen || el.webkitRequestFullscreen;
+    if (rq) {
+      try {
+        const pr = rq.call(el);
+        if (pr && pr.catch) pr.catch(() => {
+        });
+      } catch (e) {
+      }
+    }
+  } else if (fsEl()) {
+    const ex = document.exitFullscreen || document.webkitExitFullscreen;
+    if (ex) {
+      try {
+        const pr = ex.call(document);
+        if (pr && pr.catch) pr.catch(() => {
+        });
+      } catch (e) {
+      }
+    }
   }
 }
+["fullscreenchange", "webkitfullscreenchange"].forEach((ev) => document.addEventListener(ev, () => {
+  if (!fsEl() && document.querySelector("#camgrid .cam.vo")) camVoll(false);
+}));
 function baueWebcams() {
   const grid = $("camgrid");
   if (!grid) return;

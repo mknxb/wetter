@@ -3175,11 +3175,21 @@ const WEBCAMS = [
 const CAM_MAXKM = 35, CAM_MAX = 4;
 const camUrl = id => `https://webcams.windy.com/webcams/public/embed/player/${id}/${camModus}`;
 let camInit = false;
-function camVoll(an, el) {   // Vollbild in der App: Karte füllt den Bildschirm, Video läuft weiter (derselbe iframe, kein Neuladen)
+const fsEl = () => document.fullscreenElement || document.webkitFullscreenElement || null;
+function camVoll(an, el) {   // Vollbild: echtes Browser-Vollbild, wo das Gerät es erlaubt (iPad, Computer); sonst füllt die Karte den App-Bildschirm
   document.querySelectorAll("#camgrid .cam.vo").forEach(c => { c.classList.remove("vo"); c.querySelector(".cam-fs").textContent = "⛶ " + TR("Vollbild"); });
   document.body.classList.toggle("cam-vo", !!an);
-  if (an && el) { el.classList.add("vo"); el.querySelector(".cam-fs").textContent = "✕ " + TR("Zurück zur App"); }
+  if (an && el) {
+    el.classList.add("vo"); el.querySelector(".cam-fs").textContent = "✕ " + TR("Zurück zur App");
+    const rq = el.requestFullscreen || el.webkitRequestFullscreen;
+    if (rq) { try { const pr = rq.call(el); if (pr && pr.catch) pr.catch(() => {}); } catch (e) {} }
+  } else if (fsEl()) {
+    const ex = document.exitFullscreen || document.webkitExitFullscreen;
+    if (ex) { try { const pr = ex.call(document); if (pr && pr.catch) pr.catch(() => {}); } catch (e) {} }
+  }
 }
+// Verlässt man das echte Vollbild per Geste oder Esc, geht auch die Karte zurück in die App
+["fullscreenchange", "webkitfullscreenchange"].forEach(ev => document.addEventListener(ev, () => { if (!fsEl() && document.querySelector("#camgrid .cam.vo")) camVoll(false); }));
 function baueWebcams() {
   const grid = $("camgrid"); if (!grid) return;
   const mit = WEBCAMS.map(c => ({...c, d: km(ORT.lat, ORT.lon, c.lat, c.lon)})).sort((a, b) => a.d - b.d);
