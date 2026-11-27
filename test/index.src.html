@@ -392,6 +392,15 @@ footer a{color:var(--accent)}
 .cam .t a{color:var(--accent);text-decoration:none;white-space:nowrap}
 .cam .t small{display:block;font-size:.68rem;font-weight:400}
 .cam-weit{margin:10px 0 0;font-size:.8rem}.cam-weit a{color:var(--accent)}
+.cam .t .r{display:flex;align-items:center;gap:12px}
+.cam-fs{border:1px solid var(--line);background:none;color:var(--accent);border-radius:999px;padding:4px 11px;font:600 .76rem var(--f-body);cursor:pointer;white-space:nowrap}
+/* Vollbild innerhalb der App (kein Verlassen der Seite): Karte füllt den Bildschirm, ein Tipp auf „Zurück“ schließt */
+.cam.vo{position:fixed;top:0;left:0;right:0;bottom:0;z-index:2000;border-radius:0;border:0;background:#000;display:flex;flex-direction:column}
+.cam.vo .f{flex:1 1 auto;height:auto;padding-top:0}
+.cam.vo .t{order:-1;padding:max(10px,env(safe-area-inset-top,0px)) max(14px,env(safe-area-inset-right,0px)) 10px max(14px,env(safe-area-inset-left,0px));background:#0c1426;font-size:.9rem}
+.cam.vo .cam-fs{padding:8px 16px;font-size:.9rem;background:var(--accent);color:var(--ink);border-color:var(--accent)}
+.cam.vo .t a{display:none}
+body.cam-vo{overflow:hidden}
 </style>
 </head>
 <body>
@@ -554,7 +563,7 @@ const START_JE = {by: "blaibach", hu: "budapest", at: "kramsach"};
 const HU_TXT = {
   // Webcams
   "Webcams":"Webkamerák", "Live":"Élő", "Tagesverlauf":"Napi lejátszás", "Anzeige":"Megjelenítés", "Lade Webcams …":"Webkamerák betöltése …",
-  "in der Nähe":"a közelben", "in der Nähe von {0}":"{0} közelében", "öffnen":"megnyitás",
+  "Vollbild":"Teljes képernyő", "Zurück zur App":"Vissza az alkalmazáshoz", "in der Nähe":"a közelben", "in der Nähe von {0}":"{0} közelében", "öffnen":"megnyitás",
   "Bilder und Streams kommen direkt von Windy und den jeweiligen Betreibern (z. B. feratel, Panomax). Dabei wird deine IP-Adresse an diese Anbieter übermittelt. Nicht jede Kamera sendet rund um die Uhr, nachts oft nur dunkel.":
     "A képek és élő közvetítések közvetlenül a Windytől és az üzemeltetőktől (pl. feratel, Panomax) érkeznek. Ennek során az IP-címed eljut ezekhez a szolgáltatókhoz. Nem minden kamera közvetít éjjel-nappal, éjszaka gyakran csak sötét a kép.",
   // Kopf, Überschriften, Ladehinweise
@@ -3166,6 +3175,11 @@ const WEBCAMS = [
 const CAM_MAXKM = 35, CAM_MAX = 4;
 const camUrl = id => `https://webcams.windy.com/webcams/public/embed/player/${id}/${camModus}`;
 let camInit = false;
+function camVoll(an, el) {   // Vollbild in der App: Karte füllt den Bildschirm, Video läuft weiter (derselbe iframe, kein Neuladen)
+  document.querySelectorAll("#camgrid .cam.vo").forEach(c => { c.classList.remove("vo"); c.querySelector(".cam-fs").textContent = "⛶ " + TR("Vollbild"); });
+  document.body.classList.toggle("cam-vo", !!an);
+  if (an && el) { el.classList.add("vo"); el.querySelector(".cam-fs").textContent = "✕ " + TR("Zurück zur App"); }
+}
 function baueWebcams() {
   const grid = $("camgrid"); if (!grid) return;
   const mit = WEBCAMS.map(c => ({...c, d: km(ORT.lat, ORT.lon, c.lat, c.lon)})).sort((a, b) => a.d - b.d);
@@ -3173,15 +3187,17 @@ function baueWebcams() {
   const weit = !liste.length;
   if (weit) liste = mit.slice(0, 1);   // nichts in der Nähe: wenigstens die nächste Kamera, mit ehrlicher Entfernung
   $("cam-quelle").textContent = TR("in der Nähe von {0}", ORT.name);
+  camVoll(false);
   grid.innerHTML = "";
   for (const c of liste) {
     const n = Math.max(1, Math.round(c.d)), titel = ZW(c.de, c.hu);
     const d = document.createElement("div"); d.className = "cam";
-    d.innerHTML = `<div class="f"><iframe loading="lazy" allowfullscreen referrerpolicy="no-referrer"></iframe></div>`
-      + `<div class="t"><span><b></b><small></small></span><a target="_blank" rel="noopener"></a></div>`;
+    d.innerHTML = `<div class="f"><iframe loading="lazy" allowfullscreen referrerpolicy="no-referrer" sandbox="allow-scripts allow-same-origin allow-presentation"></iframe></div>`
+      + `<div class="t"><span><b></b><small></small></span><span class="r"><a target="_blank" rel="noopener"></a><button type="button" class="cam-fs"></button></span></div>`;
     const f = d.querySelector("iframe"); f.title = titel; f.dataset.id = c.id; f.src = camUrl(c.id);
     d.querySelector("b").textContent = titel;
     d.querySelector("small").textContent = ZW(`ca. ${n} km von ${ORT.name}`, `${ORT.name}: kb. ${n} km`);
+    d.querySelector(".cam-fs").textContent = "⛶ " + TR("Vollbild");
     const a = d.querySelector("a"); a.href = `https://www.windy.com/webcams/${c.id}`; a.textContent = TR("öffnen") + " ↗";
     grid.appendChild(d);
   }
@@ -3190,6 +3206,11 @@ function baueWebcams() {
   document.querySelectorAll("#cam-mode button").forEach(b => b.setAttribute("aria-pressed", b.dataset.m === camModus));
   if (camInit) return;
   camInit = true;
+  $("camgrid").addEventListener("click", e => {
+    const b = e.target.closest(".cam-fs"); if (!b) return;
+    const c = b.closest(".cam"); camVoll(!c.classList.contains("vo"), c);
+  });
+  document.addEventListener("keydown", e => { if (e.key === "Escape") camVoll(false); });
   $("cam-mode").addEventListener("click", e => {
     const b = e.target.closest("button[data-m]"); if (!b || b.dataset.m === camModus) return;
     camModus = b.dataset.m === "day" ? "day" : "live"; lsSet(CAMKEY, camModus === "day" ? "day" : null);
