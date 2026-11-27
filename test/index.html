@@ -4151,17 +4151,20 @@ function initOrt() {
 const CAMKEY = "wetter-cam-modus";
 let camModus = lsGet(CAMKEY) === "day" ? "day" : "live";
 const WEBCAMS = [
-  { id: "1746057268", lat: 49.1767, lon: 12.8547, de: "Bad Kötzting – Rathaus", hu: "Bad Kötzting – városháza" },
-  { id: "1793902075", lat: 49.1125, lon: 13.135, de: "Großer Arber – Arber-Stadl", hu: "Großer Arber – Arber-Stadl" },
-  { id: "1592498076", lat: 49.0236, lon: 13.2312, de: "Zwiesel – Panorama", hu: "Zwiesel – panoráma" },
-  { id: "1327243740", lat: 48.8353, lon: 12.9644, de: "Deggendorf – Altstadt", hu: "Deggendorf – óváros" },
-  { id: "1299837060", lat: 47.4436, lon: 11.8761, de: "Kramsach – Reintaler See", hu: "Kramsach – Reintaler See" },
-  { id: "1793913044", lat: 47.3486, lon: 11.8536, de: "Fügen – Therme", hu: "Fügen – fürdő (Therme)" },
-  { id: "1255261318", lat: 47.093, lon: 17.9093, de: "Veszprém – Vörösmarty Mihály tér", hu: "Veszprém – Vörösmarty Mihály tér" },
-  { id: "1294221464", lat: 47.4815, lon: 19.056, de: "Budapest – Duna utca", hu: "Budapest – Duna utca" },
-  { id: "1623585620", lat: 47.55, lon: 19.08, de: "Budapest – Himmelskamera (Wolken)", hu: "Budapest – égbolt-kamera (felhők)" }
+  { id: "1746057268", orte: ["koetzting"], lat: 49.1767, lon: 12.8547, de: "Bad Kötzting – Rathaus", hu: "Bad Kötzting – városháza" },
+  { id: "1367422908", orte: ["cham"], lat: 49.221, lon: 12.66, de: "Cham – Stadtpfarrkirche St. Jakob", hu: "Cham – Szent Jakab plébániatemplom", nde: "Blick nach Nordwesten", nhu: "kilátás északnyugat felé" },
+  { id: "1793902075", orte: ["arber"], lat: 49.1125, lon: 13.135, de: "Großer Arber – Arber-Stadl", hu: "Großer Arber – Arber-Stadl" },
+  { id: "1592498076", orte: ["zwiesel"], lat: 49.0236, lon: 13.2312, de: "Zwiesel – Panorama", hu: "Zwiesel – panoráma" },
+  { id: "1327243740", orte: ["deggendorf"], lat: 48.8353, lon: 12.9644, de: "Deggendorf – Altstadt", hu: "Deggendorf – óváros" },
+  { id: "1706619375", orte: ["deggendorf"], lat: 48.8, lon: 13.01, de: "Deggendorf – Gut Aiderbichl", hu: "Deggendorf – Gut Aiderbichl", nde: "Panomax-Panorama", nhu: "Panomax-panoráma" },
+  { id: "1299837060", orte: ["kramsach"], lat: 47.4436, lon: 11.8761, de: "Kramsach – Reintaler See", hu: "Kramsach – Reintaler See" },
+  { id: "1793913044", orte: ["fuegen"], lat: 47.3486, lon: 11.8536, de: "Fügen – Therme", hu: "Fügen – fürdő (Therme)" },
+  { id: "1255261318", orte: ["veszprem"], lat: 47.093, lon: 17.9093, de: "Veszprém – Vörösmarty Mihály tér", hu: "Veszprém – Vörösmarty Mihály tér" },
+  { id: "1674122248", orte: ["siofok"], lat: 46.9047, lon: 18.049, de: "Siófok – Vak Bottyán út", hu: "Siófok – Vak Bottyán út", nde: "Straßenkamera, Blick Richtung Budapest", nhu: "útkamera, Budapest felé" },
+  { id: "1294221464", orte: ["budapest"], lat: 47.4815, lon: 19.056, de: "Budapest – Duna utca", hu: "Budapest – Duna utca" },
+  { id: "1623585620", orte: ["budapest"], lat: 47.55, lon: 19.08, de: "Budapest – Himmelskamera Nord", hu: "Budapest – égbolt-kamera (észak)", nde: "zeigt Wolken und Himmel", nhu: "felhőket és az égboltot mutatja" }
 ];
-const CAM_MAXKM = 35, CAM_MAX = 4;
+const CAM_CUSTOMKM = 3;
 const camUrl = (id) => "https://webcams.windy.com/webcams/public/embed/player/".concat(id, "/").concat(camModus);
 let camInit = false;
 const fsEl = () => document.fullscreenElement || document.webkitFullscreenElement || null;
@@ -4198,34 +4201,40 @@ function camVoll(an, el) {
 ["fullscreenchange", "webkitfullscreenchange"].forEach((ev) => document.addEventListener(ev, () => {
   if (!fsEl() && document.querySelector("#camgrid .cam.vo")) camVoll(false);
 }));
+function camsFuerOrt() {
+  if (ORT.key === "custom") return WEBCAMS.filter((c) => km(ORT.lat, ORT.lon, c.lat, c.lon) <= CAM_CUSTOMKM);
+  return WEBCAMS.filter((c) => c.orte.includes(ORT.key));
+}
 function baueWebcams() {
   const grid = $("camgrid");
   if (!grid) return;
-  const mit = WEBCAMS.map((c) => ({ ...c, d: km(ORT.lat, ORT.lon, c.lat, c.lon) })).sort((a, b) => a.d - b.d);
-  let liste = mit.filter((c) => c.d <= CAM_MAXKM).slice(0, CAM_MAX);
-  const weit = !liste.length;
-  if (weit) liste = mit.slice(0, 1);
-  $("cam-quelle").textContent = TR("in der Nähe von {0}", ORT.name);
+  const liste = camsFuerOrt();
   camVoll(false);
+  $("card-cams").hidden = !liste.length;
   grid.innerHTML = "";
-  for (const c of liste) {
-    const n = Math.max(1, Math.round(c.d)), titel = ZW(c.de, c.hu);
-    const d = document.createElement("div");
-    d.className = "cam";
-    d.innerHTML = '<div class="f"><iframe loading="lazy" allowfullscreen referrerpolicy="no-referrer" sandbox="allow-scripts allow-same-origin allow-presentation"></iframe></div><div class="t"><span><b></b><small></small></span><span class="r"><a target="_blank" rel="noopener"></a><button type="button" class="cam-fs"></button></span></div>';
-    const f = d.querySelector("iframe");
-    f.title = titel;
-    f.dataset.id = c.id;
-    f.src = camUrl(c.id);
-    d.querySelector("b").textContent = titel;
-    d.querySelector("small").textContent = ZW("ca. ".concat(n, " km von ").concat(ORT.name), "".concat(ORT.name, ": kb. ").concat(n, " km"));
-    d.querySelector(".cam-fs").textContent = "⛶ " + TR("Vollbild");
-    const a = d.querySelector("a");
-    a.href = "https://www.windy.com/webcams/".concat(c.id);
-    a.textContent = TR("öffnen") + " ↗";
-    grid.appendChild(d);
+  if (!liste.length) {
+    $("cam-weit").innerHTML = "";
+  } else {
+    $("cam-quelle").textContent = ORT.name;
+    for (const c of liste) {
+      const titel = ZW(c.de, c.hu), nb = c.nde ? ZW(c.nde, c.nhu) : "";
+      const d = document.createElement("div");
+      d.className = "cam";
+      d.innerHTML = '<div class="f"><iframe loading="lazy" allowfullscreen referrerpolicy="no-referrer" sandbox="allow-scripts allow-same-origin allow-presentation"></iframe></div><div class="t"><span><b></b><small></small></span><span class="r"><a target="_blank" rel="noopener"></a><button type="button" class="cam-fs"></button></span></div>';
+      const f = d.querySelector("iframe");
+      f.title = titel;
+      f.dataset.id = c.id;
+      f.src = camUrl(c.id);
+      d.querySelector("b").textContent = titel;
+      d.querySelector("small").textContent = nb;
+      d.querySelector(".cam-fs").textContent = "⛶ " + TR("Vollbild");
+      const a = d.querySelector("a");
+      a.href = "https://www.windy.com/webcams/".concat(c.id);
+      a.textContent = TR("öffnen") + " ↗";
+      grid.appendChild(d);
+    }
+    $("cam-weit").innerHTML = '<a href="https://www.windy.com/-Webcams/webcams?'.concat(ORT.lat, ",").concat(ORT.lon, ',10" target="_blank" rel="noopener">').concat(esc(ZW("Alle Webcams in der Umgebung bei Windy", "Az összes webkamera a környéken (Windy)")), " ↗</a>");
   }
-  $("cam-weit").innerHTML = (weit ? esc(ZW("Keine Kamera in unmittelbarer Nähe gefunden. ", "Nincs kamera a közvetlen közelben. ")) : "") + '<a href="https://www.windy.com/-Webcams/webcams?'.concat(ORT.lat, ",").concat(ORT.lon, ',10" target="_blank" rel="noopener">').concat(esc(ZW("Alle Webcams in der Umgebung bei Windy", "Az összes webkamera a környéken (Windy)")), " ↗</a>");
   document.querySelectorAll("#cam-mode button").forEach((b) => b.setAttribute("aria-pressed", b.dataset.m === camModus));
   if (camInit) return;
   camInit = true;
