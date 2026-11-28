@@ -55,6 +55,14 @@ body.m2 #dim{opacity:.55}
 #warn{margin-top:8px;text-align:center;font-size:12px;color:var(--warn);min-height:15px}
 #stand{margin-top:4px;text-align:center;font-size:10px;color:var(--mu)}
 
+#vbar{flex:none;display:flex;align-items:center;margin-top:8px}
+#vbar button{width:84px;height:46px;font-size:30px;line-height:1;padding:0}
+#vlev{flex:1;margin:0 8px;text-align:center}
+#vseg{display:flex}
+#vseg span{flex:1;height:14px;margin-left:3px;background:rgba(255,255,255,.12);border-radius:3px}
+#vseg span:first-child{margin-left:0}
+#vseg span.on{background:var(--ac)}
+#vnote{display:block;font-size:10px;color:var(--mu);margin-top:3px;min-height:12px}
 #bar{flex:none;display:flex;margin-top:8px}
 #bar button{flex:1;margin-left:6px;font-size:14px;line-height:1.15}
 #bar button:first-child{margin-left:0}
@@ -118,6 +126,11 @@ body.m2 #dim{opacity:.55}
       <div id="hours"></div>
       <div id="warn"></div>
       <div id="stand"></div>
+    </div>
+    <div id="vbar">
+      <button id="vDn" type="button">&minus;</button>
+      <div id="vlev"><div id="vseg"></div><small id="vnote"></small></div>
+      <button id="vUp" type="button">+</button>
     </div>
     <div id="bar">
       <button id="bRadio" type="button">Radio<small id="bRadioS">aus</small></button>
@@ -228,18 +241,23 @@ function dayKey(d) { return d.getFullYear() + "-" + p2(d.getMonth() + 1) + "-" +
 var S = {
   on: lsGet("on", false), time: lsGet("time", "06:30"), days: lsGet("days", [1, 2, 3, 4, 5]),
   sound: lsGet("sound", "radio"), station: lsGet("station", 0), custom: lsGet("custom", ""),
-  snooze: lsGet("snooze", 9), ort: lsGet("ort", "blaibach"), mode: lsGet("mode", "auto")
+  snooze: lsGet("snooze", 9), ort: lsGet("ort", "blaibach"), mode: lsGet("mode", "auto"), vol: lsGet("vol", 10)
 };
 (function () {   // ?ort=zwiesel o. ä. übernimmt den Ort
   var m = /[?&]ort=([a-z]+)/.exec(location.search);
   if (m && ORTE[m[1]]) S.ort = m[1];
   if (!ORTE[S.ort]) S.ort = "blaibach";
   if (!(S.station >= 0 && S.station <= CUSTOM)) S.station = 0;
+  S.vol = Math.round(Number(S.vol));
+  if (!(S.vol >= 1 && S.vol <= 10)) S.vol = 10;
 })();
 function save() { for (var k in S) if (S.hasOwnProperty(k)) lsSet(k, S[k]); }
 
 /* ---------- Audio ---------- */
-var au = $("au");
+var auPlain = $("au"), au = auPlain, auCors = null, master = null, an = null, corsBad = {};
+/* Lautstärke: iOS erlaubt Webseiten kein audio.volume. Darum läuft der Sender (wenn Lautstärke < 10) über Web Audio
+   mit Reglerknoten. Das klappt nur, wenn der Sender CORS erlaubt; sonst Rückfall auf das normale Audio-Element
+   (Lautstärke dann nur mit den iPhone-Tasten). Bei Stufe 10 läuft alles wie bisher ohne Web Audio. */
 var unlocked = false, audioMode = "none", ringing = false, ringStart = 0, lastProg = 0;
 var beeping = false, beepFallback = false, beepTimer = null, beepStart = 0, ctx = null, retryTimer = null, watch = null;
 
@@ -271,41 +289,96 @@ function initCtx() {
       ctx = new C();
       var b = ctx.createBuffer(1, 1, 22050), s = ctx.createBufferSource();   // iOS: Kontext per Tipp freischalten
       s.buffer = b; s.connect(ctx.destination); s.start(0);
+      master = ctx.createGain(); master.connect(ctx.destination); applyVol();
+      try {
+        auCors = document.createElement("audio");
+        auCors.crossOrigin = "anonymous"; auCors.preload = "none";
+        var ms = ctx.createMediaElementSource(auCors);
+        ms.connect(master);
+        an = ctx.createAnalyser(); an.fftSize = 256; ms.connect(an);
+        bindAudio(auCors);
+      } catch (e) { auCors = null; an = null; }
     }
     if (ctx && ctx.state === "suspended") ctx.resume();
   } catch (e) {}
 }
+function applyVol() { if (master) master.gain.value = Math.pow(S.vol / 10, 2); }
+function pickEl() {   // aktives Audio-Element wählen (Regler-Weg nur, wenn nötig und möglich)
+  var want = (auCors && S.vol < 10 && !corsBad[curUrl()]) ? auCors : auPlain;
+  if (want !== au) {
+    var old = au; au = want;
+    try { old.pause(); old.removeAttribute("src"); old.load(); } catch (e) {}
+  }
+}
+function warmOther() {   // das zweite Element im Tipp freischalten, damit iOS es später ohne Tipp abspielt
+  var o = au === auPlain ? auCors : auPlain;
+  if (!o || !o.paused) return;
+  try { o.loop = true; o.src = SIL; var p = o.play(); if (p && p.catch) p.catch(function () {}); } catch (e) {}
+}
 function setSilent() {
-  audioMode = "silent"; clearTimeout(retryTimer);
+  audioMode = "silent"; clearTimeout(retryTimer); pickEl();
   au.loop = true; au.src = SIL; safePlay();
 }
 function unlock() {
   initCtx();
   if (unlocked && !au.paused) return;
   if (audioMode === "none" || audioMode === "silent") setSilent(); else safePlay();
+  warmOther();
 }
 document.addEventListener("touchend", unlock, false);
 document.addEventListener("click", unlock, false);
 
-au.addEventListener("playing", function () { unlocked = true; lastProg = Date.now(); render(); });
-au.addEventListener("timeupdate", function () {
-  lastProg = Date.now();
-  if (beeping && beepFallback && audioMode === "ring") stopBeep();   // Sender läuft wieder
-});
-au.addEventListener("pause", function () { unlocked = false; render(); setTimeout(function () { if (au.paused && audioMode !== "none") safePlay(); }, 1500); });
+function markBad() {   // Sender erlaubt kein CORS oder Web Audio bleibt stumm: normales Element nehmen
+  corsBad[curUrl()] = true; pickEl();
+  au.loop = false; au.src = curUrl(); safePlay(); render();
+}
+function watchSilence() {   // läuft der Sender über Web Audio, aber es kommt nichts an (6 s Stille): zurückschalten
+  if (!an || au !== auCors) return;
+  var u = curUrl(), n = 0, buf = new Uint8Array(an.fftSize);
+  var iv = setInterval(function () {
+    if (au !== auCors || curUrl() !== u || (audioMode !== "radio" && audioMode !== "ring")) { clearInterval(iv); return; }
+    an.getByteTimeDomainData(buf);
+    var i;
+    for (i = 0; i < buf.length; i++) if (buf[i] !== 128) { clearInterval(iv); return; }
+    if (++n >= 12) { clearInterval(iv); markBad(); }
+  }, 500);
+}
 function streamLost() {
   if (audioMode !== "radio" && audioMode !== "ring") return;
   if (audioMode === "ring") { beepFallback = true; startBeep(); }
   clearTimeout(retryTimer);
   retryTimer = setTimeout(function () {
     if (audioMode !== "radio" && audioMode !== "ring") return;
-    au.loop = false; au.src = curUrl(); safePlay();
+    pickEl(); au.loop = false; au.src = curUrl(); safePlay();
   }, 3000);
   render();
 }
-au.addEventListener("error", streamLost);
-au.addEventListener("ended", streamLost);
-au.addEventListener("stalled", function () { if (audioMode === "radio") { lastProg = 0; } });
+function bindAudio(el) {
+  el.addEventListener("playing", function () {
+    if (el !== au) return;
+    unlocked = true; lastProg = Date.now(); render();
+    if (el === auCors && (audioMode === "radio" || audioMode === "ring")) watchSilence();
+  });
+  el.addEventListener("timeupdate", function () {
+    if (el !== au) return;
+    lastProg = Date.now();
+    if (beeping && beepFallback && audioMode === "ring") stopBeep();   // Sender läuft wieder
+  });
+  el.addEventListener("pause", function () {
+    if (el !== au) return;
+    unlocked = false; render();
+    setTimeout(function () { if (au.paused && audioMode !== "none") safePlay(); }, 1500);
+  });
+  function bad() {
+    if (el !== au) return;
+    if (el === auCors && (audioMode === "radio" || audioMode === "ring") && !corsBad[curUrl()]) { markBad(); return; }
+    streamLost();
+  }
+  el.addEventListener("error", bad);
+  el.addEventListener("ended", bad);
+  el.addEventListener("stalled", function () { if (el === au && audioMode === "radio") { lastProg = 0; } });
+}
+bindAudio(auPlain);
 
 /* Piepton aus dem Browser (Notlösung, steigt langsam an) */
 function beepLoop() {
@@ -317,7 +390,7 @@ function beepLoop() {
       o.type = "square"; o.frequency.value = 1040;
       g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(vol * 0.5, t0 + 0.01);
       g.gain.setValueAtTime(vol * 0.5, t0 + 0.13); g.gain.linearRampToValueAtTime(0, t0 + 0.15);
-      o.connect(g); g.connect(ctx.destination); o.start(t0); o.stop(t0 + 0.16);
+      o.connect(g); g.connect(master || ctx.destination); o.start(t0); o.stop(t0 + 0.16);
     }
   } catch (e) {}
   beepTimer = setTimeout(beepLoop, 1500);
@@ -331,10 +404,27 @@ function stopBeep() { beeping = false; beepFallback = false; clearTimeout(beepTi
 /* ---------- Radio, Schlaf-Timer ---------- */
 var sleepEnd = 0, SLEEP_STEPS = [0, 15, 30, 60, 90], sleepIdx = 0;
 function radioOn() {
-  initCtx(); audioMode = "radio"; clearTimeout(retryTimer);
+  initCtx(); audioMode = "radio"; clearTimeout(retryTimer); pickEl();
   au.loop = false; au.src = curUrl(); safePlay(); render();
 }
 function radioOff() { sleepEnd = 0; sleepIdx = 0; setSilent(); render(); }
+function setVol(n) {
+  initCtx();
+  S.vol = Math.max(1, Math.min(10, n)); save();
+  var before = au; pickEl();
+  if (au !== before) {   // Weg gewechselt (Stufe 10 <-> darunter): Sender kurz neu starten
+    if (audioMode === "radio" || audioMode === "ring") { au.loop = false; au.src = curUrl(); }
+    else { au.loop = true; au.src = SIL; }
+    safePlay();
+  }
+  warmOther(); applyVol(); render();
+}
+$("vDn").addEventListener("click", function () { setVol(S.vol - 1); });
+$("vUp").addEventListener("click", function () { setVol(S.vol + 1); });
+(function () {
+  var h = "", i; for (i = 0; i < 10; i++) h += "<span></span>";
+  $("vseg").innerHTML = h;
+})();
 $("bRadio").addEventListener("click", function () {
   if (ringing) return;
   if (audioMode === "radio") radioOff(); else radioOn();
@@ -367,7 +457,7 @@ function ring() {
   $("ring").className = "show";
   initCtx();
   if (S.sound === "radio") {
-    audioMode = "ring"; clearTimeout(retryTimer);
+    audioMode = "ring"; clearTimeout(retryTimer); pickEl();
     au.loop = false; au.src = curUrl();
     try { var pr = au.play(); if (pr && pr.catch) pr.catch(function () { beepFallback = true; startBeep(); }); } catch (e) { beepFallback = true; startBeep(); }
   } else {
@@ -533,6 +623,10 @@ function render() {
   $("bSleepS").textContent = sleepEnd ? Math.max(1, Math.ceil((sleepEnd - Date.now()) / 60000)) + " min" : "aus";
   $("bSleep").className = sleepEnd ? "on" : "";
   $("bDimS").textContent = MODENAME[String(S.mode)];
+  var sp = $("vseg").getElementsByTagName("span"), k;
+  for (k = 0; k < sp.length; k++) sp[k].className = k < S.vol ? "on" : "";
+  $("vnote").textContent = (audioMode === "radio" || audioMode === "ring") && S.vol < 10 && corsBad[curUrl()]
+    ? "Dieser Sender: Lautstärke nur mit den iPhone-Tasten" : "Lautstärke " + S.vol + " von 10";
 }
 
 /* ---------- Einstellungen ---------- */
